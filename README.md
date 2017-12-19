@@ -13,7 +13,7 @@ To download:
 
 3. In a terminal on your local machine, unzip the downloaded file. This will create a new directory which contains subdirectories `Infrastructure`, `L2VPN Service Module`, `L3VPN Service Module` and `Uniconfig Framework`. Each contains at least one Postman collection file (and in some cases an associated Postman environment file).  
 
-4. You can now import these Postman collection and environments files into Postman (which can be downloaded from [here](https://www.getpostman.com/) as you require:  
+4. You can now import these Postman collection and environments files into Postman (which can be downloaded from [here](https://www.getpostman.com/)) as you require:  
 
 Start Postman and click on `Import` near the top-left of the screen.   
 

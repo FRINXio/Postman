@@ -8,7 +8,7 @@ if [ -f $file ] ; then
     rm $file
 fi
 
-### Test for IOS XR
+### Test for IOS XR router
 XR_devices=("xrv5_env.json")
 XR5_folders=("Mount" "RSVP CRUD" "MPLS CRUD" "OSPF CRUD" "BGP CRUD" "5 LAG without BFD" "SNMP" "SYSLOG CRUD" "ETH IFC CRUD" "PF IFC CRUD" "LACP CRUD" "Unmount")
 

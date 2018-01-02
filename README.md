@@ -1,14 +1,11 @@
 # Usage
 Each new release of Frinx ODL (from 3.1.1 onwards) has associated Postman collections and environment files that form the API for interacting with Frinx ODL and are contained within this repository. For more info please see our main documentation page [here](https://frinxio.github.io/Frinx-docs/FRINX_ODL_Distribution/Carbon/API.html)  
 
-
 To download:
 
-1. Click on 'releases' above, shown circled in red in the image below.   
-
-![Click on releases](image1.png "Click on releases")
+1. Both the Frinx **Postman collection** and **Postman environment** files are grouped by Frinx ODL release (starting with 3.1.1) and packaged as zip files [here](https://github.com/FRINXio/Postman/releases). 
   
-2. Scroll to the release number that matches the Frinx ODL Distribution you are using, and click on zip to download.  
+2. On that page, scroll to the release number that matches the Frinx ODL Distribution you are using, and click on zip to download.  
 
 ![Select release](image2.png "Select release")  
 

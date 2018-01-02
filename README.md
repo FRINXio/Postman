@@ -1,5 +1,6 @@
 # Usage
-Each new release of Frinx ODL (from 3.1.1 onwards) has associated Postman collections and environment files that form the API for interacting with Frinx ODL and are contained within this repository.  
+Each new release of Frinx ODL (from 3.1.1 onwards) has associated Postman collections and environment files that form the API for interacting with Frinx ODL and are contained within this repository. For more info please see our main documentation page [here](https://frinxio.github.io/Frinx-docs/FRINX_ODL_Distribution/Carbon/API.html)  
+
 
 To download:
 

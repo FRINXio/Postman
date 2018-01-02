@@ -1,5 +1,5 @@
 # Usage
-Each new release of Frinx ODL (from 3.1.1 onwards) has associated Postman collections and environment files that form the API for interacting with Frinx ODL and are contained within this repository. For more info please see our main documentation page [here](https://frinxio.github.io/Frinx-docs/FRINX_ODL_Distribution/Carbon/API.html)  
+Each new release of Frinx ODL (from 3.1.1 onwards) has associated Postman collections and environment files that form the API for interacting with Frinx ODL and are contained within this repository. For more info please see our main [API documentation page] (https://frinxio.github.io/Frinx-docs/FRINX_ODL_Distribution/Carbon/API.html)  
 
 To download:
 
@@ -18,6 +18,8 @@ Start Postman and click on `Import` near the top-left of the screen.
 In the pop-up window which opens, click to select the file you want to import (collection file or environment file). The collection or environment will now be available for use.  
 
 ![Import into Postman](import.png "Import into Postman")  
+
+For further guidance on using Postman please see our main [API documentation page] (https://frinxio.github.io/Frinx-docs/FRINX_ODL_Distribution/Carbon/API.html)  
 
 For more information on particular modules, please see our documentation pages [here](https://frinxio.github.io/Frinx-docs/)
 

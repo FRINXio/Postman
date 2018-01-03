@@ -1,7 +1,7 @@
 #!/bin/bash
 set +x
 
-collection=postman.json
+collection=postman_collection_CLI.json
 file=list.txt
 
 if [ -f $file ] ; then

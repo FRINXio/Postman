@@ -1,7 +1,7 @@
 #!/bin/bash
 set +x
 
-collection=postman.json
+collection=postman_collection_CLI.json
 file=list.txt
 
 if [ -f $file ] ; then
@@ -24,7 +24,7 @@ done
 
 ### Test for IOS XR
 XR_devices=("xrv_env.json" "asr_env.json" "xrv5_env.json")
-XR_folders=("Mount" "General information" "Interface" "Interface IP" "ospf" "static route" "CDP" "LLDP" "subinterface common" "BGP summary" "BGP CRUD" "Unmount")
+XR_folders=("Mount" "General information" "Interface" "Interface IP" "ospf" "static route" "CDP" "LLDP" "subinterface common" "BGP summary" "BGP CRUD" "L2P2P" "L2P2P CRUD" "Unmount")
 XR5_folders=("Mount" "RSVP CRUD" "MPLS CRUD" "OSPF CRUD" "BGP CRUD" "5 LAG without BFD" "subinterface common CRUD" "SNMP" "SYSLOG CRUD" "ETH IFC CRUD" "PF IFC CRUD" "LACP CRUD" "IFC ACL CRUD" "Unmount")
 ASR_folders=("Mount" "General information" "Interface" "Interface IP" "ospf" "static route" "Platform" "CDP" "LLDP" "subinterface common" "BGP summary" "5 LAG without BFD" "5 LAG with BFD" "SNMP" "SYSLOG CRUD" "Unmount")
 

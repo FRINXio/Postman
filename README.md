@@ -19,7 +19,7 @@ In the pop-up window which opens, click to select the file you want to import (c
 
 ![Import into Postman](import.png "Import into Postman")  
 
-For further guidance on using Postman please see our main [API documentation page] (https://frinxio.github.io/Frinx-docs/FRINX_ODL_Distribution/Carbon/API.html)  
+For further guidance on using Postman please see our main [API documentation page](https://frinxio.github.io/Frinx-docs/FRINX_ODL_Distribution/Carbon/API.html)  
 
 For more information on particular modules, please see our documentation pages [here](https://frinxio.github.io/Frinx-docs/)
 

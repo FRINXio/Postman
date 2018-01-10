@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "FRINX Uniconfig",
-		"_postman_id": "285fe22b-e09b-70da-bf3f-dd79c623a45b",
+		"_postman_id": "59a34ce3-df07-cb30-31fe-ad121159e26a",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
@@ -42,7 +42,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOSXR\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n}"
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOSXR\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"safe-command-execution\": false\n    }\n  }"
 								},
 								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/cli/node/IOSXR"
 							},
@@ -4428,17 +4428,19 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "4260599b-9352-4054-b744-2c258e83ffad",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"console.warn(\"// FIXME this returns 200 instead of returning 400\")",
-													"//tests[\"PUT - Update tunnel invalid request\"] = responseCode.code === 400"
+													"tests[\"PUT - Update tunnel invalid request\"] = responseCode.code === 200",
+													""
 												]
 											}
 										},
 										{
 											"listen": "prerequest",
 											"script": {
+												"id": "f4538e66-0b3f-4af0-85c2-d0c422552900",
 												"type": "text/javascript",
 												"exec": [
 													"",
@@ -4477,22 +4479,23 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "bd8d239b-80dc-4e3a-9016-4e7b9c828f65",
+												"id": "e59280a2-8d63-4606-969a-4996d94a06e6",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"POST - LE0: commit\"] = responseCode.code === 200",
+													"tests[\"POST - TU5: commit\"] = responseCode.code === 200",
 													"",
 													"var jsonData = JSON.parse(responseBody);",
 													"if ( \"output\" in jsonData ) {",
-													"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+													"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_fail\")",
 													"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
 													"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"nodeCliXr\")",
-													"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+													"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_fail\")",
 													"    }",
 													"} else {",
 													"        tests[\"Commit went wrong\"] = false",
-													"}"
+													"}",
+													""
 												]
 											}
 										}
@@ -19752,10 +19755,20 @@
 								{
 									"listen": "test",
 									"script": {
+										"id": "29f3fee5-acd8-4764-b464-e2e5b3aac521",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
-											"tests[\"Status code is 404\"] = responseCode.code === 404;"
+											"//tests[\"Status code is 404\"] = responseCode.code === 404;",
+											"tests[\"Status code is 200\"] = responseCode.code === 200;",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"tests[\"1. SYSLOG interface created\"] = jsonData[\"frinx-logging:interface\"][0][\"interface-id\"] === 'Bundle-Ether' + postman.getEnvironmentVariable(\"lag_inf-id\");",
+											"tests[\"2. SYSLOG interface created\"] = jsonData[\"frinx-logging:interface\"][0][\"config\"][\"interface-id\"] === 'Bundle-Ether' + postman.getEnvironmentVariable(\"lag_inf-id\");",
+											"",
+											"var mystring = '\"event-name\":\"frinx-event-types:LINK_UP_DOWN\"';",
+											"tests[\"Body doesnt matches string \" + mystring] = !responseBody.has(mystring);",
+											""
 										]
 									}
 								}
@@ -20268,14 +20281,11 @@
 								{
 									"listen": "test",
 									"script": {
+										"id": "35149b06-51af-4137-a897-ba75f086a6fc",
 										"type": "text/javascript",
 										"exec": [
-											"//Cannot configure logging on ethernet interface ...",
-											"//It should be returned status  4xx - problem on side client",
-											"console.warn(\"// FIXME this returns 500 server error instead of returning 4xx for case cannot configure logging on ethernet interface ...\")",
-											"",
-											"// console.log(\"Response: \" + responseBody)",
-											"// tests[\"Status code is 4xx\"] = responseCode.code === 4xx;"
+											"console.log(\"Response: \" + responseBody)",
+											"tests[\"Status code is 201\"] = responseCode.code === 201 || 200;"
 										]
 									}
 								}
@@ -20607,6 +20617,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "45f06c1d-4e52-40a0-98a1-78803ff2e32c",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -20616,21 +20627,21 @@
 													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
 													"",
 													"var jsonData = JSON.parse(responseBody);",
-													"if (\"frinx-openconfig-interfaces:interface\" in jsonData) {",
+													"if (\"frinx-openconfig-acl:interface\" in jsonData) {",
 													"    // Reset attempt counter",
 													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-acl:interface\"].length === 1",
+													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    //tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
 													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
+													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
 													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
+													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
 													"",
 													"} else {",
 													"    // If too many attempts, abort",
@@ -20756,6 +20767,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "fd76d048-950a-49c9-bbb0-31fd9162c51c",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -20765,21 +20777,21 @@
 													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
 													"",
 													"var jsonData = JSON.parse(responseBody);",
-													"if (\"frinx-openconfig-interfaces:interface\" in jsonData) {",
+													"if (\"frinx-openconfig-acl:interface\" in jsonData) {",
 													"    // Reset attempt counter",
 													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-acl:interface\"].length === 1",
+													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    //tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
 													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
+													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
 													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
+													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
 													"",
 													"} else {",
 													"    // If too many attempts, abort",
@@ -20905,41 +20917,11 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "2b0338d7-9d4f-4f38-bfa5-188c0ab715a9",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (\"frinx-openconfig-interfaces:interface\" in jsonData) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('IA1: show updated acl');",
-													"    }",
-													"}"
+													"tests[\"GET - show created interface request\"] = responseCode.code === 404"
 												]
 											}
 										}
@@ -21307,6 +21289,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "6c605652-041a-41f4-92b6-e1e2ac92eeb6",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -21316,21 +21299,21 @@
 													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
 													"",
 													"var jsonData = JSON.parse(responseBody);",
-													"if (\"frinx-openconfig-interfaces:interface\" in jsonData) {",
+													"if (\"frinx-openconfig-acl:interface\" in jsonData) {",
 													"    // Reset attempt counter",
 													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-acl:interface\"].length === 1",
+													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    //tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
 													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
+													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
 													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
+													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
 													"",
 													"} else {",
 													"    // If too many attempts, abort",
@@ -21456,6 +21439,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "e35cf06c-559f-4e11-8b80-9a197ed1a361",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -21465,21 +21449,21 @@
 													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
 													"",
 													"var jsonData = JSON.parse(responseBody);",
-													"if (\"frinx-openconfig-interfaces:interface\" in jsonData) {",
+													"if (\"frinx-openconfig-acl:interface\" in jsonData) {",
 													"    // Reset attempt counter",
 													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-acl:interface\"].length === 1",
+													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    //tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
 													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
+													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
 													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
+													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
 													"",
 													"} else {",
 													"    // If too many attempts, abort",
@@ -21605,6 +21589,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "646138d9-923f-4497-9cbc-96ce93f8a61b",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -21614,21 +21599,21 @@
 													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
 													"",
 													"var jsonData = JSON.parse(responseBody);",
-													"if (\"frinx-openconfig-interfaces:interface\" in jsonData) {",
+													"if (\"frinx-openconfig-acl:interface\" in jsonData) {",
 													"    // Reset attempt counter",
 													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-acl:interface\"].length === 1",
+													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
+													"    //tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
 													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
+													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
+													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
 													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
+													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-acl:interface\"][0]",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
+													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
 													"",
 													"} else {",
 													"    // If too many attempts, abort",
@@ -21754,41 +21739,11 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "a8537ac8-12c2-475b-901b-5813a2a8ecf1",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (\"frinx-openconfig-interfaces:interface\" in jsonData) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('IA1: show updated acl');",
-													"    }",
-													"}"
+													"tests[\"GET - show created interface request\"] = responseCode.code === 404"
 												]
 											}
 										}
@@ -21952,7 +21907,7 @@
 							"name": "SNMP on GigabitEthernet",
 							"item": [
 								{
-									"name": "SETUP: Configure disabled SNMP",
+									"name": "SN0: SETUP: Configure disabled SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22036,7 +21991,7 @@
 									"response": []
 								},
 								{
-									"name": "show configured SNMP",
+									"name": "SN0: show configured SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22084,7 +22039,7 @@
 									"response": []
 								},
 								{
-									"name": "SETUP: Configure enabled SNMP",
+									"name": "SN1: SETUP: Configure enabled SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22168,7 +22123,7 @@
 									"response": []
 								},
 								{
-									"name": "show configured SNMP",
+									"name": "SN1: show configured SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22259,7 +22214,7 @@
 									"response": []
 								},
 								{
-									"name": "Delete SNMP => Disable SNMP",
+									"name": "SN1: Delete SNMP => Disable SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22338,24 +22293,26 @@
 									"response": []
 								},
 								{
-									"name": "show disabled SNMP",
+									"name": "SN1: show disabled SNMP",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "592da8b5-0c57-404f-a5e2-28c3429b4c9f",
+												"id": "41bec8a8-0dff-4609-84e0-8a660f86924c",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Status code is 404\"] = responseCode.code === 404;",
 													"",
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
 													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"tests[\"1. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"interface-id\"] === postman.getEnvironmentVariable(\"snmp_inf_id_physical\");",
-													"tests[\"2. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"config\"][\"interface-id\"] === postman.getEnvironmentVariable(\"snmp_inf_id_physical\");",
+													"//tests[\"Status code is 200\"] = responseCode.code === 200;",
 													"",
-													"var mystring = '\"event-name\": \"frinx-event-types:LINK_UP_DOWN\"';",
-													"tests[\"Body does not match string \" + mystring] = !responseBody.has(mystring);",
+													"//var jsonData = JSON.parse(responseBody);",
+													"//tests[\"1. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"interface-id\"] === postman.getEnvironmentVariable(\"snmp_inf_id_physical\");",
+													"//tests[\"2. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"config\"][\"interface-id\"] === postman.getEnvironmentVariable(\"snmp_inf_id_physical\");",
+													"",
+													"//var mystring = '\"event-name\": \"frinx-event-types:LINK_UP_DOWN\"';",
+													"//tests[\"Body does not match string \" + mystring] = !responseBody.has(mystring);",
 													""
 												]
 											}
@@ -22381,12 +22338,12 @@
 											"mode": "raw",
 											"raw": ""
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/IOSXR/frinx-uniconfig-topology:configuration/frinx-snmp:snmp/interfaces/interface/{{snmp_url_inf_id_physical}}"
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/IOSXR/frinx-uniconfig-topology:configuration/frinx-snmp:snmp/interfaces/interface/{{snmp_url_inf_id_physical}}"
 									},
 									"response": []
 								},
 								{
-									"name": "Create SNMP => Enable SNMP",
+									"name": "SN2: Create SNMP => Enable SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22465,7 +22422,7 @@
 									"response": []
 								},
 								{
-									"name": "show enabled SNMP",
+									"name": "SN2: show enabled SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22515,7 +22472,7 @@
 									"response": []
 								},
 								{
-									"name": "Update SNMP => disable SNMP",
+									"name": "SN3: Update SNMP => disable SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22594,7 +22551,7 @@
 									"response": []
 								},
 								{
-									"name": "show disabled SNMP",
+									"name": "SN3: show disabled SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22648,7 +22605,7 @@
 							"name": "SNMP on LAG",
 							"item": [
 								{
-									"name": "TEARDOWN: Delete LAG interface",
+									"name": "SNL1: TEARDOWN: Delete LAG interface",
 									"event": [
 										{
 											"listen": "test",
@@ -22685,7 +22642,7 @@
 									"response": []
 								},
 								{
-									"name": "SETUP: Create LAG interface",
+									"name": "SNL1: SETUP: Create LAG interface",
 									"event": [
 										{
 											"listen": "test",
@@ -22722,7 +22679,7 @@
 									"response": []
 								},
 								{
-									"name": "SETUP: Configure disabled SNMP",
+									"name": "SNL1: SETUP: Configure disabled SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22806,7 +22763,7 @@
 									"response": []
 								},
 								{
-									"name": "show configured SNMP",
+									"name": "SNL1: show configured SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22854,7 +22811,7 @@
 									"response": []
 								},
 								{
-									"name": "SETUP: Configure enabled SNMP",
+									"name": "SNL2: SETUP: Configure enabled SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -22917,7 +22874,7 @@
 									"response": []
 								},
 								{
-									"name": "show configured SNMP",
+									"name": "SNL2: show configured SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -23008,7 +22965,7 @@
 									"response": []
 								},
 								{
-									"name": "Delete  SNMP => Disable SNMP",
+									"name": "SNL2: Delete  SNMP => Disable SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -23041,7 +22998,7 @@
 									"response": []
 								},
 								{
-									"name": "SNL1: commit",
+									"name": "SNL2: commit",
 									"event": [
 										{
 											"listen": "test",
@@ -23087,25 +23044,16 @@
 									"response": []
 								},
 								{
-									"name": "show disabled SNMP",
+									"name": "SNL2: show disabled SNMP",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "b29f01a4-056f-4f9a-98e7-6486944d8168",
+												"id": "09e2201f-274b-4a3c-9681-57d625d5e91a",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"",
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"tests[\"1. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"interface-id\"] === 'Bundle-Ether' + postman.getEnvironmentVariable(\"lag_inf-id\");",
-													"tests[\"2. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"config\"][\"interface-id\"] === 'Bundle-Ether' + postman.getEnvironmentVariable(\"lag_inf-id\");",
-													"",
-													"var mystring = '\"event-name\":\"frinx-event-types:LINK_UP_DOWN\"';",
-													"tests[\"Body does not match string \" + mystring] = !responseBody.has(mystring);",
-													""
+													"tests[\"Status code is 404\"] = responseCode.code === 404;"
 												]
 											}
 										}
@@ -23135,7 +23083,7 @@
 									"response": []
 								},
 								{
-									"name": "Create SNMP => Enable SNMP",
+									"name": "SNL3: Create SNMP => Enable SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -23214,7 +23162,7 @@
 									"response": []
 								},
 								{
-									"name": "show enabled SNMP",
+									"name": "SNL2: show enabled SNMP",
 									"event": [
 										{
 											"listen": "test",
@@ -23381,18 +23329,18 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "257a9dae-92c0-4ffc-900c-5f035a2b1859",
+												"id": "b26b0cff-7e23-4eb7-ac01-dead609a1a55",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"POST - SNL4: commit\"] = responseCode.code === 200",
+													"tests[\"POST - SNL2: commit\"] = responseCode.code === 200",
 													"",
 													"var jsonData = JSON.parse(responseBody);",
 													"if ( \"output\" in jsonData ) {",
-													"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_fail\")",
+													"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
 													"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
 													"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"nodeCliXr\")",
-													"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_fail\")",
+													"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
 													"    }",
 													"} else {",
 													"        tests[\"Commit went wrong\"] = false",
@@ -23422,25 +23370,16 @@
 									"response": []
 								},
 								{
-									"name": "show disabled SNMP",
+									"name": "SNL4: show disabled SNMP",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "069b35b8-6cb2-4c3b-9281-c7287bd76adb",
+												"id": "d089d76d-27e8-4cbd-a152-b50b2f75a909",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"",
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"tests[\"1. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"interface-id\"] === 'Bundle-Ether' + postman.getEnvironmentVariable(\"lag_inf-id\");",
-													"tests[\"2. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"config\"][\"interface-id\"] === 'Bundle-Ether' + postman.getEnvironmentVariable(\"lag_inf-id\");",
-													"",
-													"var mystring = '\"event-name\":\"frinx-event-types:LINK_UP_DOWN\"';",
-													"tests[\"Body does not match string \" + mystring] = !responseBody.has(mystring);",
-													""
+													"tests[\"Status code is 404\"] = responseCode.code === 404;"
 												]
 											}
 										}
@@ -23590,12 +23529,12 @@
 									"response": []
 								},
 								{
-									"name": "show disabled SNMP",
+									"name": "SNL5: show enabled SNMP",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "43c5003c-e0cd-4443-b0e9-480cd999d10b",
+												"id": "6d137b08-4ff7-42e6-9863-1a34af3bc8e0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -23607,7 +23546,7 @@
 													"tests[\"2. SNMP present on interface\"] = jsonData[\"frinx-snmp:interface\"][0][\"config\"][\"interface-id\"] === 'Bundle-Ether' + postman.getEnvironmentVariable(\"lag_inf-id\");",
 													"",
 													"var mystring = '\"event-name\":\"frinx-event-types:LINK_UP_DOWN\"';",
-													"tests[\"Body does not match string \" + mystring] = !responseBody.has(mystring);",
+													"tests[\"Body does match string \" + mystring] = responseBody.has(mystring);",
 													""
 												]
 											}

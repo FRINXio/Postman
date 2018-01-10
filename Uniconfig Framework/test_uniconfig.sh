@@ -1,7 +1,7 @@
 #!/bin/bash
 set +x
 
-collection=postman_uniconfig.json
+collection=postman_collection_uniconfig.json
 file=list.txt
 
 if [ -f $file ] ; then
@@ -10,7 +10,7 @@ fi
 
 ### Test for IOS XR router
 XR_devices=("xrv5_env.json")
-XR5_folders=("Mount" "RSVP CRUD" "MPLS CRUD" "OSPF CRUD" "BGP CRUD" "5 LAG without BFD" "SNMP" "SYSLOG CRUD" "ETH IFC CRUD" "PF IFC CRUD" "LACP CRUD" "Unmount")
+XR5_folders=("Mount" "RSVP CRUD" "MPLS CRUD" "OSPF CRUD" "BGP CRUD" "5 LAG without BFD" "SNMP" "SYSLOG CRUD" "ETH IFC CRUD" "PF IFC CRUD" "LACP CRUD" "IFC ACL CRUD" "Unmount")
 
 for device in ${XR_devices[@]}
 do

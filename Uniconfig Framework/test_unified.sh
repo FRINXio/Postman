@@ -154,6 +154,31 @@ do
 done
 
 
+### Test for Junos
+junos_devices=("junos_env.json")
+junos_folders=()
+
+for device in ${junos_devices[@]}
+do
+   echo Collection running with $device
+         if [ "$device" == "junos_env.json" ]
+         then
+             folder="Junos Mount"
+             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
+             for folder in "${junos_folders[@]}"
+             do
+                sfolder="Junos $folder Setup"
+                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $sfolder FAILED" >> $file; fi
+                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
+                tfolder="Junos $folder Teardown"
+                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $tfolder FAILED" >> $file; fi
+                sleep 2
+             done
+             folder="Junos Unmount"
+             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
+         fi
+done
+
 
 ### Test for Linux generic
 Linux_devices=("linux_157_env.json")

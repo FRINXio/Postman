@@ -9,8 +9,8 @@ if [ -f $file ] ; then
 fi
 
 ### Mount unmount test case
-#devices=("mount_unmount_env.json" "mount_unmount_telnet_env.json" "mount_unmount_ios1553_env.json")
-#folders=("Mount/Unmount IOS")
+devices=("mount_unmount_env.json" "mount_unmount_telnet_env.json" "mount_unmount_ios1553_env.json")
+folders=("Mount/Unmount IOS")
 
 for device in ${devices[@]}
 do
@@ -26,15 +26,15 @@ done
 ### Test for IOS XR
 #XR_devices=("xrv_env.json" "asr_env.json" "xrv5_env.json")
 # TOTO: verify collections and add to uncommented
-#XR_folders=("General information" "Interface" "Interface IP" "ospf" "static route" "BGP summary II" "CDP" "LLDP II" "subinterface common II" "BGP CRUD")
-XR_folders=()
-#XR5_folders=("General information" "BGP CRUD" "SNMP" "SYSLOG CRUD" "RSVP CRUD" "Mpls-te CRUD" "Mpls tunnel CRUD" "OSPF CRUD" "5 LAG without BFD" "subinterface common CRUD" "ETH IFC CRUD" "PF IFC CRUD" "LACP CRUD" "IFC ACL CRUD")
-XR5_folders=()
-#ASR_folders=("General information" "Interface" "Interface IP" "ospf" "static route" "Platform" "BGP summary II" "CDP" "LLDP II" "subinterface common II" "5 LAG without BFD" "5 LAG with BFD")
+#XR_folders=(fix: "General information" "BGP CRUD"-remove from xr?, )
+XR_folders=("Interface" "Interface IP" "subinterface common II" "CDP" "LLDP II" "ospf" "BGP summary II" "static route II")
+#XR5_folders=(fix: "General information"  ,nejde: "Mpls tunnel CRUD" "ETH IFC CRUD" "IFC ACL CRUD" "LACP CRUD"-not fit with cli zakomentovana cast z "SNMP")
+XR5_folders=("RSVP CRUD" "Mpls-te CRUD" "subinterface common CRUD" "PF IFC CRUD" "OSPF CRUD" "5 LAG without BFD" "BGP CRUD" "SYSLOG CRUD")
+#ASR_folders=(fix: "General information","5 LAG without BFD" "5 LAG with BFD",)
 #asr may be tested also for "5 LAG without BFD" "5 LAG with BFD" "SNMP" and "SYSLOG CRUD", but only cli mount point may be used
-ASR_folders=()
+ASR_folders=("Interface" "Interface IP" "subinterface common II" "CDP" "LLDP II" "ospf" "BGP summary II" "Platform" "static route II")
 
-for device in ${XR_devices[@]}
+for device in ${XR_devices[@]} 
 do
    echo Collection running with $device
          if [ "$device" == "xrv_env.json" ]
@@ -93,10 +93,10 @@ done
 ### Test for IOS
 #IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json")
 # TOTO: verify collections and add to uncommented
-#Classic_folders=("General information" "Interface" "Interface IP" "ospf/vrf" "static route" "BGP summary" "CDP" "subinterface common" "L2P2P" "L2P2P CRUD" "journal/dry-run")
-Classic_folders=()
-#XE_folders=("General information" "Interface" "Interface IP" "ospf/vrf" "static route" "BGP summary" "CDP" "LLDP" "subinterface common" "journal/dry-run")
-XE_folders=()
+#Classic_folders=(fix: "General information", "BGP summary")
+Classic_folders=("Interface" "Interface IP" "ospf/vrf" "subinterface common" "static route" "journal/dry-run" "L2P2P" "L2P2P CRUD" "CDP")
+#XE_folders=(fix: "General information" ,"ospf/vrf"-bug MU-159, "BGP summary")
+XE_folders=("Interface" "Interface IP" "subinterface common" "static route" "journal/dry-run" "CDP" "LLDP" "ospf/vrf")
 
 for device in ${IOS_devices[@]}
 do

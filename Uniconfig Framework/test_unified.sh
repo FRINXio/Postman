@@ -24,15 +24,13 @@ done
 
 
 ### Test for IOS XR
-#XR_devices=("xrv_env.json" "asr_env.json" "xrv5_env.json")
-# TOTO: verify collections and add to uncommented
-#XR_folders=(fix: "General information" "BGP CRUD"-remove from xr?, )
-XR_folders=("Interface" "Interface IP" "subinterface common II" "CDP" "LLDP II" "ospf" "BGP summary II" "static route II")
-#XR5_folders=(fix: "General information"  ,nejde: "Mpls tunnel CRUD" "ETH IFC CRUD" "IFC ACL CRUD" "LACP CRUD"-not fit with cli zakomentovana cast z "SNMP")
-XR5_folders=("RSVP CRUD" "Mpls-te CRUD" "subinterface common CRUD" "PF IFC CRUD" "OSPF CRUD" "5 LAG without BFD" "BGP CRUD" "SYSLOG CRUD")
-#ASR_folders=(fix: "General information","5 LAG without BFD" "5 LAG with BFD",)
-#asr may be tested also for "5 LAG without BFD" "5 LAG with BFD" "SNMP" and "SYSLOG CRUD", but only cli mount point may be used
-ASR_folders=("Interface" "Interface IP" "subinterface common II" "CDP" "LLDP II" "ospf" "BGP summary II" "Platform" "static route II")
+XR_devices=("xrv_env.json" "asr_env.json" "xrv5_env.json")
+#XR_folders=(need fix: "General information")
+XR_folders=("Interface" "Interface IP" "subinterface common II" "static route II" "CDP" "LLDP II" "ospf" "BGP summary II")
+#XR5_folders=(need fix: "General information" ,SNMP"-CCASP-140)
+XR5_folders=("subinterface common CRUD" "OSPF CRUD" "RSVP CRUD" "Mpls-te CRUD" "Mpls tunnel CRUD" "SYSLOG CRUD" "LACP CRUD" "IFC ACL CRUD" "PF IFC CRUD" "ETH IFC CRUD" "5 LAG without BFD" "BGP CRUD")
+#ASR_folders=(need fix: "General information","5 LAG without BFD"-MU-212 "5 LAG with BFD"-MU-213, "SNMP"-MU-219 "SYSLOG CRUD"-MU-220)
+ASR_folders=("Platform" "Interface" "Interface IP" "subinterface common II" "static route II" "CDP" "LLDP II" "ospf" "BGP summary II")
 
 for device in ${XR_devices[@]} 
 do
@@ -91,12 +89,11 @@ done
 
 
 ### Test for IOS
-#IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json")
-# TOTO: verify collections and add to uncommented
-#Classic_folders=(fix: "General information", "BGP summary")
-Classic_folders=("Interface" "Interface IP" "ospf/vrf" "subinterface common" "static route" "journal/dry-run" "L2P2P" "L2P2P CRUD" "CDP")
-#XE_folders=(fix: "General information" ,"ospf/vrf"-bug MU-159, "BGP summary")
-XE_folders=("Interface" "Interface IP" "subinterface common" "static route" "journal/dry-run" "CDP" "LLDP" "ospf/vrf")
+IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json")
+#Classic_folders=(need fix:"General information")
+Classic_folders=("Interface" "Interface IP" "subinterface common" "static route" "ospf/vrf" "journal/dry-run" "CDP" "L2P2P" "L2P2P CRUD" "BGP summary")
+#XE_folders=(need fix: "General information" ,"ospf/vrf"-bug MU-159,)
+XE_folders=("Interface" "Interface IP" "subinterface common" "static route" "ospf/vrf" "journal/dry-run" "CDP" "LLDP" "BGP summary")
 
 for device in ${IOS_devices[@]}
 do

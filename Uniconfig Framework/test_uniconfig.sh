@@ -19,7 +19,7 @@ do
          then
              for folder in "${XR5_folders[@]}"
              do
-                newman run $collection --bail -e $device -n 1 --folder "XR $folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing XR $folder FAILED" >> $file; fi
+                newman run $collection -e $device -n 1 --folder "XR $folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing XR $folder FAILED" >> $file; fi
                 sleep 5
              done
          fi

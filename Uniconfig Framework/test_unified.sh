@@ -26,7 +26,7 @@ done
 ### Test for IOS XR
 XR_devices=("xrv_env.json" "asr_env.json" "xrv5_env.json")
 #XR_folders=(need fix: "General information")
-XR_folders=("Interface" "Interface IP" "subinterface common II" "static route II" "CDP" "LLDP II" "ospf" "BGP summary II")
+XR_folders=("Interface" "Interface IP" "subinterface common II" "static route II" "CDP" "LLDP II" "ospf" "BGP summary II" "L2P2P II" "L2P2P CRUD II")
 #XR5_folders=(need fix: "General information" ,SNMP"-CCASP-140)
 XR5_folders=("subinterface common CRUD" "OSPF CRUD" "RSVP CRUD" "Mpls-te CRUD" "Mpls tunnel CRUD" "SYSLOG CRUD" "LACP CRUD" "IFC ACL CRUD" "PF IFC CRUD" "ETH IFC CRUD" "5 LAG without BFD" "BGP CRUD")
 #ASR_folders=(need fix: "General information","5 LAG without BFD"-MU-212 "5 LAG with BFD"-MU-213, "SNMP"-MU-219 "SYSLOG CRUD"-MU-220)

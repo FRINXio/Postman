@@ -3581,6 +3581,229 @@
 						}
 					],
 					"_postman_isSubFolder": true
+				},
+				{
+					"name": "XR5 LACP CRUD",
+					"item": [
+						{
+							"name": "XR5 LACP CRUD Setup",
+							"item": [
+								{
+									"name": "SETUP: Create empty interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"{{lacp_intf-id}}\",\n            \"config\": {\n                \"type\": \"iana-if-type:ethernetCsmacd\",\n                \"name\": \"{{lacp_intf-id}}\",\n                \"enabled\": false\n            },\n            \"subinterfaces\": {\n                \"subinterface\": [\n                    {\n                        \"index\": 0,\n                        \"config\": {\n                            \"index\": 0\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show created empty interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"interface\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    // asserts",
+													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
+													"",
+													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
+													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
+													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === false",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        // Reset attempt counter",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
+													"        tests[\"Interface not created/updated/deleted\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show created empty interface');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "XR5 LACP CRUD Teardown",
+							"item": [
+								{
+									"name": "TEARDOWN: Delete bundle",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
+									},
+									"response": []
+								},
+								{
+									"name": "show cleaned empty interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"interface\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    // asserts",
+													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
+													"",
+													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
+													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
+													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === false",
+													"",
+													"    ",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        // Reset attempt counter",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
+													"        tests[\"Interface not created/updated/deleted\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show cleaned empty interface');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
 				}
 			]
 		},
@@ -24353,108 +24576,6 @@
 							"name": "LACP Interface",
 							"item": [
 								{
-									"name": "SETUP: LR0: Create empty interface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "PUT",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"{{lacp_intf-id}}\",\n            \"config\": {\n                \"type\": \"iana-if-type:ethernetCsmacd\",\n                \"name\": \"{{lacp_intf-id}}\",\n                \"enabled\": false\n            },\n            \"subinterfaces\": {\n                \"subinterface\": [\n                    {\n                        \"index\": 0,\n                        \"config\": {\n                            \"index\": 0\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
-									},
-									"response": []
-								},
-								{
-									"name": "LR0: show created empty interface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
-													"",
-													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === false",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Interface not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('L0: show created empty interface');",
-													"    }",
-													"}"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
-									},
-									"response": []
-								},
-								{
 									"name": "SETUP: LR1: Configure LACP",
 									"event": [
 										{
@@ -25520,109 +25641,6 @@
 													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
 													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
 													"        postman.setNextRequest(\"LE3 show updated period fast\");",
-													"    }",
-													"}"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
-									},
-									"response": []
-								},
-								{
-									"name": "TEARDOWN: LE4 Delete bundle",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
-									},
-									"response": []
-								},
-								{
-									"name": "LE4: show cleaned empty interface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
-													"",
-													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === false",
-													"",
-													"    ",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Interface not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('LE4: show cleaned empty interface');",
 													"    }",
 													"}"
 												]

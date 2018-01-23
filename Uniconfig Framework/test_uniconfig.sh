@@ -9,20 +9,69 @@ if [ -f $file ] ; then
 fi
 
 ### Test for IOS XR router
-XR_devices=("xrv5_env.json")
-XR5_folders=("Mount" "RSVP CRUD" "MPLS CRUD" "OSPF CRUD" "BGP CRUD" "5 LAG without BFD" "SNMP" "SYSLOG CRUD" "ETH IFC CRUD" "PF IFC CRUD" "LACP CRUD" "IFC ACL CRUD" "Unmount")
+#XR_devices=("xrv5_env.json" "junos173virt_env.json")
+XR_devices=()
+#XR5_folders=("OSPF CRUD" "BGP CRUD" "LACP CRUD" "MPLS-TUNNEL CRUD Config" "MPLS-TUNNEL CRUD Destination" "MPLS-TUNNEL CRUD Loadshare" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD Damping" "LAG CRUD Statistics" "LAG CRUD AggegationNoBfd" "LAG-FULL CRUD" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD CiscoExt" "SNMP Gig" "SNMP Lag" "SNMP Non" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface" "IFC CRUD Damping" "IFC CRUD Ethernet" "IFC CRUD  Statistics" "IFC-FULL CRUD" "SYSLOG CRUD")
+XR5_folders=()
+#JUNOS_folders=("MPLS-TUNNEL-FULL CRUD" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD AggegationBfdLinkSpeed" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD JunosExt" "SNMP Gig" "IFC-FULL CRUD" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface" "IFC CRUD Damping" "IFC CRUD Ethernet")
+JUNOS_folders=()
 
 for device in ${XR_devices[@]}
 do
    echo Collection running with $device
          if [ "$device" == "xrv5_env.json" ]
          then
+             folder="XR5 Mount"
+             #echo "$folder"
+             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
              for folder in "${XR5_folders[@]}"
              do
-                newman run $collection -e $device -n 1 --folder "XR $folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing XR $folder FAILED" >> $file; fi
-                sleep 5
+                coll_len=`echo $folder | wc -w`
+                coll_arr=($folder)
+                ll=`if [ $coll_len -gt 2 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
+                sfolder="XR5 ${coll_arr[@]:0:${ll}} Setup"
+                #echo "$sfolder"
+                newman run $collection -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $sfolder FAILED" >> $file; fi
+                #echo "$folder"
+                newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $folder FAILED" >> $file; fi
+                
+                tfolder="XR5 ${coll_arr[@]:0:${ll}} Teardown"
+                #echo "$tfolder"
+                newman run $collection -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $tfolder FAILED" >> $file; fi
+                sleep 2
              done
+             folder="XR5 Unmount"
+             #echo "$folder"
+             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
          fi
+
+
+         if [ "$device" == "junos173virt_env.json" ]
+         then
+             folder="Junos Mount"
+             #echo "$folder"
+             newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
+             for folder in "${JUNOS_folders[@]}"
+             do
+                coll_len=`echo $folder | wc -w`
+                coll_arr=($folder)
+                ll=`if [ $coll_len -gt 2 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
+                sfolder="Junos ${coll_arr[@]:0:${ll}} Setup"
+                #echo "$sfolder"
+                newman run $collection -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (Junos) $sfolder FAILED" >> $file; fi
+                #echo "$folder"
+                newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (Junos) $folder FAILED" >> $file; fi
+
+                tfolder="Junos ${coll_arr[@]:0:${ll}} Teardown"
+                #echo "$tfolder"
+                newman run $collection -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (Junos) $tfolder FAILED" >> $file; fi
+                sleep 2
+             done
+             folder="Junos Unmount"
+             #echo "$folder"
+             newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
+         fi
+
 
 done
 

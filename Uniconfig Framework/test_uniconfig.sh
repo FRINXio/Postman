@@ -13,7 +13,7 @@ fi
 XR_devices=()
 #XR5_folders=("OSPF CRUD" "BGP CRUD" "LACP CRUD" "MPLS-TUNNEL CRUD Config" "MPLS-TUNNEL CRUD Destination" "MPLS-TUNNEL CRUD Loadshare" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD Damping" "LAG CRUD Statistics" "LAG CRUD AggegationNoBfd" "LAG-FULL CRUD" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD CiscoExt" "SNMP Gig" "SNMP Lag" "SNMP Non" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface" "IFC CRUD Damping" "IFC CRUD Ethernet" "IFC CRUD  Statistics" "IFC-FULL CRUD" "SYSLOG CRUD")
 XR5_folders=()
-#JUNOS_folders=("MPLS-TUNNEL-FULL CRUD" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD AggegationBfdLinkSpeed" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD JunosExt" "SNMP Gig" "IFC-FULL CRUD" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface" "IFC CRUD Damping" "IFC CRUD Ethernet")
+#JUNOS_folders=("MPLS-TUNNEL-FULL CRUD" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD AggegationBfdLinkSpeed" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD JunosExt" "SNMP Gig" "IFC-FULL CRUD" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface" "IFC CRUD Damping" "IFC CRUD Ethernet Bundle-member" "IFC CRUD Ethernet LACP")
 JUNOS_folders=()
 
 for device in ${XR_devices[@]}

@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "FRINX Uniconfig",
-		"_postman_id": "3fb78e80-3402-dc21-b5e4-940ac19322a7",
+		"_postman_id": "1074ceab-ee9a-782c-b25e-ad196c984498",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
@@ -5007,11 +5007,9 @@
 				},
 				{
 					"name": "Junos PF-IFC CRUD",
-					"description": "",
 					"item": [
 						{
 							"name": "Junos PF-IFC CRUD Setup",
-							"description": "",
 							"item": [
 								{
 									"name": "SETUP Configure",
@@ -5051,7 +5049,6 @@
 						},
 						{
 							"name": "Junos PF-IFC CRUD Teardown",
-							"description": "",
 							"item": [
 								{
 									"name": "TEARDOWN Deconfigure",
@@ -7995,415 +7992,962 @@
 							"name": "IFC CRUD Ethernet",
 							"item": [
 								{
-									"name": "SETUP: P5: Create frinx-eth",
-									"event": [
+									"name": "IFC CRUD Ethernet Bundle-member",
+									"description": "",
+									"item": [
 										{
-											"listen": "test",
-											"script": {
-												"id": "55a10ed3-3686-4275-b176-7f1e2e490147",
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Success\"] = responseCode.code === 201;"
-												]
-											}
+											"name": "SETUP: P5: Create frinx-eth",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "55a10ed3-3686-4275-b176-7f1e2e490147",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"Success\"] = responseCode.code === 201;"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "PUT",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lag_prefix}}{{eth_bundle_id}}\"\n\t\t\t\t}\n            }\n\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
+											},
+											"response": []
+										},
+										{
+											"name": "P5a: commit",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "65955d26-5ad5-4b73-987f-3e61cf1191b0",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"POST - P5a: commit\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"if ( \"output\" in jsonData ) {",
+															"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
+															"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
+															"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    }",
+															"} else {",
+															"        tests[\"Commit went wrong\"] = false",
+															"}"
+														]
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "basic",
+													"basic": {
+														"username": "admin",
+														"password": "admin",
+														"showPassword": false
+													}
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+											},
+											"response": []
+										},
+										{
+											"name": "P5: show created frinx-eth",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "b0dc43f5-d292-42eb-a3df-348546aa7e44",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"GET - show created interface request\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"tests[\"Eth - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
+															"tests[\"Eth - presence of name\"] = \"name\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Eth - presence of config\"] = \"config\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Eth - presence of hold-time\"] = \"hold-time\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of subinterfaces\"] = \"subinterfaces\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-damping:damping\"] = \"frinx-damping:damping\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-cisco-if-extension:statistics\"] = \"frinx-cisco-if-extension:statistics\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-openconfig-if-ethernet:ethernet\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Eth - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Eth - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"    ",
+															"tests[\"Eth - frinx-openconfig-if-ethernet:ethernet eth_bundle_id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"eth_bundle_id\");",
+															""
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
+											},
+											"response": []
+										},
+										{
+											"name": "SETUP: P5: Update frinx-eth",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "PUT",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lag_prefix}}{{eth_bundle_id_upd}}\"\n\t\t\t\t}\n            }\n\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
+											},
+											"response": []
+										},
+										{
+											"name": "P5b: commit",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "3d9c83d2-30bd-4e26-af01-5ae777a8a399",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"POST - P5b: commit\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"if ( \"output\" in jsonData ) {",
+															"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
+															"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
+															"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    }",
+															"} else {",
+															"        tests[\"Commit went wrong\"] = false",
+															"}"
+														]
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "basic",
+													"basic": {
+														"username": "admin",
+														"password": "admin",
+														"showPassword": false
+													}
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+											},
+											"response": []
+										},
+										{
+											"name": "P5: show updated frinx-eth",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "3f1b6bf9-1ff8-4193-8257-99d6a7c2242e",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"GET - show created interface request\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"",
+															"tests[\"Eth - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
+															"tests[\"Eth - presence of name\"] = \"name\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Eth - presence of config\"] = \"config\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Eth - presence of hold-time\"] = \"hold-time\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of subinterfaces\"] = \"subinterfaces\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-damping:damping\"] = \"frinx-damping:damping\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-cisco-if-extension:statistics\"] = \"frinx-cisco-if-extension:statistics\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-openconfig-if-ethernet:ethernet\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Eth - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Eth - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"    ",
+															"tests[\"Eth - frinx-openconfig-if-ethernet:ethernet eth_bundle_id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"eth_bundle_id_upd\");",
+															""
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
+											},
+											"response": []
+										},
+										{
+											"name": "TEARDOWN: P5: Delete frinx-eth",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "f78150e4-d10e-46e4-ba84-1218374fc7a6",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"Success\"] = responseCode.code === 200;"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "DELETE",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
+											},
+											"response": []
+										},
+										{
+											"name": "P5c: commit",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "15a567ca-2e3f-4324-8dde-feb84e434d7b",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"POST - P5c: commit\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"if ( \"output\" in jsonData ) {",
+															"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
+															"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
+															"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    }",
+															"} else {",
+															"        tests[\"Commit went wrong\"] = false",
+															"}"
+														]
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "basic",
+													"basic": {
+														"username": "admin",
+														"password": "admin",
+														"showPassword": false
+													}
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+											},
+											"response": []
+										},
+										{
+											"name": "P5: show deleted frinx-eth",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "3f14ba93-05c1-4e3c-9257-edee39469665",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"GET - show created interface request\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"tests[\"Eth - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
+															"tests[\"Eth - presence of name\"] = \"name\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Eth - presence of config\"] = \"config\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Eth - presence of hold-time\"] = \"hold-time\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of subinterfaces\"] = \"subinterfaces\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-damping:damping\"] = \"frinx-damping:damping\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-cisco-if-extension:statistics\"] = \"frinx-cisco-if-extension:statistics\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - presence of frinx-openconfig-if-ethernet:ethernet\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
+															"tests[\"Eth - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Eth - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															""
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
+											},
+											"response": []
 										}
 									],
-									"request": {
-										"method": "PUT",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lag_prefix}}{{eth_bundle_id}}\"\n\t\t\t\t}\n            }\n\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
-									},
-									"response": []
+									"_postman_isSubFolder": true
 								},
 								{
-									"name": "P5a: commit",
-									"event": [
+									"name": "IFC CRUD Ethernet LACP",
+									"item": [
 										{
-											"listen": "test",
-											"script": {
-												"id": "65955d26-5ad5-4b73-987f-3e61cf1191b0",
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"POST - P5a: commit\"] = responseCode.code === 200",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if ( \"output\" in jsonData ) {",
-													"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-													"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
-													"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
-													"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-													"    }",
-													"} else {",
-													"        tests[\"Commit went wrong\"] = false",
-													"}"
-												]
-											}
-										}
-									],
-									"request": {
-										"auth": {
-											"type": "basic",
-											"basic": {
-												"username": "admin",
-												"password": "admin",
-												"showPassword": false
-											}
-										},
-										"method": "POST",
-										"header": [
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
-									},
-									"response": []
-								},
-								{
-									"name": "P5: show created frinx-eth",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "2eca32d0-ad0a-44c6-95b3-1294563ac4e2",
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"tests[\"Eth - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"tests[\"Eth - presence of name\"] = \"name\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - presence of config\"] = \"config\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - presence of hold-time\"] = \"hold-time\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of subinterfaces\"] = \"subinterfaces\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of frinx-damping:damping\"] = \"frinx-damping:damping\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of frinx-cisco-if-extension:statistics\"] = \"frinx-cisco-if-extension:statistics\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of frinx-openconfig-if-ethernet:ethernet\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
-													"tests[\"Eth - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
-													"    ",
-													"tests[\"Eth - frinx-openconfig-if-ethernet:ethernet eth_bundle_id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"eth_bundle_id_upd\");",
-													""
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
+											"name": "SETUP: LE1 Create passive mode",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "41871257-5bf5-498a-b232-497b02c117f4",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"PUT - SETUP: LE1 Create passive mode\"] = responseCode.code === 200 || responseCode.code === 201;"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "PUT",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lag_prefix}}{{eth_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_passive}}\"\n\t\t\t\t}\n            }\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
 											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
+											"response": []
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
-									},
-									"response": []
-								},
-								{
-									"name": "SETUP: P5: Update frinx-eth",
-									"event": [
 										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
-												]
-											}
+											"name": "LE1: commit",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "8a0d8a0b-4c71-47b3-ad92-16678c09646f",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"POST - LE1: commit\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"if ( \"output\" in jsonData ) {",
+															"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
+															"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
+															"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    }",
+															"} else {",
+															"        tests[\"Commit went wrong\"] = false",
+															"}"
+														]
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "basic",
+													"basic": {
+														"username": "admin",
+														"password": "admin",
+														"showPassword": false
+													}
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+											},
+											"response": []
+										},
+										{
+											"name": "LE1 show created passive mode",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "6bfc3c1c-d562-4faa-9f71-302d74cde5c5",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"GET - LE1 show created passive mode\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"tests[\"Lacp - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
+															"tests[\"Lacp - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Lacp - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Lacp - aggregate id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"eth_bundle_id\");",
+															"",
+															"tests[\"Lacp - interval\"] = \"frinx-lacp-lag-member:interval\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"] === false",
+															"tests[\"Lacp - mode\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_passive\");",
+															""
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
+											},
+											"response": []
+										},
+										{
+											"name": "SETUP: LE2 Update active mode",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "5dc60561-c7fe-4390-b6df-9de20948e752",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"PUT - SETUP: LE2 Update active mode\"] = responseCode.code === 200 || responseCode.code === 201;"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "PUT",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lag_prefix}}{{eth_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_active}}\"\n\t\t\t\t}\n            }\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
+											},
+											"response": []
+										},
+										{
+											"name": "LE2: commit",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "d0859ee9-ee95-4832-bd06-1215cbe995fe",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"POST - LE2: commit\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"if ( \"output\" in jsonData ) {",
+															"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
+															"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
+															"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    }",
+															"} else {",
+															"        tests[\"Commit went wrong\"] = false",
+															"}"
+														]
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "basic",
+													"basic": {
+														"username": "admin",
+														"password": "admin",
+														"showPassword": false
+													}
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+											},
+											"response": []
+										},
+										{
+											"name": "LE2 show updated active mode",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "992d14e1-e0eb-44cc-8734-625c7e93bb46",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"GET - LE2 show created passive mode\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"tests[\"Lacp - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
+															"tests[\"Lacp - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Lacp - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Lacp - aggregate id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"eth_bundle_id\");",
+															"",
+															"tests[\"Lacp - interval\"] = \"frinx-lacp-lag-member:interval\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"] === false",
+															"tests[\"Lacp - mode\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_active\");",
+															""
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
+											},
+											"response": []
+										},
+										{
+											"name": "SETUP: LE3 Update period fast",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "37a0266f-2257-4fa7-b215-39915221dfdc",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"PUT - SETUP: LE3 Update period fast\"] = responseCode.code === 200 || responseCode.code === 201;"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "PUT",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lag_prefix}}{{eth_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_active}}\",\n                    \"interval\": \"{{lacp_interval_fast}}\"\n\t\t\t\t}\n            }\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
+											},
+											"response": []
+										},
+										{
+											"name": "LE3: commit",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "13c2054e-dfb6-4b70-b7a7-31a172358250",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"POST - LE3: commit\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"if ( \"output\" in jsonData ) {",
+															"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
+															"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
+															"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    }",
+															"} else {",
+															"        tests[\"Commit went wrong\"] = false",
+															"}"
+														]
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "basic",
+													"basic": {
+														"username": "admin",
+														"password": "admin",
+														"showPassword": false
+													}
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+											},
+											"response": []
+										},
+										{
+											"name": "LE3 show updated period fast",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "495643db-06db-4480-9200-d7f04f35e06c",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"GET - LE3 show created passive mode\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"tests[\"Lacp - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
+															"tests[\"Lacp - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Lacp - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
+															"tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
+															"tests[\"Lacp - aggregate id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"eth_bundle_id\");",
+															"",
+															"tests[\"Lacp - interval\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_fast\");",
+															"tests[\"Lacp - mode\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_active\");"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
+											},
+											"response": []
+										},
+										{
+											"name": "TEARDOWN: LE4 Delete bundle",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "22ca00af-e3b3-4d79-bf14-379a0501f6b3",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"DEL - TEARDOWN: LE4 Delete bundle\"] = responseCode.code === 200 || responseCode.code === 201;"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "DELETE",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
+											},
+											"response": []
+										},
+										{
+											"name": "LE4: commit",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "0fdf7c6b-63eb-4c3d-921f-5f5d3f2f6736",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"POST - LE4: commit\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"if ( \"output\" in jsonData ) {",
+															"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
+															"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
+															"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
+															"    }",
+															"} else {",
+															"        tests[\"Commit went wrong\"] = false",
+															"}"
+														]
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "basic",
+													"basic": {
+														"username": "admin",
+														"password": "admin",
+														"showPassword": false
+													}
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+											},
+											"response": []
+										},
+										{
+											"name": "LE4: show cleaned empty interface",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"id": "065bbff2-0ef7-45a7-bd88-8e3a022aa658",
+														"type": "text/javascript",
+														"exec": [
+															"console.log(\"Response: \" + responseBody)",
+															"tests[\"GET - LE4: show cleaned empty interface\"] = responseCode.code === 200",
+															"",
+															"var jsonData = JSON.parse(responseBody);",
+															"tests[\"Lacp - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
+															"tests[\"Lacp - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
+															"tests[\"Lacp - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
+															"tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false"
+														]
+													}
+												}
+											],
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Authorization",
+														"value": "Basic YWRtaW46YWRtaW4="
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": ""
+												},
+												"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
+											},
+											"response": []
 										}
 									],
-									"request": {
-										"method": "PUT",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lag_prefix}}{{eth_bundle_id_upd}}\"\n\t\t\t\t}\n            }\n\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
-									},
-									"response": []
-								},
-								{
-									"name": "P5b: commit",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "3d9c83d2-30bd-4e26-af01-5ae777a8a399",
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"POST - P5b: commit\"] = responseCode.code === 200",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if ( \"output\" in jsonData ) {",
-													"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-													"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
-													"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
-													"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-													"    }",
-													"} else {",
-													"        tests[\"Commit went wrong\"] = false",
-													"}"
-												]
-											}
-										}
-									],
-									"request": {
-										"auth": {
-											"type": "basic",
-											"basic": {
-												"username": "admin",
-												"password": "admin",
-												"showPassword": false
-											}
-										},
-										"method": "POST",
-										"header": [
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
-									},
-									"response": []
-								},
-								{
-									"name": "P5: show updated frinx-eth",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "3f1b6bf9-1ff8-4193-8257-99d6a7c2242e",
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"",
-													"tests[\"Eth - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"tests[\"Eth - presence of name\"] = \"name\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - presence of config\"] = \"config\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - presence of hold-time\"] = \"hold-time\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of subinterfaces\"] = \"subinterfaces\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of frinx-damping:damping\"] = \"frinx-damping:damping\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of frinx-cisco-if-extension:statistics\"] = \"frinx-cisco-if-extension:statistics\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of frinx-openconfig-if-ethernet:ethernet\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
-													"tests[\"Eth - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
-													"    ",
-													"tests[\"Eth - frinx-openconfig-if-ethernet:ethernet eth_bundle_id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"eth_bundle_id_upd\");",
-													""
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
-									},
-									"response": []
-								},
-								{
-									"name": "TEARDOWN: P5: Delete frinx-eth",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "f78150e4-d10e-46e4-ba84-1218374fc7a6",
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Success\"] = responseCode.code === 200;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
-									},
-									"response": []
-								},
-								{
-									"name": "P5c: commit",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "15a567ca-2e3f-4324-8dde-feb84e434d7b",
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"POST - P5c: commit\"] = responseCode.code === 200",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if ( \"output\" in jsonData ) {",
-													"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-													"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
-													"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
-													"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-													"    }",
-													"} else {",
-													"        tests[\"Commit went wrong\"] = false",
-													"}"
-												]
-											}
-										}
-									],
-									"request": {
-										"auth": {
-											"type": "basic",
-											"basic": {
-												"username": "admin",
-												"password": "admin",
-												"showPassword": false
-											}
-										},
-										"method": "POST",
-										"header": [
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
-									},
-									"response": []
-								},
-								{
-									"name": "P5: show deleted frinx-eth",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"id": "80626e3c-1341-4718-adfc-1f282b292560",
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"tests[\"Eth - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-													"tests[\"Eth - presence of name\"] = \"name\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - presence of config\"] = \"config\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - presence of hold-time\"] = \"hold-time\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of subinterfaces\"] = \"subinterfaces\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-													"tests[\"Eth - presence of frinx-damping:damping\"] = \"frinx-damping:damping\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of frinx-cisco-if-extension:statistics\"] = \"frinx-cisco-if-extension:statistics\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - presence of frinx-openconfig-if-ethernet:ethernet\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false",
-													"tests[\"Eth - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
-													"tests[\"Eth - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"eth_intf-id\");",
-													""
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
-									},
-									"response": []
+									"_postman_isSubFolder": true
 								}
 							],
 							"_postman_isSubFolder": true
@@ -17239,543 +17783,6 @@
 									"raw": ""
 								},
 								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}"
-							},
-							"response": []
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "LACP CRUD",
-					"item": [
-						{
-							"name": "SETUP: LE1 Create passive mode",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "41871257-5bf5-498a-b232-497b02c117f4",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"PUT - SETUP: LE1 Create passive mode\"] = responseCode.code === 200 || responseCode.code === 201;"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lacp_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_passive}}\"\n\t\t\t\t}\n            }\n}"
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
-							},
-							"response": []
-						},
-						{
-							"name": "LE1: commit",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "8a0d8a0b-4c71-47b3-ad92-16678c09646f",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"POST - LE1: commit\"] = responseCode.code === 200",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if ( \"output\" in jsonData ) {",
-											"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-											"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
-											"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
-											"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-											"    }",
-											"} else {",
-											"        tests[\"Commit went wrong\"] = false",
-											"}"
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": {
-										"username": "admin",
-										"password": "admin",
-										"showPassword": false
-									}
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
-							},
-							"response": []
-						},
-						{
-							"name": "LE1 show created passive mode",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "d4814ac8-d87b-4ecf-a930-9dfa5de0c1ba",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"GET - LE1 show created passive mode\"] = responseCode.code === 200",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"tests[\"Lacp - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-											"tests[\"Lacp - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-											"tests[\"Lacp - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-											"tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-											"tests[\"Lacp - aggregate id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-											"tests[\"Lacp - interval\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_slow\");",
-											"tests[\"Lacp - mode\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_passive\");",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
-							},
-							"response": []
-						},
-						{
-							"name": "SETUP: LE2 Update active mode",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "5dc60561-c7fe-4390-b6df-9de20948e752",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"PUT - SETUP: LE2 Update active mode\"] = responseCode.code === 200 || responseCode.code === 201;"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lacp_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_active}}\"\n\t\t\t\t}\n            }\n}"
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
-							},
-							"response": []
-						},
-						{
-							"name": "LE2: commit",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "d0859ee9-ee95-4832-bd06-1215cbe995fe",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"POST - LE2: commit\"] = responseCode.code === 200",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if ( \"output\" in jsonData ) {",
-											"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-											"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
-											"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
-											"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-											"    }",
-											"} else {",
-											"        tests[\"Commit went wrong\"] = false",
-											"}"
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": {
-										"username": "admin",
-										"password": "admin",
-										"showPassword": false
-									}
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
-							},
-							"response": []
-						},
-						{
-							"name": "LE2 show updated active mode",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "1d0131fd-5c6a-4d11-aa05-07c806b160d3",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"GET - LE2 show updated active mode\"] = responseCode.code === 200",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"tests[\"Lacp - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-											"tests[\"Lacp - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-											"tests[\"Lacp - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-											"tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-											"tests[\"Lacp - aggregate id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-											"tests[\"Lacp - interval\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_slow\");",
-											"tests[\"Lacp - mode\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_active\");",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
-							},
-							"response": []
-						},
-						{
-							"name": "SETUP: LE3 Update period fast",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "37a0266f-2257-4fa7-b215-39915221dfdc",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"PUT - SETUP: LE3 Update period fast\"] = responseCode.code === 200 || responseCode.code === 201;"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lacp_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_active}}\",\n                    \"interval\": \"{{lacp_interval_fast}}\"\n\t\t\t\t}\n            }\n}"
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
-							},
-							"response": []
-						},
-						{
-							"name": "LE3: commit",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "13c2054e-dfb6-4b70-b7a7-31a172358250",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"POST - LE3: commit\"] = responseCode.code === 200",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if ( \"output\" in jsonData ) {",
-											"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-											"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
-											"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
-											"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-											"    }",
-											"} else {",
-											"        tests[\"Commit went wrong\"] = false",
-											"}"
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": {
-										"username": "admin",
-										"password": "admin",
-										"showPassword": false
-									}
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
-							},
-							"response": []
-						},
-						{
-							"name": "LE3 show updated period fast",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "74e4d84b-8436-439a-a829-3b0d5f0f2f53",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"GET - LE3 show updated period fast\"] = responseCode.code === 200",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"tests[\"Lacp - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-											"tests[\"Lacp - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-											"tests[\"Lacp - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-											"tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === true",
-											"tests[\"Lacp - aggregate id\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-											"tests[\"Lacp - interval\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_fast\");",
-											"tests[\"Lacp - mode\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_active\");"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
-							},
-							"response": []
-						},
-						{
-							"name": "TEARDOWN: LE4 Delete bundle",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "22ca00af-e3b3-4d79-bf14-379a0501f6b3",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"DEL - TEARDOWN: LE4 Delete bundle\"] = responseCode.code === 200 || responseCode.code === 201;"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet"
-							},
-							"response": []
-						},
-						{
-							"name": "LE4: commit",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "0fdf7c6b-63eb-4c3d-921f-5f5d3f2f6736",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"POST - LE4: commit\"] = responseCode.code === 200",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if ( \"output\" in jsonData ) {",
-											"    tests[\"Commit status complete\"] = jsonData[\"output\"][\"overall-configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-											"    if ( \"node-config-results\" in jsonData[\"output\"] ){",
-											"        tests[\"Commit status complete node name\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"] === postman.getEnvironmentVariable(\"node_id\")",
-											"        tests[\"Commit status complete node status\"] = jsonData[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"] === postman.getEnvironmentVariable(\"operations_result_complete\")",
-											"    }",
-											"} else {",
-											"        tests[\"Commit went wrong\"] = false",
-											"}"
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": {
-										"username": "admin",
-										"password": "admin",
-										"showPassword": false
-									}
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
-							},
-							"response": []
-						},
-						{
-							"name": "LE4: show cleaned empty interface",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "065bbff2-0ef7-45a7-bd88-8e3a022aa658",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"tests[\"GET - LE4: show cleaned empty interface\"] = responseCode.code === 200",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"tests[\"Lacp - number of tested interfaces\"] = jsonData[\"frinx-openconfig-interfaces:interface\"].length === 1",
-											"tests[\"Lacp - name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-											"tests[\"Lacp - config name\"] = jsonData[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-											"tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"frinx-openconfig-interfaces:interface\"][0] === false"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
 							},
 							"response": []
 						}

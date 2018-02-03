@@ -91,9 +91,9 @@ done
 ### Test for IOS
 IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json")
 #Classic_folders=(need fix:"General information")
-Classic_folders=("Interface" "Interface IP" "subinterface common" "static route" "ospf-vrf" "journal-dry-run" "CDP" "L2P2P" "L2P2P CRUD" "BGP summary" "L3VPN BGP readers" "BGP CRUD II" "L3VPN BGP CRUD")
+Classic_folders=("Interface" "Interface IP" "subinterface common" "static route" "ospf-vrf" "journal-dry-run" "CDP" "L2P2P" "L2P2P CRUD" "BGP summary" "L3VPN BGP readers" "BGP CRUD II" "L3VPN BGP CRUD" "L3VPN OSPF")
 #XE_folders=(need fix: "General information" ,"ospf-vrf"-bug MU-159,)
-XE_folders=("Interface" "Interface IP" "subinterface common" "static route" "ospf-vrf" "journal-dry-run" "CDP" "LLDP" "BGP summary" "L3VPN BGP readers" "BGP CRUD II" "L3VPN BGP CRUD")
+XE_folders=("Interface" "Interface IP" "subinterface common" "static route" "ospf-vrf" "journal-dry-run" "CDP" "LLDP" "BGP summary" "L3VPN BGP readers" "BGP CRUD II" "L3VPN BGP CRUD" "L3VPN OSPF")
 
 for device in ${IOS_devices[@]}
 do

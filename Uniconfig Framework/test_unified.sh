@@ -26,7 +26,7 @@ done
 ### Test for IOS XR
 XR_devices=("xrv_env.json" "asr_env.json" "xrv5_env.json")
 #XR_folders=(need fix: "General information")
-XR_folders=("Interface" "Interface IP" "subinterface common II" "static route II" "CDP" "LLDP II" "ospf" "BGP summary II" "L2P2P II" "L2P2P CRUD II")
+XR_folders=("Interface" "Interface IP" "subinterface common II" "static route II" "CDP" "LLDP II" "ospf" "BGP summary II" "L2P2P II" "L2P2P CRUD II" "L2VPN readers II" "L2VPN CRUD II")
 #XR5_folders=(need fix: "General information" ,SNMP"-CCASP-140)
 XR5_folders=("subinterface common CRUD" "OSPF CRUD" "RSVP CRUD" "Mpls-te CRUD" "Mpls tunnel CRUD" "SYSLOG CRUD" "LACP CRUD" "IFC ACL CRUD" "PF IFC CRUD" "ETH IFC CRUD" "5 LAG without BFD" "BGP CRUD")
 #ASR_folders=(need fix: "General information","5 LAG without BFD"-MU-212 "5 LAG with BFD"-MU-213, "SNMP"-MU-219 "SYSLOG CRUD"-MU-220)
@@ -89,11 +89,12 @@ done
 
 
 ### Test for IOS
-IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json")
+IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json" "xe4_env.json")
 #Classic_folders=(need fix:"General information")
 Classic_folders=("Interface" "Interface IP" "subinterface common" "static route" "ospf-vrf" "journal-dry-run" "CDP" "L2P2P" "L2P2P CRUD" "BGP summary" "L3VPN BGP readers" "BGP CRUD II" "L3VPN BGP CRUD" "L3VPN OSPF")
 #XE_folders=(need fix: "General information" ,"ospf-vrf"-bug MU-159,)
 XE_folders=("Interface" "Interface IP" "subinterface common" "static route" "ospf-vrf" "journal-dry-run" "CDP" "LLDP" "BGP summary" "L3VPN BGP readers" "BGP CRUD II" "L3VPN BGP CRUD" "L3VPN OSPF")
+XE4_folders=("L2VPN readers" "L2VPN CRUD")
 
 for device in ${IOS_devices[@]}
 do
@@ -147,6 +148,23 @@ do
              done
              folder="Classic Unmount"
              newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE) $folder FAILED" >> $file; fi
+         fi
+
+         if [ "$device" == "xe4_env.json" ]
+         then
+             folder="Classic Mount"
+             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE4) $folder FAILED" >> $file; fi
+             for folder in "${XE4_folders[@]}"
+             do
+                sfolder="Classic $folder Setup"
+                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE4) $sfolder FAILED" >> $file; fi
+                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE4) $folder FAILED" >> $file; fi
+                tfolder="Classic $folder Teardown"
+                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE4) $tfolder FAILED" >> $file; fi
+                sleep 2
+             done
+             folder="Classic Unmount"
+             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE4) $folder FAILED" >> $file; fi
          fi
 done
 

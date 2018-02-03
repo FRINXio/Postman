@@ -31583,7 +31583,7 @@
 									},
 									"response": [
 										{
-											"id": "2d100baa-b492-424a-88b6-fbf778f2e115",
+											"id": "1af13ab8-1018-4171-94f3-4154406b2856",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -32007,7 +32007,7 @@
 									},
 									"response": [
 										{
-											"id": "3570f533-a5d2-41dd-b9de-f707faa7c069",
+											"id": "36b86e04-1de0-4a23-a7fd-e54ef2bce58b",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -32442,7 +32442,7 @@
 									},
 									"response": [
 										{
-											"id": "f5c3765b-dedf-4131-b70d-928a8b43c6d8",
+											"id": "460f3b37-787d-43a4-99bf-15978feb4451",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -32866,7 +32866,7 @@
 									},
 									"response": [
 										{
-											"id": "2bfcdc14-42be-4efe-af54-72f60d93e889",
+											"id": "031da2c5-be83-490f-94e7-a33be510e903",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -34445,6 +34445,1934 @@
 								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{l3_vpn_ospf_instance_3_name}}"
 							},
 							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "L2VPN readers II",
+					"description": "",
+					"item": [
+						{
+							"name": "Locifc to remote",
+							"item": [
+								{
+									"name": "SETUP: Configure locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nl2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\nvfi {{vpls_ni_name}}\nvpn-id {{vpls_vccid}}\nautodiscovery bgp\nrd auto\nroute-target {{bgp_peer-as}}:{{vpls_vccid}}\nsignaling-protocol bgp\nve-id {{vpls_endpoint_id}}\nexit\nexit\nexit\nexit\nexit\nexit\ninterface {{vpls_show_interface3}}\nl2transport\nexit\nexit\nl2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\ninterface {{vpls_show_interface3}}\ncommit\nend\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show configured locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show configured locifc l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "TEARDOWN: Delete locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\ninterface {{vpls_show_interface3}}\nno l2transport\nexit\nno l2vpn\ncommit\nend\"\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"if (responseCode.code === 404) {",
+													"    tests[\"Connection removed\"] = true",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still present! Too many attempts !\")",
+													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"        //tests[\"Connection not removed\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show deleted locifc l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Locsub to remote",
+							"item": [
+								{
+									"name": "TEARDOWN: Delete previous subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n no interface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}}\n commit\n end\"\n  }\n}\n\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show nonexisting subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "SETUP: Configure Locsub l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nl2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\nvfi {{vpls_ni_name}}\nvpn-id {{vpls_vccid}}\nautodiscovery bgp\nrd auto\nroute-target {{bgp_peer-as}}:{{vpls_vccid}}\nsignaling-protocol bgp\nve-id {{vpls_endpoint_id}}\nexit\nexit\nexit\nexit\nexit\nexit\ninterface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}} l2transport\nencapsulation dot1q {{vpls_show_sub_interface_index}}\nrewrite ingress tag pop 1 symmetric\nexit\nl2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\ninterface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}}\ncommit\nend\"\n  }\n}\n\n\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show configured Locsub l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface2\")",
+													"        tests[\"Validate endpoint 1 subinterfaece\"] = \"\"+jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['subinterface'] === postman.getEnvironmentVariable(\"vpls_show_sub_interface_index\")",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['remote-system'] == postman.getEnvironmentVariable(\"vpls_vccid\")",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface2\")",
+													"        tests[\"Validate endpoint 1 subinterfaece\"] = \"\"+jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['subinterface'] === postman.getEnvironmentVariable(\"vpls_show_sub_interface_index\")",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\")",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show configured Locsub l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "TEARDOWN: Delete Locsub l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno interface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}} l2transport \nno l2vpn\ncommit\nend\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted Locsub l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"if (responseCode.code === 404) {",
+													"    tests[\"Connection removed\"] = true",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still present! Too many attempts !\")",
+													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"        //tests[\"Connection not removed\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show deleted Locsub l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "L2VPN CRUD II",
+					"description": "",
+					"item": [
+						{
+							"name": "Locifc to remote",
+							"item": [
+								{
+									"name": "Delete previous locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"if (responseCode.code === 404) {",
+													"    tests[\"Connection removed\"] = true",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still present! Too many attempts !\")",
+													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"        //tests[\"Connection not removed\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show deleted locifc l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Create Loc To Remote",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful PUT request\"] = responseCode.code === 200 || responseCode.code === 201;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network-instance\": [\n        {\n            \"name\": \"{{vpls_ni_name}}\",\n            \"config\": {\n                \"name\": \"{{vpls_ni_name}}\",\n                \"type\": \"frinx-openconfig-network-instance-types:L2VSI\"\n            },\n            \"protocols\": {\n            \t\"protocol\": [  \n\t\t\t\t   {  \n\t\t\t\t      \"name\":\"default\",\n\t\t\t\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t      \"config\":{  \n\t\t\t\t         \"name\":\"default\",\n\t\t\t\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t         \"enabled\": true\n\t\t\t\t      },\n\t\t\t\t      \"bgp\":{  \n\t\t\t\t         \"global\":{  \n\t\t\t\t            \"config\":{  \n\t\t\t\t               \"as\":\"65002\"\n\t\t\t\t            }\n\t\t\t\t         }\n\t\t\t\t      }\n\t\t\t\t   }\n\t\t\t\t]\n            },\n            \"connection-points\": {\n                \"connection-point\": [\n                    {\n                        \"connection-point-id\": \"remote\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:REMOTE\",\n                                        \"endpoint-id\": \"default\"\n                                    },\n                                    \"remote\": {\n                                        \"config\": {\n                                            \"virtual-circuit-identifier\": {{vpls_vccid}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"remote\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"1\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"1\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface3}}\"\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"1\"\n                        }\n                    }\n\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show created locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show created locifc l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Update Sub To Remote",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful PUT request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network-instance\": [\n        {\n            \"name\": \"{{vpls_ni_name}}\",\n            \"config\": {\n                \"name\": \"{{vpls_ni_name}}\",\n                \"type\": \"frinx-openconfig-network-instance-types:L2VSI\"\n            },\n            \"protocols\": {\n            \t\"protocol\": [  \n\t\t\t\t   {  \n\t\t\t\t      \"name\":\"default\",\n\t\t\t\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t      \"config\":{  \n\t\t\t\t         \"name\":\"default\",\n\t\t\t\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t         \"enabled\": true\n\t\t\t\t      },\n\t\t\t\t      \"bgp\":{  \n\t\t\t\t         \"global\":{  \n\t\t\t\t            \"config\":{  \n\t\t\t\t               \"as\":\"65002\"\n\t\t\t\t            }\n\t\t\t\t         }\n\t\t\t\t      }\n\t\t\t\t   }\n\t\t\t\t]\n            },\n            \"connection-points\": {\n                \"connection-point\": [\n                    {\n                        \"connection-point-id\": \"remote\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:REMOTE\",\n                                        \"endpoint-id\": \"default\"\n                                    },\n                                    \"remote\": {\n                                        \"config\": {\n                                            \"virtual-circuit-identifier\": {{vpls_vccid2}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"remote\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"1\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"1\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface3}}\"\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"1\"\n                        }\n                    }\n\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show updated locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid2\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid2\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show updated locifc l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Locsub to remote",
+							"item": [
+								{
+									"name": "Delete previous Subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"if (responseCode.code === 404) {",
+													"    tests[\"Subinterface deleted\"] = true",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Subinterface still up! Too many attempts !\")",
+													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"        //tests[\"Subinterface not deleted\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Subinterface not deleted yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show deleted subinterface');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previous locsub l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted locsub l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"if (responseCode.code === 404) {",
+													"    tests[\"Connection removed\"] = true",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still present! Too many attempts !\")",
+													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"        //tests[\"Connection not removed\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show deleted locsub l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Create Locsub To Remote 2 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful PUT request\"] = responseCode.code === 200 || responseCode.code === 201;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network-instance\": [\n        {\n            \"name\": \"{{vpls_ni_name}}\",\n            \"config\": {\n                \"name\": \"{{vpls_ni_name}}\",\n                \"type\": \"frinx-openconfig-network-instance-types:L2VSI\"\n            },\n            \"protocols\": {\n            \t\"protocol\": [  \n\t\t\t\t   {  \n\t\t\t\t      \"name\":\"default\",\n\t\t\t\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t      \"config\":{  \n\t\t\t\t         \"name\":\"default\",\n\t\t\t\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t         \"enabled\": true\n\t\t\t\t      },\n\t\t\t\t      \"bgp\":{  \n\t\t\t\t         \"global\":{  \n\t\t\t\t            \"config\":{  \n\t\t\t\t               \"as\":\"65002\"\n\t\t\t\t            }\n\t\t\t\t         }\n\t\t\t\t      }\n\t\t\t\t   }\n\t\t\t\t]\n            },\n            \"connection-points\": {\n                \"connection-point\": [\n                    {\n                        \"connection-point-id\": \"remote\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:REMOTE\",\n                                        \"endpoint-id\": \"default\"\n                                    },\n                                    \"remote\": {\n                                        \"config\": {\n                                            \"virtual-circuit-identifier\": {{vpls_vccid}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"remote\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"1\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"1\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface3}}\",\n                                             \"subinterface\": {{vpls_show_sub_interface_index}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"1\"\n                        }\n                    }\n\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show created locsub to remote 2 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show created locsub to remote 2 points');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Update Locsub To Remote 2 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful PUT request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network-instance\": [\n        {\n            \"name\": \"{{vpls_ni_name}}\",\n            \"config\": {\n                \"name\": \"{{vpls_ni_name}}\",\n                \"type\": \"frinx-openconfig-network-instance-types:L2VSI\"\n            },\n            \"protocols\": {\n            \t\"protocol\": [  \n\t\t\t\t   {  \n\t\t\t\t      \"name\":\"default\",\n\t\t\t\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t      \"config\":{  \n\t\t\t\t         \"name\":\"default\",\n\t\t\t\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t         \"enabled\": true\n\t\t\t\t      },\n\t\t\t\t      \"bgp\":{  \n\t\t\t\t         \"global\":{  \n\t\t\t\t            \"config\":{  \n\t\t\t\t               \"as\":\"65002\"\n\t\t\t\t            }\n\t\t\t\t         }\n\t\t\t\t      }\n\t\t\t\t   }\n\t\t\t\t]\n            },\n            \"connection-points\": {\n                \"connection-point\": [\n                    {\n                        \"connection-point-id\": \"remote\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:REMOTE\",\n                                        \"endpoint-id\": \"default\"\n                                    },\n                                    \"remote\": {\n                                        \"config\": {\n                                            \"virtual-circuit-identifier\": {{vpls_vccid2}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"remote\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"1\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"1\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface3}}\",\n                                             \"subinterface\": {{vpls_show_sub_interface_index}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"1\"\n                        }\n                    }\n\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show updated locsub to remote 2 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid2\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid2\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show updated locsub to remote 2 points');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete locsub l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Subinterface str",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "L2VPN readers",
+					"description": "",
+					"item": [
+						{
+							"name": "Local Point Without Subif connects Remote Point",
+							"item": [
+								{
+									"name": "SETUP: Configure locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nbridge-domain {{vpls_ni_name}}\nexit\nl2 vfi {{vpls_ni_name}} autodiscovery\nvpn id {{vpls_vccid}}\nbridge-domain {{vpls_ni_name}}\nexit\nbridge-domain {{vpls_ni_name}}\nexit\ninterface {{vpls_show_interface3}}\nservice instance {{vpls_endpoint_id}} ethernet\nencapsulation untagged\nbridge-domain {{vpls_ni_name}}\nexit\nexit\nexit\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show configured locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['connection-point-id'] === postman.getEnvironmentVariable(\"vpls_endpoint_id\");",
+													"        tests[\"Validate endpoint 3 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['connection-point-id'] === postman.getEnvironmentVariable(\"vpls_endpoint_id\");",
+													"        tests[\"Validate endpoint 3 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show configured locif l2vpn');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "TEARDOWN: Delete l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\ninterface {{vpls_show_interface3}}\nno service instance {{vpls_endpoint_id}} ethernet\nexit\nno l2 vfi {{vpls_ni_name}} autodiscovery\nno bridge-domain {{vpls_ni_name}}\nexit\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non existing network instance\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "L2VPN CRUD",
+					"description": "",
+					"item": [
+						{
+							"name": "Locifc to remote",
+							"item": [
+								{
+									"name": "Delete previous locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non existing network instance\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Create Loc To Remote 2 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful PUT request\"] = responseCode.code === 200 || responseCode.code === 201;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network-instance\": [\n        {\n            \"name\": \"{{vpls_ni_name}}\",\n            \"config\": {\n                \"name\": \"{{vpls_ni_name}}\",\n                \"type\": \"frinx-openconfig-network-instance-types:L2VSI\"\n            },\n            \"protocols\": {\n            \t\"protocol\": [  \n\t\t\t\t   {  \n\t\t\t\t      \"name\":\"default\",\n\t\t\t\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t      \"config\":{  \n\t\t\t\t         \"name\":\"default\",\n\t\t\t\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t         \"enabled\": true\n\t\t\t\t      },\n\t\t\t\t      \"bgp\":{  \n\t\t\t\t         \"global\":{  \n\t\t\t\t            \"config\":{  \n\t\t\t\t               \"as\":\"65000\"\n\t\t\t\t            }\n\t\t\t\t         }\n\t\t\t\t      }\n\t\t\t\t   }\n\t\t\t\t]\n            },\n            \"connection-points\": {\n                \"connection-point\": [\n                    {\n                        \"connection-point-id\": \"remote\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:REMOTE\",\n                                        \"endpoint-id\": \"default\"\n                                    },\n                                    \"remote\": {\n                                        \"config\": {\n                                            \"virtual-circuit-identifier\": {{vpls_vccid}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"remote\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"1\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"1\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface3}}\"\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"1\"\n                        }\n                    }\n\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show created loc to remote 2 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['connection-point-id'] === postman.getEnvironmentVariable(\"vpls_endpoint_id\");",
+													"        tests[\"Validate endpoint 3 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['connection-point-id'] === postman.getEnvironmentVariable(\"vpls_endpoint_id\");",
+													"        tests[\"Validate endpoint 3 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show created loc to remote 2 points');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Create Loc To Remote 3 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful PUT request\"] = responseCode.code === 200 || responseCode.code === 201;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network-instance\": [\n        {\n            \"name\": \"{{vpls_ni_name}}\",\n            \"config\": {\n                \"name\": \"{{vpls_ni_name}}\",\n                \"type\": \"frinx-openconfig-network-instance-types:L2VSI\"\n            },\n            \"protocols\": {\n            \t\"protocol\": [  \n\t\t\t\t   {  \n\t\t\t\t      \"name\":\"default\",\n\t\t\t\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t      \"config\":{  \n\t\t\t\t         \"name\":\"default\",\n\t\t\t\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t         \"enabled\": true\n\t\t\t\t      },\n\t\t\t\t      \"bgp\":{  \n\t\t\t\t         \"global\":{  \n\t\t\t\t            \"config\":{  \n\t\t\t\t               \"as\":\"65000\"\n\t\t\t\t            }\n\t\t\t\t         }\n\t\t\t\t      }\n\t\t\t\t   }\n\t\t\t\t]\n            },\n            \"connection-points\": {\n                \"connection-point\": [\n                    {\n                        \"connection-point-id\": \"remote\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:REMOTE\",\n                                        \"endpoint-id\": \"default\"\n                                    },\n                                    \"remote\": {\n                                        \"config\": {\n                                            \"virtual-circuit-identifier\": {{vpls_vccid}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"remote\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"1\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"1\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface3}}\"\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"1\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"2\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"2\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface2}}\"\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"2\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show created loc to remote 3 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:REMOTE' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface2\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][2]['connection-point-id'] === postman.getEnvironmentVariable(\"vpls_endpoint_id\");",
+													"        tests[\"Validate endpoint 3 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"        tests[\"Validate endpoint 2 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][2]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['connection-point-id'] === postman.getEnvironmentVariable(\"vpls_endpoint_id\");",
+													"        tests[\"Validate endpoint 3 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show created loc to remote 3 points');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Update Loc To Remote 3 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful PUT request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network-instance\": [\n        {\n            \"name\": \"{{vpls_ni_name}}\",\n            \"config\": {\n                \"name\": \"{{vpls_ni_name}}\",\n                \"type\": \"frinx-openconfig-network-instance-types:L2VSI\"\n            },\n            \"protocols\": {\n            \t\"protocol\": [  \n\t\t\t\t   {  \n\t\t\t\t      \"name\":\"default\",\n\t\t\t\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t      \"config\":{  \n\t\t\t\t         \"name\":\"default\",\n\t\t\t\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t\t\t\t         \"enabled\": true\n\t\t\t\t      },\n\t\t\t\t      \"bgp\":{  \n\t\t\t\t         \"global\":{  \n\t\t\t\t            \"config\":{  \n\t\t\t\t               \"as\":\"65000\"\n\t\t\t\t            }\n\t\t\t\t         }\n\t\t\t\t      }\n\t\t\t\t   }\n\t\t\t\t]\n            },\n            \"connection-points\": {\n                \"connection-point\": [\n                    {\n                        \"connection-point-id\": \"remote\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:REMOTE\",\n                                        \"endpoint-id\": \"default\"\n                                    },\n                                    \"remote\": {\n                                        \"config\": {\n                                            \"virtual-circuit-identifier\": {{vpls_vccid2}}\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"remote\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"1\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"1\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface3}}\"\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"1\"\n                        }\n                    },\n                    {\n                        \"connection-point-id\": \"2\",\n                        \"endpoints\": {\n                            \"endpoint\": [\n                                {\n                                    \"endpoint-id\": \"default\",\n                                    \"config\": {\n                                        \"precedence\": 0,\n                                        \"type\": \"frinx-openconfig-network-instance-types:LOCAL\",\n                                        \"endpoint-id\": \"2\"\n                                    },\n                                    \"local\": {\n                                        \"config\": {\n                                            \"interface\": \"{{vpls_show_interface2}}\"\n                                        }\n                                    }\n                                }\n                            ]\n                        },\n                        \"config\": {\n                            \"connection-point-id\": \"2\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show updated loc to remote 3 points",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful GET request\"] = responseCode.code === 200",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"network-instance\")) {",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:REMOTE' ) {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface2\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][2]['connection-point-id'] === postman.getEnvironmentVariable(\"vpls_endpoint_id\");",
+													"        tests[\"Validate endpoint 3 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid2\");",
+													"        tests[\"Validate endpoint 2 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][2]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"    } else {",
+													"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"vpls_show_interface3\");",
+													"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['connection-point-id'] === postman.getEnvironmentVariable(\"vpls_endpoint_id\");",
+													"        tests[\"Validate endpoint 3 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['virtual-circuit-identifier'] == postman.getEnvironmentVariable(\"vpls_vccid2\");",
+													"    }",
+													"",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still not up! Too many attempts !\")",
+													"        tests[\"Connection not created\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show updated loc to remote 3 points');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete locifc l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
 						}
 					],
 					"_postman_isSubFolder": true

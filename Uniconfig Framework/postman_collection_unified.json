@@ -18229,6 +18229,124 @@
 							"response": []
 						},
 						{
+							"name": "Create rsvp default value",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"tests[\"PUT - Create rsvp request\"] = responseCode.code === 201 || responseCode.code === 200"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"interface\": [\n         {\n             \"interface-id\": \"{{rsvp_intf-id}}\",\n             \"config\": {\n                 \"interface-id\": \"{{rsvp_intf-id}}\"\n             },\n             \"subscription\": {\n                \"config\": {\n                    \"frinx-mpls-rsvp-extension:bandwidth\": {{rsvp_bandwidth_create_default}}\n                }\n             }\n         }\n    ]\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{rsvp_ni_name}}/mpls/signaling-protocols/rsvp-te/interface-attributes/interface/{{rsvp_url_intf-id}}"
+							},
+							"response": []
+						},
+						{
+							"name": "show created rsvp default",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"tests[\"GET - Show rsvp created request\"] = responseCode.code === 200",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"interface\")) {",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"    tests[\"Rsvp created\"] = jsonData.interface[0][\"interface-id\"] === postman.getEnvironmentVariable(\"rsvp_intf-id\");",
+											"    console.warn(\"// FIXME this does not return bandwidth yet (bug)\")",
+											"    tests[\"Rsvp created - bandwidth\"] = jsonData.interface[0][\"subscription\"][\"config\"][\"frinx-mpls-rsvp-extension:bandwidth\"] === postman.getEnvironmentVariable(\"rsvp_bandwidth_create_default\");",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"attempts_3x\"))) {",
+											"        // Reset attempt counter",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Rsvp not created yet ! Too many attempts !\")",
+											"        tests[\"Rsvp not created\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Rsvp not created yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('show created rsvp default');",
+											"    }",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{rsvp_ni_name}}/mpls/signaling-protocols/rsvp-te/interface-attributes/interface/{{rsvp_url_intf-id}}"
+							},
+							"response": []
+						},
+						{
 							"name": "Create rsvp",
 							"event": [
 								{
@@ -18296,7 +18414,7 @@
 											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 											"    tests[\"Rsvp created\"] = jsonData.interface[0][\"interface-id\"] === postman.getEnvironmentVariable(\"rsvp_intf-id\");",
 											"    console.warn(\"// FIXME this does not return bandwidth yet (bug)\")",
-											"    //tests[\"Rsvp created - bandwidth\"] = jsonData.interface[0][\"config\"][\"frinx-mpls-rsvp-extension:bandwidth\"] === postman.getEnvironmentVariable(\"rsvp_bandwidth_create\");",
+											"    tests[\"Rsvp created - bandwidth\"] = jsonData.interface[0][\"subscription\"][\"config\"][\"frinx-mpls-rsvp-extension:bandwidth\"] === JSON.parse(postman.getEnvironmentVariable(\"rsvp_bandwidth_create\"));",
 											"} else {",
 											"    // If too many attempts, abort",
 											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"attempts_3x\"))) {",
@@ -18414,7 +18532,7 @@
 											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 											"    tests[\"Rsvp updated\"] = jsonData.interface[0][\"interface-id\"] === postman.getEnvironmentVariable(\"rsvp_intf-id\");",
 											"    console.warn(\"// FIXME this does not return bandwidth yet (bug)\")",
-											"    //tests[\"Rsvp updated - bandwidth\"] = jsonData.interface[0][\"subscription\"][\"configd\"][\"frinx-mpls-rsvp-extension:bandwidth\"] === postman.getEnvironmentVariable(\"rsvp_bandwidth_update\");",
+											"    tests[\"Rsvp updated - bandwidth\"] = jsonData.interface[0][\"subscription\"][\"config\"][\"frinx-mpls-rsvp-extension:bandwidth\"] === JSON.parse(postman.getEnvironmentVariable(\"rsvp_bandwidth_update\"));",
 											"} else {",
 											"    // If too many attempts, abort",
 											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"attempts_3x\"))) {",
@@ -31583,7 +31701,7 @@
 									},
 									"response": [
 										{
-											"id": "1af13ab8-1018-4171-94f3-4154406b2856",
+											"id": "ab0cf951-386c-4eb8-8eb6-247edd6c6455",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -32007,7 +32125,7 @@
 									},
 									"response": [
 										{
-											"id": "36b86e04-1de0-4a23-a7fd-e54ef2bce58b",
+											"id": "8766717c-29b7-456b-b6af-4a95f1fcf7f0",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -32442,7 +32560,7 @@
 									},
 									"response": [
 										{
-											"id": "460f3b37-787d-43a4-99bf-15978feb4451",
+											"id": "94bd70e0-4e45-4b36-a87c-3f4c1c010707",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -32866,7 +32984,7 @@
 									},
 									"response": [
 										{
-											"id": "031da2c5-be83-490f-94e7-a33be510e903",
+											"id": "2287c86b-a10e-4609-aa1a-a282e25e6ae9",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",

@@ -4428,6 +4428,451 @@
 					"_postman_isSubFolder": true
 				},
 				{
+					"name": "XR L3VPN BGP",
+					"item": [
+						{
+							"name": "XR L3VPN BGP READERS",
+							"item": [
+								{
+									"name": "Delete previous L3VPN BGP",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno vrf {{l3_vpn_bgp_vrf}}\nexit\nno vrf {{l3_vpn_bgp_vrf}}\ncommit\nend\n\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "Configure L3VPN BGP",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nvrf {{l3_vpn_bgp_vrf}}\naddress-family ipv4 unicast \nimport route-target \n{{l3_vpn_bgp_rt_imp_1}}\n{{l3_vpn_bgp_rt_imp_2}}\n{{l3_vpn_bgp_rt_imp_3}}\nexit\nexport route-target \n{{l3_vpn_bgp_rt_exp_1}}\n{{l3_vpn_bgp_rt_exp_2}}\n{{l3_vpn_bgp_rt_exp_3}}\nexit\nexit\nexit\ninterface {{l3_vpn_bgp_interface_id}}\nvrf {{l3_vpn_bgp_vrf}}\nexit\nrouter bgp {{l3_vpn_bgp_as_number}}\nbgp router-id {{l3_vpn_bgp_router_id}}\naddress-family vpnv4 unicast\nvrf {{l3_vpn_bgp_vrf}}\nrd {{l3_vpn_bgp_rd}}\naddress-family ipv4 unicast \nnetwork {{l3_vpn_bgp_network_prefix}} {{l3_vpn_bgp_network_prefix_mask1}}\nexit\nneighbor {{l3_vpn_bgp_neighbor_address}}\nremote-as {{l3_vpn_bgp_remote_as}}\naddress-family ipv4 unicast \nroute-policy RPL_PASS_ALL in\nroute-policy RPL_PASS_ALL out\ncommit\nend\n\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show L3VPN BGP network instance",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"var mystring = [];",
+													"mystring.push('\"name\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + '\"');",
+													"",
+													"var str = postman.getEnvironmentVariable(\"l3_vpn_bgp_as_number\");",
+													"var pos = str.lastIndexOf(\".\")",
+													"var res = str.substring(0, pos);",
+													"var num = res * 65536 + Number(str.substring(pos + 1,str.length));",
+													"mystring.push('\"as\":' + num.toString());",
+													"",
+													"//in SETUP Configure L3VPN BGP I configure router-id for global BGP",
+													"//this GET reader is for VRF - this is reason why it did not get into reader output",
+													"//mystring.push('\"router-id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_router_id\") + '\"');",
+													"",
+													"mystring.push('\"neighbor-address\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\") + '\"');",
+													"",
+													"var str = postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as\");",
+													"var pos = str.lastIndexOf(\".\")",
+													"var res = str.substring(0, pos);",
+													"var num = res * 65536 + Number(str.substring(pos + 1,str.length));",
+													"mystring.push('\"peer-as\":' + num.toString());",
+													"",
+													"mystring.push('\"prefix\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\") + '\"');",
+													"mystring.push('\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"');",
+													"mystring.push('\"route-distinguisher\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\") + '\"');",
+													"",
+													"mystring.forEach(function(entry) {",
+													"    tests[\"Body matches string \" + entry] = responseBody.has(entry);",
+													"});",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show L3VPN BGP defined sets",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"",
+													"",
+													"/*-- THIS DOES NOR WORK IN NEWMAN",
+													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")) === true;",
+													"",
+													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")) === true;",
+													"",
+													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")) === true;",
+													"*/",
+													"",
+													"if (jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\") {",
+													"    ",
+													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
+													"    ",
+													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
+													"",
+													"",
+													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"];",
+													"    console.log(pole);",
+													"    for (var i = 0; i < pole.length; i++) {",
+													"        switch(pole[i]) {",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = true;",
+													"                break;",
+													"            default:",
+													"                test[\"Found not expected value \" + pole[i]] = false;",
+													"        } ",
+													"    }",
+													"",
+													"",
+													"    /*",
+													"    // this is not good because it relies on ordered input in environmental variabes....",
+													"    ",
+													"    pole.sort();",
+													"    console.log(pole);",
+													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = pole[0] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\");",
+													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = pole[1] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\");",
+													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = pole[2] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\");",
+													"    */",
+													"",
+													"",
+													"} else {",
+													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
+													"    ",
+													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
+													"    ",
+													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-member\"];",
+													"    console.log(pole);",
+													"    for (var i = 0; i < pole.length; i++) {",
+													"        switch(pole[i]) {",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = true;",
+													"                break;",
+													"            default:",
+													"                test[\"Found not expected value \" + pole[i]] = false;",
+													"        } ",
+													"    }",
+													"    ",
+													"}",
+													"",
+													"",
+													"if (jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\") {",
+													"    ",
+													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
+													"    ",
+													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
+													"",
+													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"];",
+													"    console.log(pole);",
+													"    for (var i = 0; i < pole.length; i++) {",
+													"        switch(pole[i]) {",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\")] = true;",
+													"                break;",
+													"            default:",
+													"                test[\"Found not expected value \" + pole[i]] = false;",
+													"        } ",
+													"    }",
+													"} else {",
+													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
+													"    ",
+													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
+													"    ",
+													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-member\"];",
+													"    console.log(pole);",
+													"    for (var i = 0; i < pole.length; i++) {",
+													"        switch(pole[i]) {",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\")] = true;",
+													"                break;",
+													"            default:",
+													"                test[\"Found not expected value \" + pole[i]] = false;",
+													"        } ",
+													"    }",
+													"    ",
+													"}",
+													"",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previous L3VPN BGP",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno vrf {{l3_vpn_bgp_vrf}}\nexit\nno vrf {{l3_vpn_bgp_vrf}}\ncommit\nend\n\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted L3VPN BGP (network instance)",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non network instance.\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted L3VPN BGP (defined sets)",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "e799fcd7-db37-470b-8939-c75c34fb21d0",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "200b430c-eb46-4e97-b0f6-8eb87d89e781",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
 					"name": "XR L3VPN BGP CRUD",
 					"item": [
 						{
@@ -4468,7 +4913,7 @@
 									},
 									"response": [
 										{
-											"id": "b6157551-6093-4019-8db6-ec5e7f7269bf",
+											"id": "1e4649d8-b55d-4486-bf86-24935d306e02",
 											"name": "0830 Delete interface - fail",
 											"originalRequest": {
 												"method": "DELETE",
@@ -4568,11 +5013,11 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "b15c3caf-ea80-4619-9317-0fee32c5a956",
+												"id": "1c89ce84-2745-4c62-aae4-e43c4b32100a",
 												"type": "text/javascript",
 												"exec": [
 													"//tests[\"Success\"] = responseCode.code === 200;",
-													"console.warn(\"//MU-254 FIXME this tends to fail...\")",
+													"console.warn(\"//MU-254 FIXME this tends to fail... Second attempt is usually succesful\")",
 													""
 												]
 											}
@@ -4715,11 +5160,14 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "26b7fa9d-3842-43a3-be6b-dac2a60b443c",
+												"id": "3f0e2965-57c5-4b78-b08d-18cc4bfcd453",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
 												]
 											}
 										}
@@ -28745,10 +29193,14 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "1cfb281c-73ef-4f52-a59c-bbcb4975c809",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Status code is 404\"] = responseCode.code === 200;"
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
 												]
 											}
 										}
@@ -29579,9 +30031,10 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "b521581f-f898-4259-aaba-c5e41610d07f",
 												"type": "text/javascript",
 												"exec": [
-													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
+													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201 || responseCode.code === 404;"
 												]
 											}
 										}
@@ -29633,7 +30086,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"Loopback1970\",\n            \"config\": {\n                \"type\": \"iana-if-type:softwareLoopback\",\n                \"enabled\": true,\n                \"name\": \"Loopback1970\"\n            },\n            \"subinterfaces\": {\n                \"subinterface\": [\n                    {\n                        \"index\": 0\n                    }\n                ]\n            }\n        }\n    ]\n}"
+											"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"Loopback1970\",\n            \"config\": {\n                \"type\": \"iana-if-type:softwareLoopback\",\n                \"enabled\": true,\n                \"name\": \"Loopback1970\"\n            }\n        }\n    ]\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l3_vpn_bgp_nonexist_interface_id}}"
 									},
@@ -29889,6 +30342,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "802516fb-2789-4d85-9fd0-4a8d32d61e4b",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29904,7 +30358,7 @@
 													"tests['\"neighbor-address\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\");",
 													"tests['\"peer-as\":' + postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\")] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-as\"] === parseInt(postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\"));",
 													"tests['\"prefix\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"local-aggregates\"][\"aggregate\"][0][\"prefix\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\");",
-													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\");",
+													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\")) || (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][1][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\"));",
 													"tests['\"route-distinguisher\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\") + '\"'] = jsonData[\"network-instance\"][0][\"config\"][\"route-distinguisher\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\");",
 													"",
 													"",
@@ -31380,6 +31834,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "ebc90e25-0126-445e-9d9a-1cb91b1a8e35",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -31395,7 +31850,7 @@
 													"tests['\"neighbor-address\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\");",
 													"tests['\"peer-as\":' + postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\")] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-as\"] === parseInt(postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\"));",
 													"tests['\"prefix\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"local-aggregates\"][\"aggregate\"][0][\"prefix\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\");",
-													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\");",
+													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\")) || (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][1][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\"));",
 													"tests['\"route-distinguisher\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\") + '\"'] = jsonData[\"network-instance\"][0][\"config\"][\"route-distinguisher\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\");",
 													"//tests[] = jsonData[\"network-instance\"][\"\"][\"\"][\"\"][][\"\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\");",
 													""
@@ -31723,6 +32178,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "1882a4ae-3530-4283-a8d7-f87064d3e1d2",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -31738,7 +32194,7 @@
 													"tests['\"neighbor-address\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\");",
 													"tests['\"peer-as\":' + postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\")] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-as\"] === parseInt(postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\"));",
 													"//tests['\"prefix\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"local-aggregates\"][\"aggregate\"][0][\"prefix\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\");",
-													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\");",
+													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\")) || (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][1][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\"));",
 													"tests['\"route-distinguisher\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\") + '\"'] = jsonData[\"network-instance\"][0][\"config\"][\"route-distinguisher\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\");",
 													"//tests[] = jsonData[\"network-instance\"][\"\"][\"\"][\"\"][][\"\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\");",
 													"",
@@ -31817,6 +32273,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "bd21898f-5747-488c-8a6b-1e125d9a4a5a",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -31832,7 +32289,7 @@
 													"tests['\"neighbor-address\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\");",
 													"tests['\"peer-as\":' + postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\")] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-as\"] === parseInt(postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\"));",
 													"tests['\"prefix\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"local-aggregates\"][\"aggregate\"][0][\"prefix\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\");",
-													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\");",
+													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\")) || (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][1][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\"));",
 													"tests['\"route-distinguisher\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\") + '\"'] = jsonData[\"network-instance\"][0][\"config\"][\"route-distinguisher\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\");",
 													"//tests[] = jsonData[\"network-instance\"][\"\"][\"\"][\"\"][][\"\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\");",
 													""
@@ -32205,7 +32662,7 @@
 									},
 									"response": [
 										{
-											"id": "74261917-c190-431c-887c-6fadaa2f5316",
+											"id": "452a057b-72b7-4de6-ba1e-77af5589c4b9",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -32369,6 +32826,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "c7202d42-d0f4-41d2-b20e-d77a9a79b6af",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -32384,7 +32842,7 @@
 													"tests['\"neighbor-address\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\");",
 													"tests['\"peer-as\":' + postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\")] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-as\"] === parseInt(postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as_decimal\"));",
 													"tests['\"prefix\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\") + '\"'] = jsonData[\"network-instance\"][0][\"protocols\"][\"protocol\"][0][\"local-aggregates\"][\"aggregate\"][0][\"prefix\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\");",
-													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\");",
+													"tests['\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"'] = (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\")) || (jsonData[\"network-instance\"][0][\"interfaces\"][\"interface\"][1][\"id\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\"));",
 													"tests['\"route-distinguisher\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\") + '\"'] = jsonData[\"network-instance\"][0][\"config\"][\"route-distinguisher\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\");",
 													"//tests[] = jsonData[\"network-instance\"][\"\"][\"\"][\"\"][][\"\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\");",
 													"",
@@ -32629,7 +33087,7 @@
 									},
 									"response": [
 										{
-											"id": "ae95a715-22d2-420d-8375-33e4076546e1",
+											"id": "17d6a10b-d205-4485-86f1-33aaaeb5288f",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -33058,7 +33516,7 @@
 									},
 									"response": [
 										{
-											"id": "2124eaf1-7e9b-4473-9da2-49861a7a597a",
+											"id": "5062b0a0-5d22-427e-80ce-095a684615e9",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -33482,7 +33940,7 @@
 									},
 									"response": [
 										{
-											"id": "98fe53fe-66a9-4c60-a712-e70c8324a91d",
+											"id": "cd918a56-3ff8-4b12-913f-725bcfc4a77d",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",

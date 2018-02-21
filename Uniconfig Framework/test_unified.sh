@@ -15,6 +15,8 @@ if [ -f $file2 ] ; then
 fi
 
 # function to write result of test
+# the first argument $1 is a result 0/1 of last newman execution
+# the second argument $2 is a char r/s/ /t which define the postman collection purpose (reader test/setup/main test/teardown)
 function test_pass() {
     case "$2" in
       "r")
@@ -29,6 +31,8 @@ function test_pass() {
 }
 
 # function to write info about failure of test
+# the first argument $1 is to specify the device e.g XR/XE/Classis
+# the second argument $2 is a char r/s/ /t which define the postman collection purpose (reader test/setup/main test/teardown) 
 function test_failure_info() {
   case "$2" in
     "r")

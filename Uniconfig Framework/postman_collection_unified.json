@@ -2011,6 +2011,20 @@
 							"item": [
 								{
 									"name": "Delete subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "a39898ca-22d1-45af-abec-5ad41dc86df7",
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
 									"request": {
 										"method": "DELETE",
 										"header": [
@@ -2037,12 +2051,17 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "7b9bca8f-2380-4165-a7e0-6fca293c3c41",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
 													"",
 													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+													"/*",
+													"pm.test(\"Status code is 404\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});",
+													"*/"
 												]
 											}
 										}
@@ -26939,9 +26958,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "56782d40-5d67-4a6a-9bfd-b1148b608518",
 												"type": "text/javascript",
 												"exec": [
-													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});",
+													""
 												]
 											}
 										}
@@ -26972,9 +26995,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "8384c878-5982-4a51-8508-79bb431c79fc",
 												"type": "text/javascript",
 												"exec": [
-													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});",
+													""
 												]
 											}
 										}
@@ -27005,15 +27032,42 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "ca498342-4581-414c-8cac-8db8e335918c",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
 													"",
 													"tests[\"Status code is 200\"] = responseCode.code === 200;",
 													"",
-													"tests[\"01. Body matches string\"] = responseBody.has(\"updated subinterface description\");",
-													"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"cdp_lldp_test_interface\")) + \".\" + String(postman.getEnvironmentVariable(\"test_sub_interface_index\")));",
-													"tests[\"03. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"vlan_id\")));"
+													"var description = \"updated subinterface description\";",
+													"pm.test(\"Validate description\", function() {",
+													"  pm.expect(pm.response.json()[\"subinterface\"][0][\"state\"][\"description\"]).to.eql(description);",
+													"});",
+													"pm.test(\"Validate description\", function() {",
+													"  pm.expect(pm.response.json()[\"subinterface\"][0][\"config\"][\"description\"]).to.eql(description);",
+													"});",
+													"",
+													"var ifname = String(pm.environment.get(\"cdp_lldp_test_interface\")) + \".\" + String(pm.environment.get(\"test_sub_interface_index\"));",
+													"pm.test(\"Validate name\", function() {",
+													"  pm.expect(pm.response.json()[\"subinterface\"][0][\"config\"][\"name\"]).to.eql(ifname);",
+													"});",
+													"pm.test(\"Validate name\", function() {",
+													"  pm.expect(pm.response.json()[\"subinterface\"][0][\"state\"][\"name\"]).to.eql(ifname);",
+													"});",
+													"",
+													"pm.test(\"Validate index\", function() {",
+													"  pm.expect(pm.response.json()[\"subinterface\"][0][\"index\"]).to.eql(JSON.parse(pm.environment.get(\"test_sub_interface_index\")));",
+													"});",
+													"pm.test(\"Validate index\", function() {",
+													"  pm.expect(pm.response.json()[\"subinterface\"][0][\"state\"][\"index\"]).to.eql(JSON.parse(pm.environment.get(\"test_sub_interface_index\")));",
+													"});",
+													"pm.test(\"Validate index\", function() {",
+													"  pm.expect(pm.response.json()[\"subinterface\"][0][\"config\"][\"index\"]).to.eql(JSON.parse(pm.environment.get(\"test_sub_interface_index\")));",
+													"});",
+													"",
+													"pm.test(\"Validate vlan-id\", function() {",
+													"  pm.expect(pm.response.json()[\"subinterface\"][0][\"frinx-openconfig-vlan:vlan\"][\"config\"][\"vlan-id\"]).to.eql(JSON.parse(pm.environment.get(\"vlan_id\")));",
+													"});"
 												]
 											}
 										}
@@ -29553,7 +29607,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"protocol\": [\n        {\n            \"name\": \"{{bgp_process-name}}\",\n            \"identifier\": \"frinx-openconfig-policy-types:BGP\",\n            \"config\": {\n                \"name\": \"{{bgp_process-name}}\",\n                \"identifier\": \"frinx-openconfig-policy-types:BGP\"\n            },\n            \"bgp\": {\n                \"global\": {\n                    \"config\": {\n                        \"as\": {{bgp_as2}}\n                    }\n                },\n                \"neighbors\": {\n                    \"neighbor\": [\n                        {\n                            \"neighbor-address\": \"{{bgp_ip2}}\",\n                            \"config\": {\n                                \"neighbor-address\": \"{{bgp_ip2}}\",\n                                \"peer-group\": \"{{bgp_group2}}\",\n                                \"peer-as\": {{bgp_peer-as2}},\n                                \"enabled\": true\n                            }\n                        }\n                    ]\n                }\n            }\n        }\n    ]\n}"
+											"raw": "{\n    \"protocol\": [\n        {\n            \"name\": \"{{bgp_process-name}}\",\n            \"identifier\": \"frinx-openconfig-policy-types:BGP\",\n            \"config\": {\n                \"name\": \"{{bgp_process-name}}\",\n                \"identifier\": \"frinx-openconfig-policy-types:BGP\"\n            },\n            \"bgp\": {\n                \"global\": {\n                    \"config\": {\n                        \"as\": {{bgp_as}}\n                    }\n                },\n                \"neighbors\": {\n                    \"neighbor\": [\n                        {\n                            \"neighbor-address\": \"{{bgp_ip2}}\",\n                            \"config\": {\n                                \"neighbor-address\": \"{{bgp_ip2}}\",\n                                \"peer-group\": \"{{bgp_group2}}\",\n                                \"peer-as\": {{bgp_peer-as2}},\n                                \"enabled\": true\n                            }\n                        }\n                    ]\n                }\n            }\n        }\n    ]\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}"
 									},
@@ -29565,6 +29619,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "99394ac4-bda2-4683-b860-821c171be605",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29575,7 +29630,7 @@
 													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring);",
 													"var mystring = \"\\\"name\\\":\\\"\" + String (postman.getEnvironmentVariable(\"bgp_process-name\"))+\"\\\"\";",
 													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring); ",
-													"var mystring = '\"as\":' + postman.getEnvironmentVariable(\"bgp_as2\");",
+													"var mystring = '\"as\":' + postman.getEnvironmentVariable(\"bgp_as\");",
 													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
 													"var mystring = '\"peer-as\":' + postman.getEnvironmentVariable(\"bgp_peer-as2\");",
 													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
@@ -29587,6 +29642,7 @@
 										{
 											"listen": "prerequest",
 											"script": {
+												"id": "467d4ae5-828e-4f44-a519-c164b0f379d3",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Here we wait 60 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
@@ -33476,7 +33532,7 @@
 									},
 									"response": [
 										{
-											"id": "b0563dbe-f009-4a9c-90ea-8a97a74169c1",
+											"id": "aa7a90f8-943b-4006-99ec-6df5a2ea7a84",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -33907,7 +33963,7 @@
 									},
 									"response": [
 										{
-											"id": "0eda3cf0-f013-42ca-ada7-1e06355ff1a7",
+											"id": "775bbd56-40b5-4b1e-a964-ee6b228ee5b4",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -34340,7 +34396,7 @@
 									},
 									"response": [
 										{
-											"id": "f0a84f18-49ce-4b76-9697-eabbdf70d1b1",
+											"id": "65f5790b-a27e-4351-baf6-f167a9a74a88",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -34771,7 +34827,7 @@
 									},
 									"response": [
 										{
-											"id": "d1b87229-2fb1-4327-a8b2-fbd52878523b",
+											"id": "29e2927d-d7f6-4879-a67b-4b9014b4657a",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -35106,9 +35162,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "aa7d4a2d-1ab2-4fde-b2da-1f8adc634447",
 												"type": "text/javascript",
 												"exec": [
-													"tests[\"Success\"] = responseCode.code === 500"
+													"pm.test(\"Status code is 500\", function () {",
+													"    pm.response.to.have.status(500);",
+													"});",
+													""
 												]
 											}
 										}

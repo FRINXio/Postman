@@ -2,14 +2,14 @@
 set +x
 
 collection=postman_collection_unified.json
-file=list.txt
 
+file=list.txt # list of failed tests
 if [ -f $file ] ; then
     rm $file
 fi
 
 # this is preparation for collecting the results to summary table
-file2=list_of_test2
+file2=list_of_test2 # list of tests with their results
 if [ -f $file2 ] ; then
     rm $file2
 fi
@@ -18,23 +18,37 @@ fi
 # the first argument $1 is a result 0/1 of last newman execution
 # the second argument $2 is a char r/s/ /t which define the postman collection purpose (reader test/setup/main test/teardown)
 function test_pass() {
-    case "$2" in
-      "r")
-          echo "${1}Environment_${device}_${folder}_results_readers.xml" >> $file2;;
-      "s")
-          echo "${1}Environment_${device}_${folder}_results_1_setup.xml" >> $file2;;
-      "" | " ")
-          echo "${1}Environment_${device}_${folder}_results_2.xml" >> $file2;;
-      "t")
-          echo "${1}Environment_${device}_${folder}_results_3_teardown.xml" >> $file2;;
-    esac
+    #here process file folder_presence_check to prevent to make false entry to the file $file2
+    number_of_tests=`grep -o " 0 " folder_presence_check | wc -l`
+    if [ $number_of_tests -eq 10 ]
+    then
+        #this indicate that no test was found in folder or folder does not exists
+        #│              iterations │        0 │        0 │
+        #│                requests │        0 │        0 │
+        #│            test-scripts │        0 │        0 │
+        #│      prerequest-scripts │        0 │        0 │
+        #│              assertions │        0 │        0 │
+        echo "N/A ${device}_$2_${folder}" >> $file2
+    else
+        case "$2" in
+           "r")
+               echo "${1}Environment_${device}_${folder}_results_readers.xml" >> $file2;;
+           "s")
+               echo "${1}Environment_${device}_${folder}_results_1_setup.xml" >> $file2;;
+           "" | " ")
+               echo "${1}Environment_${device}_${folder}_results_2.xml" >> $file2;;
+           "t")
+               echo "${1}Environment_${device}_${folder}_results_3_teardown.xml" >> $file2;;
+        esac
+     fi
 }
+
 
 # function to write info about failure of test
 # the first argument $1 is to specify the device e.g XR/XE/Classis
-# the second argument $2 is a char r/s/ /t which define the postman collection purpose (reader test/setup/main test/teardown) 
+# the second argument $2 is a char r/s/ /t which define the postman collection purpose (reader test/setup/main test/teardown)
 function test_failure_info() {
-  case "$2" in
+   case "$2" in
     "r")
         echo  "Collection $collection with environment $device testing ${1} $rfolder FAILED" >> $file;;
     "s")
@@ -47,13 +61,49 @@ function test_failure_info() {
 }
 
 
+# complex function for calling newman instances (reader tests - setup - main test - teardown) over the list of tests
+# in the funnction are used these variables usually defined before calling of the function:
+# - mount folder
+# - $collection
+# - $formatter_bail   --bail --formatters ....
+# - $device
+# - $list_of_tests list of folders -> $folder
+# - $device_folder_string rfolder modifiers
+# - $device_id_string device specific string for test_failure_info
+# - $unmount_folder unmount folder
+function newman_stuff {
+  # https://stackoverflow.com/questions/6871859/piping-command-output-to-tee-but-also-save-exit-code-of-command
+  # testing of newman output status was done via variable $?
+  # using tee - in variable $? is stored the succees of tee - output of newman will be stored in ${PIPESTATUS[0]}
+  folder=$mount_folder
+  # in case that mount does not happen we will return from this function because it is useless to try to run all list of tests ...
+  newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "" ""; test_pass "1" "";return; else test_pass "0" ""; fi
+  for folder in "${list_of_tests[@]}"
+  do
+     rfolder="$device_folder_string $folder READERS"
+     newman run $collection $formatter_bail -e $device -n 1 --folder "$rfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
+     coll_len=`echo $folder | wc -w`
+     coll_arr=($folder)
+     ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
+     sfolder="$device_folder_string ${coll_arr[@]:0:${ll}} Setup"
+     newman run $collection $formatter_bail -e $device -n 1 --folder "$sfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
+     newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" ""; test_pass "1" ""; else test_pass "0" ""; fi
+     tfolder="$device_folder_string ${coll_arr[@]:0:${ll}} Teardown"
+     newman run $collection $formatter_bail -e $device -n 1 --folder "$tfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
+     sleep 2
+  done
+  folder=$unmount_folder
+  newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
+}
+
+
 ### Mount unmount test case
 devices=("mount_unmount_env.json" "mount_unmount_telnet_env.json" "mount_unmount_ios1553_env.json")
 folders=("Mount/Unmount IOS")
 
 for device in ${devices[@]}
 do
-   echo Collection running with $device
+     echo Collection running with $device
      for folder in "${folders[@]}"
      do
         newman run $collection --bail -e $device -n 2 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; fi
@@ -71,77 +121,6 @@ XR5_folders=("subinterface common" "subinterface common CRUD global" "OSPF CRUD"
 #ASR_folders=(need fix: "General information","5 LAG without BFD"-MU-212 "5 LAG with BFD"-MU-213, "SNMP"-MU-219 "SYSLOG CRUD"-MU-220  )
 ASR_folders=("Platform unified" "Interface" "Interface IP" "subinterface common CRUD basic" "static route" "CDP" "LLDP" "ospf" "L2VPN connection" "L2VPN connection CRUD locifc-remote" "L2VPN connection CRUD locsub-remote" "BGP summary" "L3VPN OSPF CRUD" "BGP instance CRUD global" "L3VPN BGP CRUD global" "L3VPN BGP CRUD Negative")
 
-for device in ${XR_devices[@]}
-do
-   echo Collection running with $device
-         if [ "$device" == "xrv_env.json" ]
-         then
-             folder="XR Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${XR_folders[@]}"
-             do
-                rfolder="XR $folder READERS"
-                newman run $collection --bail -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then test_failure_info "(XR)" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
-                coll_len=`echo $folder | wc -w`
-                coll_arr=($folder)
-                ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="XR ${coll_arr[@]:0:${ll}} Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "(XR)" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(XR)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="XR ${coll_arr[@]:0:${ll}} Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "(XR)" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="XR Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
-
-         if [ "$device" == "xrv5_env.json" ]
-         then
-             folder="XR5 Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${XR5_folders[@]}"
-             do
-                rfolder="XR5 $folder READERS"
-                newman run $collection --bail -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then test_failure_info "(XR5)" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
-                coll_len=`echo $folder | wc -w`
-                coll_arr=($folder)
-                ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="XR5 ${coll_arr[@]:0:${ll}} Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "(XR5)" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(XR5)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="XR5 ${coll_arr[@]:0:${ll}} Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "(XR5)" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="XR5 Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
-
-         if [ "$device" == "asr_env.json" ]
-         then
-             folder="XR Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(ASR)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${ASR_folders[@]}"
-             do
-                rfolder="XR $folder READERS"
-                newman run $collection --bail -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then test_failure_info "(ASR)" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
-                coll_len=`echo $folder | wc -w`
-                coll_arr=($folder)
-                ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="XR ${coll_arr[@]:0:${ll}} Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "(ASR)" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(ASR)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="XR ${coll_arr[@]:0:${ll}} Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "(ASR)" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="XR Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(ASR)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
-done
-
-
 ### Test for IOS
 IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json" "xe4_env.json" "cat6500_env.json")
 #Classic_folders=(need fix:"General information" "L2P2P connection CRUD Negative")
@@ -151,146 +130,98 @@ XE_folders=("Interfaces" "Interfaces IP"  "static route"  "journal-dryrun" "CDP"
 XE4_folders=("L2VPN connection" "L2VPN connection CRUD locifc-remote" "L2VPN connection CRUD locsub-remote")
 CAT6500_folders=("Platform cli")
 
-
-
-for device in ${IOS_devices[@]}
-do
-   echo Collection running with $device
-         if [ "$device" == "classic_152_env.json" ]
-         then
-             folder="Classic Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${Classic_folders[@]}"
-             do
-                rfolder="Classic $folder READERS"
-                newman run $collection --bail -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then test_failure_info "" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
-                coll_len=`echo $folder | wc -w`
-                coll_arr=($folder)
-                ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="Classic ${coll_arr[@]:0:${ll}} Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="Classic ${coll_arr[@]:0:${ll}} Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="Classic Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
-
-         if [ "$device" == "classic_1553_env.json" ]
-         then
-             folder="Classic Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${Classic_folders[@]}"
-             do
-                rfolder="Classic $folder READERS"
-                newman run $collection --bail -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then test_failure_info "" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
-                coll_len=`echo $folder | wc -w`
-                coll_arr=($folder)
-                ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="Classic ${coll_arr[@]:0:${ll}} Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "Classic" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "Classic" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="Classic ${coll_arr[@]:0:${ll}} Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "Classic" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="Classic Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
-
-         if [ "$device" == "xe_env.json" ]
-         then
-             folder="Classic Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(XE)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${XE_folders[@]}"
-             do
-                rfolder="Classic $folder READERS"
-                newman run $collection --bail -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then test_failure_info "(XE)" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
-                coll_len=`echo $folder | wc -w`
-                coll_arr=($folder)
-                ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="Classic ${coll_arr[@]:0:${ll}} Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "(XE)" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(XE)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="Classic ${coll_arr[@]:0:${ll}} Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "(XE)" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="Classic Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(XE)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
-
-         if [ "$device" == "xe4_env.json" ]
-         then
-             folder="Classic Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(XE4)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${XE4_folders[@]}"
-             do
-                rfolder="Classic $folder READERS"
-                newman run $collection --bail -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then test_failure_info "(XE4)" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
-                coll_len=`echo $folder | wc -w`
-                coll_arr=($folder)
-                ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="Classic ${coll_arr[@]:0:${ll}} Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "(XE4)" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(XE4)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="Classic ${coll_arr[@]:0:${ll}} Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "(XE4)" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="Classic Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(XE4)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
-
-         if [ "$device" == "cat6500_env.json" ]
-         then
-             folder="Classic Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(CAT)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${CAT6500_folders[@]}"
-             do
-                rfolder="Classic $folder READERS"
-                newman run $collection --bail -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then test_failure_info "(CAT)" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
-                coll_len=`echo $folder | wc -w`
-                coll_arr=($folder)
-                ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="Classic ${coll_arr[@]:0:${ll}} Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "(CAT)" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(CAT)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="Classic ${coll_arr[@]:0:${ll}} Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "(CAT)" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="Classic Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "(CAT)" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
-done
-
-
 ### Test for Junos
 junos_devices=("junos_env.json")
 junos_folders=()
+junos_devices=()
 
-for device in ${junos_devices[@]}
+# Here in the variable chosen_devices are default concatenated all devices which are routinelly run
+# https://www.thegeekstuff.com/2010/06/bash-array-tutorial - explained concatenate arrays and copying arrays
+chosen_devices=("${XR_devices[@]}" "${IOS_devices[@]}" "${junos_devices[@]}") # concatenate arrays
+# you can ad hoc redefine chosen_devices like this
+chosen_devices=("cat6500_env.json")
+
+# https://stackoverflow.com/questions/8880603/loop-through-an-array-of-strings-in-bash
+for device in ${chosen_devices[@]}
 do
-   echo Collection running with $device
-         if [ "$device" == "junos_env.json" ]
-         then
-             folder="Junos Mount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-             for folder in "${junos_folders[@]}"
-             do
-                sfolder="Junos $folder Setup"
-                newman run $collection --bail -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then test_failure_info "" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-                newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-                tfolder="Junos $folder Teardown"
-                newman run $collection --bail -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then test_failure_info "" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
-                sleep 2
-             done
-             folder="Junos Unmount"
-             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
-         fi
+  # common settings - used for all devices
+  formatter_bail="--bail"
+  # device specific settings
+  case "$device" in
+    ####################################
+    "xrv_env.json" )
+        mount_folder="XR Mount"
+        device_id_string="XR" # present in texts
+        device_folder_string=$device_id_string # present in rfolder/sfolder/tfolder
+        list_of_tests=("${XR_folders[@]}") # copying of array
+        unmount_folder="XR Unmount"
+        ;;
+    "xrv5_env.json" )
+        mount_folder="XR5 Mount"
+        device_id_string="XR5" # present in texts
+        device_folder_string=$device_id_string # present in rfolder/sfolder/tfolder
+        list_of_tests=("${XR5_folders[@]}") # copying of array
+        unmount_folder="XR5 Unmount"
+        ;;
+    "asr_env.json" )
+        mount_folder="XR Mount"
+        device_id_string="ASR" # present in texts
+        device_folder_string="XR" # present in rfolder/sfolder/tfolder
+        list_of_tests=("${ASR_folders[@]}") # copying of array
+        unmount_folder="XR Unmount"
+        ;;
+    ####################################
+    "classic_152_env.json" )
+        mount_folder="Classic Mount"
+        device_id_string="" # present in texts
+        device_folder_string="Classic" # present in rfolder/sfolder/tfolder
+        list_of_tests=("${Classic_folders[@]}") # copying of array
+        unmount_folder="Classic Unmount"
+        ;;
+    "classic_1553_env.json" )
+        mount_folder="Classic Mount"
+        device_id_string="Classic" # present in texts
+        device_folder_string="Classic" # present in rfolder/sfolder/tfolder
+        list_of_tests=("${Classic_folders[@]}") # copying of array
+        unmount_folder="Classic Unmount"
+        ;;
+    "xe_env.json" )
+        mount_folder="Classic Mount"
+        device_id_string="XE" # present in texts
+        device_folder_string="Classic" # present in rfolder/sfolder/tfolder
+        list_of_tests=("${XE_folders[@]}") # copying of array
+        unmount_folder="Classic Unmount"
+        ;;
+    "xe4_env.json" )
+        mount_folder="Classic Mount"
+        device_id_string="XE4" # present in texts
+        device_folder_string="Classic" # present in rfolder/sfolder/tfolder
+        list_of_tests=("${XE4_folders[@]}") # copying of array
+        unmount_folder="Classic Unmount"
+        ;;
+    "cat6500_env.json" )
+        mount_folder="Classic Mount"
+        device_id_string="CAT" # present in texts
+        device_folder_string="Classic" # present in rfolder/sfolder/tfolder
+        list_of_tests=("${CAT6500_folders[@]}") # copying of array
+        unmount_folder="Classic Unmount"
+        ;;
+    ####################################
+    "junos_env.json" )
+        mount_folder="Junos Mount"
+        device_id_string="" # present in texts
+        device_folder_string="Junos" # present in rfolder/sfolder/tfolder
+        list_of_tests=("${junos_folders[@]}") # copying of array
+        unmount_folder="Junos Unmount"
+        ;;
+  esac
+
+  if [ -f $device ] ; then
+      echo Collection running with $device
+      newman_stuff # calling function
+  else
+      echo "The environment file $device does not exist - collection IS NOT RUN" >> $file
+  fi
 done
 
 
@@ -314,8 +245,12 @@ if [ -f $file ] ; then
     rm $file
 fi
 
-## For html and xml ouputs use this:  --reporters html,cli,junit  --reporter-junit-export "/tmp/Environment_${device}_${folder}_results.xml"  --reporter-html-export "/tmp/Environment_${device}_${folder}_results.html"
+if [ -f folder_presence_check ] ; then
+    rm folder_presence_check
+fi
 
+
+## For html and xml ouputs use this:  --reporters html,cli,junit  --reporter-junit-export "/tmp/Environment_${device}_${folder}_results.xml"  --reporter-html-export "/tmp/Environment_${device}_${folder}_results.html"
 ## For example:
 ## newman run $collection --reporters html,cli,junit  --reporter-junit-export "/tmp/Environment_${device}_${folder}_results.xml"  --reporter-html-export "/tmp/Environment_${device}_${folder}_results.html" --bail -e $device -n 1 --folder "Classic $folder"; if [ "$?" != "0" ]; then test_failure_info "Classic" ""; fi
 ## newman run $collection --reporters html,cli,junit  --reporter-junit-export "/tmp/Environment_${device}_${folder}_results_readers.xml" --reporter-html-export "/tmp/Environment_${device}_${folder}_results_readers.html" --bail -e $device -n 1 --folder "Classic $folder"; if [ "$?" != "0" ]; then test_failure_info "Classic" ""; fi
@@ -324,6 +259,11 @@ fi
 ##newman run $collection --reporters html,cli,junit  --reporter-junit-export "/tmp/Environment_${device}_${folder}_results_3_teardown.xml" --reporter-html-export "/tmp/Environment_${device}_${folder}_results_3_teardown.html" --bail -e $device -n 1 --folder "Classic $folder"; if [ "$?" != "0" ]; then test_failure_info "Classic" ""; fi
 ##newman run $collection --reporters html,cli,junit  --reporter-junit-export "/tmp/Environment_${device}_${folder}_results.xml" --reporter-html-export "/tmp/Environment_${device}_${folder}_results.html" --bail -e $device -n 1 --folder "Classic $folder"; if [ "$?" != "0" ]; then test_failure_info "Classic" ""; fi
 
+
+if ! [ -f "file2" ] ; then
+    exit
+fi
+echo "Running python script to prepare summary table tbl.html..."
 # results of tests were collected to the file $file2
 # one result on one row in the form "0Environment_${device}_${folder}_results_2.xml" when test passed
 # one result on one row in the form "1Environment_${device}_${folder}_results_2.xml" when test failed
@@ -339,7 +279,36 @@ with open(sys.argv[1]) as f:
     # reading file line after line
     for i in f:
         #print(i[-5:-1], i)
-        # only main test will be processed - the results of reader tests, setup tests and teardown tests are not processed
+        # all tests will be processed - the results of reader tests, setup tests and teardown tests
+        # readers
+        if i[-6+1-7:-1] == 'readers.xml':
+            #g.append(i)
+            # finding possition of environment file
+            a = i.find('_env.json') + 9
+            #print(i[12:a - 9])
+            #print(i[a + 1:-6])
+            # extracting environment file
+            env = i[13:a - 9]
+            # extracting the name of test
+            tst = i[a + 1:-6-9+1-7]
+            # storing the result of test to dictionary structure
+            matrix_dict[tst][env + " 0:r"] = i[0]
+            #print(i[0],i)
+        # setups
+        if i[-6-6:-1] == '1_setup.xml':
+            #g.append(i)
+            # finding possition of environment file
+            a = i.find('_env.json') + 9
+            #print(i[12:a - 9])
+            #print(i[a + 1:-6])
+            # extracting environment file
+            env = i[13:a - 9]
+            # extracting the name of test
+            tst = i[a + 1:-6-9-6]
+            # storing the result of test to dictionary structure
+            matrix_dict[tst][env + " 1:s"] = i[0]
+            #print(i[0],i)
+        # main tests
         if i[-6:-1] == '2.xml':
             #g.append(i)
             # finding possition of environment file
@@ -351,7 +320,21 @@ with open(sys.argv[1]) as f:
             # extracting the name of test
             tst = i[a + 1:-6-9]
             # storing the result of test to dictionary structure
-            matrix_dict[tst][env] = i[0]
+            matrix_dict[tst][env + " 2:m"] = i[0]
+            #print(i[0],i)
+        # teardown tests
+        if i[-6-9:-1] == '3_teardown.xml':
+            #g.append(i)
+            # finding possition of environment file
+            a = i.find('_env.json') + 9
+            #print(i[12:a - 9])
+            #print(i[a + 1:-6])
+            # extracting environment file
+            env = i[13:a - 9]
+            # extracting the name of test
+            tst = i[a + 1:-6-9-9]
+            # storing the result of test to dictionary structure
+            matrix_dict[tst][env + " 3:t"] = i[0]
             #print(i[0],i)
 
 
@@ -370,7 +353,8 @@ devices.sort()
 
 
 ## this will construct HTML TABLE with results taken from dictiomary structure
-tabulka = '<table border="1">'
+tabulka = '<h1>Summary table</h1>'
+tabulka = tabulka + '<table border="1">'
 tabulka = tabulka + '<tr><td/>'
 for stlpec in devices:
     tabulka = tabulka + '<td style="writing-mode: vertical-rl;">' + stlpec + '</td>'
@@ -389,10 +373,18 @@ for riadok in testy:
     tabulka = tabulka + '</tr>'
 
 tabulka = tabulka + '</table>'
-
+tabulka = tabulka + '<hr/>'
+tabulka = tabulka + 'Explanatory notes:<br/>'
+tabulka = tabulka + '0:r - readers test / 1:s - setup test / 2:m - main test / 3:t - teardown test'
 
 ## this is to store TABLE to HTML file
 f = open( 'tbl.html', 'w' )
 f.write( tabulka )
 f.close()
 ____HERE
+
+if [ -f $file2 ] ; then
+    rm $file2
+fi
+
+echo "The results of all test are summarized in the table tbl.html..."

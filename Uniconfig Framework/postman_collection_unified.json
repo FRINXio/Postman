@@ -2710,12 +2710,17 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "6ba78676-d67c-4f34-a547-57893936e39a",
 												"type": "text/javascript",
 												"exec": [
-													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
+													"console.warn(\"// FIXME this returns 200 instead of returning 404 for non existing IP\")",
 													"",
 													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+													"/*",
+													"pm.test(\"Status code is 404\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});",
+													"*/"
 												]
 											}
 										}
@@ -2806,10 +2811,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "02af7dd6-1545-49a5-82de-1d82b1fd68a0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+													"pm.test(\"Successful DELETE request\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
 												]
 											}
 										}
@@ -2901,12 +2909,17 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "bef00661-e5fc-4364-920b-2b012da3ccfc",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
 													"",
 													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+													"/*",
+													"pm.test(\"Status code is 404\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});",
+													"*/"
 												]
 											}
 										}
@@ -2952,10 +2965,12 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "c45e7c47-f750-4c42-8687-497bf1578a80",
 														"type": "text/javascript",
 														"exec": [
-															"tests[\"Success\"] = responseCode.code === 200;",
-															""
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
 														]
 													}
 												}
@@ -2990,39 +3005,43 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "1ff4eff0-0924-44dd-97af-0066b0e32def",
 														"type": "text/javascript",
 														"exec": [
 															"console.log(\"Response: \" + responseBody)",
-															"tests[\"Successful GET request\"] = responseCode.code === 200",
+															"pm.test(\"Status code is 200\", function() {",
+															"    pm.response.to.have.status(200);",
+															"});",
 															"",
-															"// attempts counter",
-															"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+															"pm.test(\"Validate name\", function() {",
+															"    pm.expect(pm.response.json()[\"network-instance\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"l2p2p_ni_name1\"));",
+															"});",
+															"pm.test(\"Validate name\", function() {",
+															"    pm.expect(pm.response.json()[\"network-instance\"][0][\"name\"]).to.eql(pm.environment.get(\"l2p2p_ni_name1\"));",
+															"});",
 															"",
 															"var jsonData = JSON.parse(responseBody);",
-															"if (responseBody.has(\"network-instance\")) {",
-															"    // Reset attempt counter",
-															"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
-															"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface3\");",
-															"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['remote-system'] === postman.getEnvironmentVariable(\"l2p2p_show_remoteip\");",
-															"    } else {",
-															"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface3\");",
-															"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['remote-system'] === postman.getEnvironmentVariable(\"l2p2p_show_remoteip\");",
-															"    }",
+															"if (jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL') {",
 															"",
+															"    pm.test(\"Validate endpoint 1 interface\", function() {",
+															"        pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"l2p2p_show_interface3\"));",
+															"    });",
+															"    pm.test(\"Validate endpoint 2 remote\", function() {",
+															"        pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"remote\"][\"config\"][\"remote-system\"]).to.eql(pm.environment.get(\"l2p2p_show_remoteip\"));",
+															"    });",
+															"    pm.test(\"Validate virtual-circuit-identifier\", function() {",
+															"        pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"remote\"][\"config\"][\"virtual-circuit-identifier\"]).to.eql(JSON.parse(pm.environment.get(\"l2p2p_vccid\")));",
+															"    });",
 															"} else {",
-															"    // If too many attempts, abort",
-															"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"        console.log(\"Connection still not up! Too many attempts !\")",
-															"        tests[\"Connection not created\"] = false",
-															"    } else {",
-															"        // Schedule next check attempt",
-															"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
-															"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-															"        postman.setNextRequest('show configured locifc');",
-															"    }",
+															"    pm.test(\"Validate endpoint 1 interface\", function() {",
+															"        pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"l2p2p_show_interface3\"));",
+															"    });",
+															"    pm.test(\"Validate remote-system\", function() {",
+															"        pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"remote\"][\"config\"][\"remote-system\"]).to.eql(pm.environment.get(\"l2p2p_show_remoteip\"));",
+															"    });",
+															"    pm.test(\"Validate virtual-circuit-identifier\", function() {",
+															"        pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"remote\"][\"config\"][\"virtual-circuit-identifier\"]).to.eql(JSON.parse(pm.environment.get(\"l2p2p_vccid\")));",
+															"    });",
 															"}"
 														]
 													}
@@ -3054,10 +3073,12 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "5f5b57bc-a8be-458b-aa33-a4097d93959a",
 														"type": "text/javascript",
 														"exec": [
-															"tests[\"Success\"] = responseCode.code === 200;",
-															""
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
 														]
 													}
 												}
@@ -3092,31 +3113,17 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "69656646-90b3-42fa-a545-334999c2b840",
 														"type": "text/javascript",
 														"exec": [
-															"console.log(\"Response: \" + responseBody)",
-															"// attempts counter",
-															"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+															"console.warn(\"// FIXME this returns data instead of returning 404\")",
 															"",
-															"if (responseCode.code === 404) {",
-															"    tests[\"Connection removed\"] = true",
-															"    // Reset attempt counter",
-															"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"} else {",
-															"    // If too many attempts, abort",
-															"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"        console.log(\"Connection still present! Too many attempts !\")",
-															"        console.warn(\"// FIXME this returns data instead of returning 404\")",
-															"        //tests[\"Connection not removed\"] = false",
-															"    } else {",
-															"        // Schedule next check attempt",
-															"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
-															"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-															"        postman.setNextRequest('show deleted xconnect locif to remote');",
-															"    }",
-															"}"
+															"// console.log(\"Response: \" + responseBody)",
+															"/*",
+															"pm.test(\"Status code is 404\", function () {",
+															"    pm.response.to.have.status(404);",
+															"});",
+															"*/"
 														]
 													}
 												}
@@ -3153,10 +3160,12 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "ff2d1aed-321b-4d5a-9520-f232b6284520",
 														"type": "text/javascript",
 														"exec": [
-															"tests[\"Success\"] = responseCode.code === 200;",
-															""
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
 														]
 													}
 												}
@@ -3191,12 +3200,17 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "7b36a9dd-af23-4b14-9630-e9d3e6cc263f",
 														"type": "text/javascript",
 														"exec": [
 															"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
 															"",
 															"// console.log(\"Response: \" + responseBody)",
-															"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+															"/*",
+															"pm.test(\"Status code is 404\", function () {",
+															"    pm.response.to.have.status(404);",
+															"});",
+															"*/"
 														]
 													}
 												}
@@ -3231,10 +3245,12 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "79cb378b-b45c-40df-968c-ae0bd7fd3235",
 														"type": "text/javascript",
 														"exec": [
-															"tests[\"Success\"] = responseCode.code === 200;",
-															""
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
 														]
 													}
 												}
@@ -3269,42 +3285,47 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "9000289b-b3db-42d8-b11d-b8cdd65ce99f",
 														"type": "text/javascript",
 														"exec": [
 															"console.log(\"Response: \" + responseBody)",
-															"tests[\"Successful GET request\"] = responseCode.code === 200",
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});",
 															"",
-															"// attempts counter",
-															"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+															"pm.test(\"Validate name\", function() {",
+															"  pm.expect(pm.response.json()[\"network-instance\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"l2p2p_ni_name1\"));",
+															"});",
+															"pm.test(\"Validate name\", function() {",
+															"  pm.expect(pm.response.json()[\"network-instance\"][0][\"name\"]).to.eql(pm.environment.get(\"l2p2p_ni_name1\"));",
+															"});",
 															"",
 															"var jsonData = JSON.parse(responseBody);",
-															"if (responseBody.has(\"network-instance\")) {",
-															"    // Reset attempt counter",
-															"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface2\") ){",
-															"        console.log(\"G3\")",
-															"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface2\")",
-															"        tests[\"Validate endpoint 2 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface3\")",
-															"        tests[\"Validate endpoint 2 subinterfaece\"] = \"\"+jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['subinterface'] === postman.getEnvironmentVariable(\"l2p2p_show_sub_interface_index\")",
-															"    } else {",
-															"        tests[\"Validate endpoint 1 interfaceP\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface2\")",
-															"        tests[\"Validate endpoint 2 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface3\")",
-															"        tests[\"Validate endpoint 2 subinterfaece\"] = \"\"+jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['subinterface'] === postman.getEnvironmentVariable(\"l2p2p_show_sub_interface_index\")",
-															"    }",
+															"if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface2\") ){",
+															"    console.log(\"G3\")",
+															"",
+															"    pm.test(\"Validate endpoint 1 interface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"l2p2p_show_interface2\"));",
+															"    });",
+															"    pm.test(\"Validate endpoint 1 subinterface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"subinterface\"]).to.eql(JSON.parse(pm.environment.get(\"l2p2p_show_sub_interface_index\")));",
+															"    });",
+															"",
+															"    pm.test(\"Validate endpoint 2 interface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"l2p2p_show_interface3\"));",
+															"    });",
 															"} else {",
-															"    // If too many attempts, abort",
-															"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"        console.log(\"Connection still not up! Too many attempts !\")",
-															"        tests[\"Connection not created\"] = false",
-															"    } else {",
-															"        // Schedule next check attempt",
-															"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
-															"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-															"        postman.setNextRequest('show configured Locif to Sub');",
-															"    }",
-															"}"
+															"    pm.test(\"Validate endpoint 1 interface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"l2p2p_show_interface2\"));",
+															"    });",
+															"    pm.test(\"Validate endpoint 2 interface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"l2p2p_show_interface3\"));",
+															"    });",
+															"    pm.test(\"Validate endpoint 2 subinterface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"subinterface\"]).to.eql(JSON.parse(pm.environment.get(\"l2p2p_show_sub_interface_index\")));",
+															"    });",
+															"}",
+															""
 														]
 													}
 												}
@@ -3335,10 +3356,12 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "9332fc2c-c158-4023-8571-af727d5a6a3c",
 														"type": "text/javascript",
 														"exec": [
-															"tests[\"Success\"] = responseCode.code === 200;",
-															""
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
 														]
 													}
 												}
@@ -3373,31 +3396,17 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "79f71664-0e04-4c44-b941-b41bd23767f0",
 														"type": "text/javascript",
 														"exec": [
-															"console.log(\"Response: \" + responseBody)",
-															"// attempts counter",
-															"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+															"console.warn(\"// FIXME this returns data instead of returning 404\")",
 															"",
-															"if (responseCode.code === 404) {",
-															"    tests[\"Connection removed\"] = true",
-															"    // Reset attempt counter",
-															"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"} else {",
-															"    // If too many attempts, abort",
-															"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"        console.log(\"Connection still present! Too many attempts !\")",
-															"        console.warn(\"// FIXME this returns data instead of returning 404\")",
-															"        //tests[\"Connection not removed\"] = false",
-															"    } else {",
-															"        // Schedule next check attempt",
-															"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
-															"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-															"        postman.setNextRequest('show deleted connect locif');",
-															"    }",
-															"}"
+															"// console.log(\"Response: \" + responseBody)",
+															"/*",
+															"pm.test(\"Status code is 404\", function () {",
+															"    pm.response.to.have.status(404);",
+															"});",
+															"*/"
 														]
 													}
 												}
@@ -3434,10 +3443,12 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "800ca495-2e2e-427c-bc3e-c32ac089d06a",
 														"type": "text/javascript",
 														"exec": [
-															"tests[\"Success\"] = responseCode.code === 200;",
-															""
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
 														]
 													}
 												}
@@ -3472,12 +3483,17 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "35e99789-4d95-4e6e-96e9-0e29f54a5fe7",
 														"type": "text/javascript",
 														"exec": [
 															"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
 															"",
 															"// console.log(\"Response: \" + responseBody)",
-															"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+															"/*",
+															"pm.test(\"Status code is 404\", function () {",
+															"    pm.response.to.have.status(404);",
+															"});",
+															"*/"
 														]
 													}
 												}
@@ -3512,10 +3528,12 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "3c8de9a2-0f2b-4b1a-9d79-62cf4e600c09",
 														"type": "text/javascript",
 														"exec": [
-															"tests[\"Success\"] = responseCode.code === 200;",
-															""
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
 														]
 													}
 												}
@@ -3550,41 +3568,52 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "584f12eb-634c-4bd3-b00d-af9fa1c768ff",
 														"type": "text/javascript",
 														"exec": [
 															"console.log(\"Response: \" + responseBody)",
-															"tests[\"Successful GET request\"] = responseCode.code === 200",
+															"pm.test(\"Status code is 200\", function () {",
+															"  pm.response.to.have.status(200);",
+															"});",
 															"",
-															"// attempts counter",
-															"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+															"pm.test(\"Validate name\", function() {",
+															"  pm.expect(pm.response.json()[\"network-instance\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"l2p2p_ni_name1\"));",
+															"});",
+															"pm.test(\"Validate name\", function() {",
+															"  pm.expect(pm.response.json()[\"network-instance\"][0][\"name\"]).to.eql(pm.environment.get(\"l2p2p_ni_name1\"));",
+															"});",
 															"",
 															"var jsonData = JSON.parse(responseBody);",
-															"if (responseBody.has(\"network-instance\")) {",
-															"    // Reset attempt counter",
-															"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"    if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
-															"        tests[\"Validate endpoint 1 interfaceK\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface2\")",
-															"        tests[\"Validate endpoint 1 subinterfaece\"] = \"\"+jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['local']['config']['subinterface'] === postman.getEnvironmentVariable(\"l2p2p_show_sub_interface_index\")",
-															"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['remote']['config']['remote-system'] === postman.getEnvironmentVariable(\"l2p2p_show_remoteip\")",
-															"    } else {",
-															"        tests[\"Validate endpoint 1 interface\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['interface'] === postman.getEnvironmentVariable(\"l2p2p_show_interface2\")",
-															"        tests[\"Validate endpoint 1 subinterfaece\"] = \"\"+jsonData['network-instance'][0]['connection-points']['connection-point'][1]['endpoints']['endpoint'][0]['local']['config']['subinterface'] === postman.getEnvironmentVariable(\"l2p2p_show_sub_interface_index\")",
-															"        tests[\"Validate endpoint 2 remote\"] = jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['remote']['config']['remote-system'] === postman.getEnvironmentVariable(\"l2p2p_show_remoteip\")",
-															"    }",
+															"if ( jsonData['network-instance'][0]['connection-points']['connection-point'][0]['endpoints']['endpoint'][0]['config']['type'] === 'frinx-openconfig-network-instance-types:LOCAL' ) {",
 															"",
+															"    pm.test(\"Validate endpoint 1 interface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"l2p2p_show_interface2\"));",
+															"    });",
+															"    pm.test(\"Validate endpoint 1 subinterface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"subinterface\"]).to.eql(JSON.parse(pm.environment.get(\"l2p2p_show_sub_interface_index\")));",
+															"    });",
+															"",
+															"    pm.test(\"Validate endpoint 2 remote-system\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"remote\"][\"config\"][\"remote-system\"]).to.eql(pm.environment.get(\"l2p2p_show_remoteip\"));",
+															"    });",
+															"    pm.test(\"Validate endpoint 2 virtual-circuit-identifier\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"remote\"][\"config\"][\"virtual-circuit-identifier\"]).to.eql(JSON.parse(pm.environment.get(\"l2p2p_vccid\")));",
+															"    });    ",
+															"    ",
 															"} else {",
-															"    // If too many attempts, abort",
-															"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"        console.log(\"Connection still not up! Too many attempts !\")",
-															"        tests[\"Connection not created\"] = false",
-															"    } else {",
-															"        // Schedule next check attempt",
-															"        console.log(\"Connection not created yet! Waiting, attempt : \" + attempt)",
-															"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-															"        postman.setNextRequest('show configured Locsub');",
-															"    }",
+															"    pm.test(\"Validate endpoint 1 interface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"l2p2p_show_interface2\"));",
+															"    });",
+															"    pm.test(\"Validate endpoint 1 subinterface\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][1][\"endpoints\"][\"endpoint\"][0][\"local\"][\"config\"][\"subinterface\"]).to.eql(JSON.parse(pm.environment.get(\"l2p2p_show_sub_interface_index\")));",
+															"    });",
+															"",
+															"    pm.test(\"Validate endpoint 2 remote-system\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"remote\"][\"config\"][\"remote-system\"]).to.eql(pm.environment.get(\"l2p2p_show_remoteip\"));",
+															"    });",
+															"    pm.test(\"Validate endpoint 2 virtual-circuit-identifier\", function() {",
+															"      pm.expect(pm.response.json()[\"network-instance\"][0][\"connection-points\"][\"connection-point\"][0][\"endpoints\"][\"endpoint\"][0][\"remote\"][\"config\"][\"virtual-circuit-identifier\"]).to.eql(JSON.parse(pm.environment.get(\"l2p2p_vccid\")));",
+															"    });",
 															"}"
 														]
 													}
@@ -3616,10 +3645,12 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "78f45f94-ecb0-451c-ab28-15ed0fc3e58a",
 														"type": "text/javascript",
 														"exec": [
-															"tests[\"Success\"] = responseCode.code === 200;",
-															""
+															"pm.test(\"Status code is 200\", function () {",
+															"    pm.response.to.have.status(200);",
+															"});"
 														]
 													}
 												}
@@ -3654,31 +3685,17 @@
 												{
 													"listen": "test",
 													"script": {
+														"id": "f99b7b97-2e3f-4790-bb13-d265569cd372",
 														"type": "text/javascript",
 														"exec": [
-															"console.log(\"Response: \" + responseBody)",
-															"// attempts counter",
-															"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+															"console.warn(\"// FIXME this returns data instead of returning 404\")",
 															"",
-															"if (responseCode.code === 404) {",
-															"    tests[\"Connection removed\"] = true",
-															"    // Reset attempt counter",
-															"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"} else {",
-															"    // If too many attempts, abort",
-															"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-															"        console.log(\"Connection still present! Too many attempts !\")",
-															"        console.warn(\"// FIXME this returns data instead of returning 404\")",
-															"        //tests[\"Connection not removed\"] = false",
-															"    } else {",
-															"        // Schedule next check attempt",
-															"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
-															"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-															"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-															"        postman.setNextRequest('show deleted xconnect locsub');",
-															"    }",
-															"}"
+															"// console.log(\"Response: \" + responseBody)",
+															"/*",
+															"pm.test(\"Status code is 404\", function () {",
+															"    pm.response.to.have.status(404);",
+															"});",
+															"*/"
 														]
 													}
 												}
@@ -28197,10 +28214,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "857d6f25-396f-451d-b267-2164af2a25d6",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Successful PUT request\"] = responseCode.code === 200 || responseCode.code === 201;"
+													"pm.test(\"Successful PUT request\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});"
 												]
 											}
 										}
@@ -33532,7 +33552,7 @@
 									},
 									"response": [
 										{
-											"id": "aa7a90f8-943b-4006-99ec-6df5a2ea7a84",
+											"id": "95d63564-b1fb-45be-b7e5-326c19388680",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -33963,7 +33983,7 @@
 									},
 									"response": [
 										{
-											"id": "775bbd56-40b5-4b1e-a964-ee6b228ee5b4",
+											"id": "4833a4f5-d00b-41c6-a0c6-27d547a2995c",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -34396,7 +34416,7 @@
 									},
 									"response": [
 										{
-											"id": "65f5790b-a27e-4351-baf6-f167a9a74a88",
+											"id": "e7a12f22-5b0e-4697-b6d0-5128c585f7de",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -34827,7 +34847,7 @@
 									},
 									"response": [
 										{
-											"id": "29e2927d-d7f6-4879-a67b-4b9014b4657a",
+											"id": "86b69188-3516-4ab6-802b-3dec33ba3a50",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",

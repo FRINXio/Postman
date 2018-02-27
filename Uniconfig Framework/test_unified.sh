@@ -28,7 +28,17 @@ function test_pass() {
         #│            test-scripts │        0 │        0 │
         #│      prerequest-scripts │        0 │        0 │
         #│              assertions │        0 │        0 │
-        echo "N/A ${device}_$2_${folder}" >> $file2
+        # at the beginning of record there is number 9 to indicate that there was attempt to run test over empty folder
+        case "$2" in
+           "r")
+               echo "9Environment_${device}_${folder}_results_readers.xml" >> $file2;;
+           "s")
+               echo "9Environment_${device}_${folder}_results_1_setup.xml" >> $file2;;
+           "" | " ")
+               echo "9Environment_${device}_${folder}_results_2.xml" >> $file2;;
+           "t")
+               echo "9Environment_${device}_${folder}_results_3_teardown.xml" >> $file2;;
+        esac
     else
         case "$2" in
            "r")
@@ -52,7 +62,7 @@ function test_failure_info() {
     "r")
         echo  "Collection $collection with environment $device testing ${1} $rfolder FAILED" >> $file;;
     "s")
-        echo  "Collection $collection with environment $device testing ${1} $srfolder FAILED" >> $file;;
+        echo  "Collection $collection with environment $device testing ${1} $sfolder FAILED" >> $file;;
     "" | " ")
         echo  "Collection $collection with environment $device testing ${1} $folder FAILED" >> $file;;
     "t")
@@ -139,7 +149,7 @@ junos_devices=()
 # https://www.thegeekstuff.com/2010/06/bash-array-tutorial - explained concatenate arrays and copying arrays
 chosen_devices=("${XR_devices[@]}" "${IOS_devices[@]}" "${junos_devices[@]}") # concatenate arrays
 # you can ad hoc redefine chosen_devices like this
-chosen_devices=("cat6500_env.json")
+#chosen_devices=("classic_152_env.json" "cat6500_env.json" "xrv_env.json" "classic_1553_env.json")
 
 # https://stackoverflow.com/questions/8880603/loop-through-an-array-of-strings-in-bash
 for device in ${chosen_devices[@]}
@@ -260,7 +270,7 @@ fi
 ##newman run $collection --reporters html,cli,junit  --reporter-junit-export "/tmp/Environment_${device}_${folder}_results.xml" --reporter-html-export "/tmp/Environment_${device}_${folder}_results.html" --bail -e $device -n 1 --folder "Classic $folder"; if [ "$?" != "0" ]; then test_failure_info "Classic" ""; fi
 
 
-if ! [ -f "file2" ] ; then
+if ! [ -f "$file2" ] ; then
     exit
 fi
 echo "Running python script to prepare summary table tbl.html..."
@@ -343,10 +353,12 @@ testy = []
 devices = []
 for kw1 in matrix_dict:
     if kw1 not in testy:
-        testy.append(kw1)
+        if kw1 not in ('Classic Mount' 'Classic Unmount' 'XR Mount' 'XR Unmount'):
+            testy.append(kw1)
     for kw2 in matrix_dict[kw1]:
         if kw2 not in devices:
-            devices.append(kw2)
+            if (kw2[-4:] == ' 2:m') and (kw2[0:-4] not in devices):
+                devices.append(kw2[0:-4])
         #print(kw1,kw2,matrix_dict[kw1][kw2])
 testy.sort()
 devices.sort()
@@ -363,19 +375,40 @@ tabulka = tabulka + '</tr>'
 for riadok in testy:
     tabulka = tabulka + '<tr><td>' + riadok + '</td>'
     for stlpec in devices:
+        #print(stlpec)
+
+        # reader
         try:
-            if matrix_dict[riadok][stlpec] == '1':
-                tabulka = tabulka + '<td style="color:red;">' + 'fail' + '</td>'
+            if matrix_dict[riadok][stlpec + ' 0:r'] == '1':
+                tabulka = tabulka + '<td><span style="color:red;">' + 'fail' + '</span><br/>'
+            elif matrix_dict[riadok][stlpec + ' 0:r'] == '0':
+                tabulka = tabulka + '<td><span style="color:green;">' + 'pass' + '</span><br/>'
+            elif matrix_dict[riadok][stlpec + ' 0:r'] == '9':
+                tabulka = tabulka + '<td><span>' + 'null' + '</span><br/>'
             else:
-                tabulka = tabulka + '<td  style="color:green;">' + 'pass' + '</td>'
+                tabulka = tabulka + '<td><span>' + '????' + '</span><br/>'
         except KeyError:
-            tabulka = tabulka + '<td></td>'
+            tabulka = tabulka + '<td>&nbsp;<br/>'
+
+        # CRUD (or main test ...)
+        try:
+            if matrix_dict[riadok][stlpec + ' 2:m'] == '1':
+                tabulka = tabulka + '<span style="color:red;">' + 'fail' + '</span></td>'
+            elif matrix_dict[riadok][stlpec + ' 2:m'] == '0':
+                tabulka = tabulka + '<span style="color:green;">' + 'pass' + '</span></td>'
+            elif matrix_dict[riadok][stlpec + ' 2:m'] == '9':
+                tabulka = tabulka + '<span>' + 'null' + '</span></td>'
+            else:
+                tabulka = tabulka + '<span>' + '????' + '</span></td>'
+        except KeyError:
+            tabulka = tabulka + '&nbsp;</td>'
+
     tabulka = tabulka + '</tr>'
 
 tabulka = tabulka + '</table>'
-tabulka = tabulka + '<hr/>'
-tabulka = tabulka + 'Explanatory notes:<br/>'
-tabulka = tabulka + '0:r - readers test / 1:s - setup test / 2:m - main test / 3:t - teardown test'
+#tabulka = tabulka + '<hr/>'
+#tabulka = tabulka + 'Explanatory notes:<br/>'
+#tabulka = tabulka + '0:r - readers test / 1:s - setup test / 2:m - main test / 3:t - teardown test'
 
 ## this is to store TABLE to HTML file
 f = open( 'tbl.html', 'w' )

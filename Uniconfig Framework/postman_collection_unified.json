@@ -1,7 +1,8 @@
 {
+	"variables": [],
 	"info": {
 		"name": "FRINX UNIFIED",
-		"_postman_id": "8f85f1e0-ef9e-d48d-0b72-c00a9ce78f48",
+		"_postman_id": "aa251caa-45a8-117b-ecba-9a446d536eba",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
@@ -482,10 +483,10 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "XR Interface",
+					"name": "XR Interface CRUD",
 					"item": [
 						{
-							"name": "XR Interface Setup",
+							"name": "XR Interface CRUD READERS",
 							"item": [
 								{
 									"name": "Create Loopback NATIVE",
@@ -503,11 +504,15 @@
 										}
 									],
 									"request": {
-										"method": "PUT",
+										"method": "POST",
 										"header": [
 											{
 												"key": "Authorization",
 												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
 											},
 											{
 												"key": "Content-Type",
@@ -516,39 +521,51 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"interface-configuration\": [\n        {\n            \"active\": \"act\",\n            \"interface-name\": \"{{test_interface}}\",\n            \"interface-virtual\": [\n                null\n            ],\n            \"shutdown\": [\n                null\n            ]\n        }\n    ]\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{test_interface}}\nipv4 address {{ip41}} 255.255.255.0\ncommit\nexit\"\n  }\n}"
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/{{test_interface}}"
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
 									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						},
-						{
-							"name": "XR Interface Teardown",
-							"item": [
+								},
 								{
-									"name": "Delete Loopback NATIVE",
+									"name": "show all interfaces",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
 												"type": "text/javascript",
 												"exec": [
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-													"});"
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate name\", function() {",
+													"  var json_string = pm.response.json()[\"interfaces\"][\"interface\"];",
+													"  for (var i = 0; i < json_string.length; i++) {",
+													"    if (pm.environment.get(\"test_interface\") == json_string[i][\"name\"]) {",
+													"      pm.expect(json_string[i][\"state\"][\"name\"]).to.eql(pm.environment.get(\"test_interface\"));",
+													"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(pm.environment.get(\"test_interface\"));",
+													"      pm.expect(json_string[i][\"name\"]).to.eql(pm.environment.get(\"test_interface\"));",
+													"    }",
+													"  }",
+													"      ",
+													"});",
+													""
 												]
 											}
 										}
 									],
 									"request": {
-										"method": "DELETE",
+										"method": "GET",
 										"header": [
 											{
 												"key": "Authorization",
 												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
 											},
 											{
 												"key": "Content-Type",
@@ -559,7 +576,95 @@
 											"mode": "raw",
 											"raw": ""
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/{{test_interface}}"
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/"
+									},
+									"response": []
+								},
+								{
+									"name": "show interface Loopback",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate name\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"state\"][\"name\"]).to.eql(pm.environment.get(\"test_interface\"));",
+													"});",
+													"pm.test(\"Validate name\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"test_interface\"));",
+													"});",
+													"pm.test(\"Validate name\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"test_interface\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_interface}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Loopback NATIVE",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{test_interface}}\n     commit\"\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
 									"response": []
 								},
@@ -569,7 +674,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "d73e6cc7-044c-4559-9567-c1f807d8a150",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -602,170 +706,6 @@
 											"raw": ""
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_interface}}"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "XR Interface IP",
-					"item": [
-						{
-							"name": "XR Interface IP Setup",
-							"item": [
-								{
-									"name": "Create Loopback NATIVE",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "PUT",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"interface-configuration\": [\n        {\n            \"active\": \"act\",\n            \"interface-name\": \"{{test_interface}}\",\n            \"interface-virtual\": [\n                null\n            ],\n            \"shutdown\": [\n                null\n            ]\n        }\n    ]\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/{{test_interface}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show no IP",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"pm.test(\"Status code is 404\", function () {",
-													"    pm.response.to.have.status(404);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_interface}}/subinterfaces/subinterface/{{ip_subinterface_index}}/frinx-openconfig-if-ip:ipv4"
-									},
-									"response": []
-								},
-								{
-									"name": "Set IP4",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "PUT",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n\t\"ipv4-network\": {\n        \"addresses\": {\n            \"primary\": {\n                \"netmask\": \"255.255.255.0\",\n                \"address\": \"{{ip41}}\"\n            }\n        }\n    }\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/{{test_interface}}/Cisco-IOS-XR-ipv4-io-cfg:ipv4-network"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						},
-						{
-							"name": "XR Interface IP Teardown",
-							"item": [
-								{
-									"name": "Delete Loopback NATIVE",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/{{test_interface}}"
 									},
 									"response": []
 								}
@@ -972,7 +912,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "1a6208fc-3309-41d6-8ff9-5663a2ff3bf2",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -1001,7 +940,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router bgp {{bgp}}\nbgp router-id {{router}}\naddress-family ipv4 unicast\nexit\naddress-family vpnv4 unicast\nexit\nneighbor {{neighbor}}\nremote-as {{bgp}}\nupdate-source {{test_interface}}\nexit\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router bgp {{bgp}}\nbgp router-id {{router}}\naddress-family ipv4 unicast\nexit\naddress-family vpnv4 unicast\nexit\nneighbor {{neighbor}}\nremote-as {{bgp}}\nupdate-source {{test_interface}}\ncommit\nexit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1013,7 +952,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "50aba504-269b-4b36-9003-750db6bfbe56",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1093,7 +1031,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "1d089f9e-8405-4857-9e46-c4783df6ed4d",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -1138,7 +1075,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "0833bbe3-e67a-40de-9057-d1d5a81fb60f",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -1166,7 +1102,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{bgp}}\nno interface {{test_interface}}\n\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{bgp}}\nno interface {{test_interface}}\ncommit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1218,7 +1154,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router static\naddress-family ipv4 unicast\n{{ip-route}} {{ip-route2}}\n{{ip-route}} {{static_route_test_interface}} {{ip-route3}} metric 2\nexit\naddress-family ipv6 unicast\n{{ip61}} {{static_route_test_interface}} {{ip62}}\nexit\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router static\naddress-family ipv4 unicast\n{{ip-route}} {{ip-route2}}\n{{ip-route}} {{static_route_test_interface}} {{ip-route3}} metric 2\nexit\naddress-family ipv6 unicast\n{{ip61}} {{static_route_test_interface}} {{ip62}}\ncommit\nexit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1230,7 +1166,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "84800779-da21-427d-be3e-afea491f3917",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1324,7 +1259,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "68d3ae8a-9ea5-41d9-8cad-b5585f1bed77",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -1369,7 +1303,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "a763699f-a668-43d9-b6f7-cdcdb593ac34",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -1399,7 +1332,7 @@
 										],
 										"body": {
 											"mode": "raw",
-                                                                                        "raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router static\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router static\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1451,7 +1384,7 @@
 										],
 										"body": {
 											"mode": "raw",
-                                                                                        "raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router ospf {{ospf}}\nrouter-id {{router2}}\naddress-family ipv4\narea {{area}}\ninterface {{test_interface}}\nexit\nexit\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router ospf {{ospf}}\nrouter-id {{router2}}\naddress-family ipv4\narea {{area}}\ninterface {{test_interface}}\ncommit\nexit\nexit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1463,7 +1396,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "21bc9dfe-e8f2-45ae-bb19-4f0368f74de4",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1536,7 +1468,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "9c784e96-60c4-4c5a-935c-bc4a0ca815d2",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -1581,7 +1512,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "af7ccf85-3173-4b3d-b57d-00384decfaca",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -1610,7 +1540,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router ospf {{ospf}}\nno interface {{test_interface}}\n\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router ospf {{ospf}}\nno interface {{test_interface}}\ncommit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1661,7 +1591,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"cdp\n interface {{cdp_lldp_test_interface}}\n cdp\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"cdp\n interface {{cdp_lldp_test_interface}}\n cdp\n commit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1673,7 +1603,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "dd4bfdf5-f314-4eaf-b660-744f2fcb6468",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1726,7 +1655,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "09d41870-26aa-4090-bdb6-18a9f0581fe7",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -1754,7 +1682,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{cdp_lldp_test_interface}}\n no cdp\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{cdp_lldp_test_interface}}\n no cdp\n exit\n commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1845,7 +1773,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"lldp\n     exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"lldp\n     commit\n     exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1857,7 +1785,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "554cd732-e29a-4057-bfb0-c91120f8a4e0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1923,7 +1850,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "5b71cd65-bf67-4eb0-a8e5-cdb19f0b45b2",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -1951,7 +1877,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no lldp\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no lldp\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -1963,7 +1889,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "27250506-58ec-48f2-8a0c-d1280c8fdaad",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2016,7 +1941,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "a39898ca-22d1-45af-abec-5ad41dc86df7",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -2052,7 +1976,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "7b9bca8f-2380-4165-a7e0-6fca293c3c41",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -2135,7 +2058,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}.0\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}.0\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -2172,7 +2095,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -2209,7 +2132,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\ndescription {{lag_description}}\nmtu {{lag_mtu}}\nipv4 address {{lag_ip}} {{lag_mask}}\ndampening {{lag_damp_half-life}} {{lag_damp_reuse}} {{lag_damp_suppress}} {{lag_damp_max-supress}}\nload-interval {{lag_load-interval}}\nbundle minimum-active links {{lag_min-links}}\nbfd mode ietf\nbfd address-family ipv4 destination {{lag_bfd_destination-address}}\nbfd address-family ipv4 fast-detect\nbfd address-family ipv4 minimum-interval {{lag_bfd_min-interval}}\nbfd address-family ipv4 multiplier {{lag_bfd_multiplier}}\nno shutdown\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\ndescription {{lag_description}}\nmtu {{lag_mtu}}\nipv4 address {{lag_ip}} {{lag_mask}}\ndampening {{lag_damp_half-life}} {{lag_damp_reuse}} {{lag_damp_suppress}} {{lag_damp_max-supress}}\nload-interval {{lag_load-interval}}\nbundle minimum-active links {{lag_min-links}}\nbfd mode ietf\nbfd address-family ipv4 destination {{lag_bfd_destination-address}}\nbfd address-family ipv4 fast-detect\nbfd address-family ipv4 minimum-interval {{lag_bfd_min-interval}}\nbfd address-family ipv4 multiplier {{lag_bfd_multiplier}}\nno shutdown\ncommit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -2310,7 +2233,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}.0\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}.0\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -2347,7 +2270,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -2711,7 +2634,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "6ba78676-d67c-4f34-a547-57893936e39a",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns 200 instead of returning 404 for non existing IP\")",
@@ -2752,7 +2674,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "365e20de-c77f-4d82-a62f-58a9bf5736ff",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -2797,7 +2718,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "02af7dd6-1545-49a5-82de-1d82b1fd68a0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2834,7 +2754,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "82c7348d-b746-49cf-9d00-e7c28fe7b22e",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -2881,7 +2800,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "bef00661-e5fc-4364-920b-2b012da3ccfc",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
@@ -2922,7 +2840,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "bef00661-e5fc-4364-920b-2b012da3ccfc",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
@@ -2978,7 +2895,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "c45e7c47-f750-4c42-8687-497bf1578a80",
 														"type": "text/javascript",
 														"exec": [
 															"pm.test(\"Status code is 200\", function () {",
@@ -3006,7 +2922,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{l2p2p_show_interface3}}\nl2transport\nexit\nexit \nl2vpn \nxconnect group frinx\np2p {{l2p2p_ni_name1}}\nneighbor ipv4 {{l2p2p_show_remoteip}} pw-id {{l2p2p_vccid}}\nexit\ninterface {{l2p2p_show_interface3}}\nexit\nexit\nexit\"\n  }\n}\n"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{l2p2p_show_interface3}}\nl2transport\nexit\nexit \nl2vpn \nxconnect group frinx\np2p {{l2p2p_ni_name1}}\nneighbor ipv4 {{l2p2p_show_remoteip}} pw-id {{l2p2p_vccid}}\nexit\ninterface {{l2p2p_show_interface3}}\ncommit\nexit\nexit\nexit\"\n  }\n}\n"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3018,7 +2934,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "1ff4eff0-0924-44dd-97af-0066b0e32def",
 														"type": "text/javascript",
 														"exec": [
 															"console.log(\"Response: \" + responseBody)",
@@ -3086,7 +3001,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "5f5b57bc-a8be-458b-aa33-a4097d93959a",
 														"type": "text/javascript",
 														"exec": [
 															"pm.test(\"Status code is 200\", function () {",
@@ -3114,7 +3028,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{l2p2p_show_interface3}}\nno l2transport\nexit\nno l2vpn\n\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{l2p2p_show_interface3}}\nno l2transport\nexit\nno l2vpn\ncommit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3126,7 +3040,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "69656646-90b3-42fa-a545-334999c2b840",
 														"type": "text/javascript",
 														"exec": [
 															"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -3173,7 +3086,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "ff2d1aed-321b-4d5a-9520-f232b6284520",
 														"type": "text/javascript",
 														"exec": [
 															"pm.test(\"Status code is 200\", function () {",
@@ -3201,7 +3113,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}}\n\"\n  }\n}\n"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}}\ncommit\"\n  }\n}\n"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3213,7 +3125,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "7b36a9dd-af23-4b14-9630-e9d3e6cc263f",
 														"type": "text/javascript",
 														"exec": [
 															"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
@@ -3258,7 +3169,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "79cb378b-b45c-40df-968c-ae0bd7fd3235",
 														"type": "text/javascript",
 														"exec": [
 															"pm.test(\"Status code is 200\", function () {",
@@ -3286,7 +3196,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{l2p2p_show_interface3}}\nl2transport\nexit\nexit\ninterface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}} l2transport \nencapsulation dot1q {{l2p2p_vlan_id}}\nrewrite ingress tag pop 1 symmetric\nexit\nl2vpn \nxconnect group frinx\np2p {{l2p2p_ni_name1}}\ninterface {{l2p2p_show_interface3}}\ninterface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}}\nexit\nexit\nexit\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{l2p2p_show_interface3}}\nl2transport\nexit\nexit\ninterface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}} l2transport \nencapsulation dot1q {{l2p2p_vlan_id}}\nrewrite ingress tag pop 1 symmetric\nexit\nl2vpn \nxconnect group frinx\np2p {{l2p2p_ni_name1}}\ninterface {{l2p2p_show_interface3}}\ninterface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}}\ncommit\nexit\nexit\nexit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3298,7 +3208,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "9000289b-b3db-42d8-b11d-b8cdd65ce99f",
 														"type": "text/javascript",
 														"exec": [
 															"console.log(\"Response: \" + responseBody)",
@@ -3369,7 +3278,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "9332fc2c-c158-4023-8571-af727d5a6a3c",
 														"type": "text/javascript",
 														"exec": [
 															"pm.test(\"Status code is 200\", function () {",
@@ -3397,7 +3305,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}} l2transport \nno l2vpn \ninterface {{l2p2p_show_interface3}}\nno l2transport \nexit\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}} l2transport \nno l2vpn \ninterface {{l2p2p_show_interface3}}\nno l2transport \ncommit\nexit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3409,7 +3317,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "79f71664-0e04-4c44-b941-b41bd23767f0",
 														"type": "text/javascript",
 														"exec": [
 															"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -3456,7 +3363,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "800ca495-2e2e-427c-bc3e-c32ac089d06a",
 														"type": "text/javascript",
 														"exec": [
 															"pm.test(\"Status code is 200\", function () {",
@@ -3484,7 +3390,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}}\"\n  }\n}\n\n"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}}\n     commit\"\n  }\n}\n\n"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3496,7 +3402,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "35e99789-4d95-4e6e-96e9-0e29f54a5fe7",
 														"type": "text/javascript",
 														"exec": [
 															"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
@@ -3541,7 +3446,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "3c8de9a2-0f2b-4b1a-9d79-62cf4e600c09",
 														"type": "text/javascript",
 														"exec": [
 															"pm.test(\"Status code is 200\", function () {",
@@ -3569,7 +3473,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}} l2transport \nencapsulation dot1q {{l2p2p_vlan_id}}\nrewrite ingress tag pop 1 symmetric\nexit \nl2vpn \nxconnect group frinx\np2p {{l2p2p_ni_name1}}\nneighbor ipv4 {{l2p2p_show_remoteip}} pw-id {{l2p2p_vccid}}\nexit\ninterface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}}\nexit\nexit\nexit\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}} l2transport \nencapsulation dot1q {{l2p2p_vlan_id}}\nrewrite ingress tag pop 1 symmetric\nexit \nl2vpn \nxconnect group frinx\np2p {{l2p2p_ni_name1}}\nneighbor ipv4 {{l2p2p_show_remoteip}} pw-id {{l2p2p_vccid}}\nexit\ninterface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}}\ncommit\nexit\nexit\nexit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3581,7 +3485,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "584f12eb-634c-4bd3-b00d-af9fa1c768ff",
 														"type": "text/javascript",
 														"exec": [
 															"console.log(\"Response: \" + responseBody)",
@@ -3658,7 +3561,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "78f45f94-ecb0-451c-ab28-15ed0fc3e58a",
 														"type": "text/javascript",
 														"exec": [
 															"pm.test(\"Status code is 200\", function () {",
@@ -3686,7 +3588,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}} l2transport \nno l2vpn\n\"\n  }\n}\n"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{l2p2p_show_interface2}}.{{l2p2p_show_sub_interface_index}} l2transport \nno l2vpn\ncommit\"\n  }\n}\n"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3698,7 +3600,6 @@
 												{
 													"listen": "test",
 													"script": {
-														"id": "f99b7b97-2e3f-4790-bb13-d265569cd372",
 														"type": "text/javascript",
 														"exec": [
 															"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -3783,7 +3684,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"l2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\nvfi {{vpls_ni_name}}\nvpn-id {{vpls_vccid}}\nautodiscovery bgp\nrd auto\nroute-target {{bgp_peer-as}}:{{vpls_vccid}}\nsignaling-protocol bgp\nve-id {{vpls_endpoint_id}}\nexit\nexit\nexit\nexit\nexit\nexit\ninterface {{vpls_show_interface3}}\nl2transport\nexit\nexit\nl2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\ninterface {{vpls_show_interface3}}\nexit\nexit\nexit\nexit\"\n  }\n}\n"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"l2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\nvfi {{vpls_ni_name}}\nvpn-id {{vpls_vccid}}\nautodiscovery bgp\nrd auto\nroute-target {{bgp_peer-as}}:{{vpls_vccid}}\nsignaling-protocol bgp\nve-id {{vpls_endpoint_id}}\nexit\nexit\nexit\nexit\nexit\nexit\ninterface {{vpls_show_interface3}}\nl2transport\nexit\nexit\nl2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\ninterface {{vpls_show_interface3}}\ncommit\nexit\nexit\nexit\nexit\"\n  }\n}\n"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3885,7 +3786,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{vpls_show_interface3}}\nno l2transport\nexit\nno l2vpn\n\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{vpls_show_interface3}}\nno l2transport\nexit\nno l2vpn\ncommit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -3965,7 +3866,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}}\"\n  }\n}\n\n"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}}\n     commit\"\n  }\n}\n\n"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -4043,7 +3944,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"l2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\nvfi {{vpls_ni_name}}\nvpn-id {{vpls_vccid}}\nautodiscovery bgp\nrd auto\nroute-target {{bgp_peer-as}}:{{vpls_vccid}}\nsignaling-protocol bgp\nve-id {{vpls_endpoint_id}}\nexit\nexit\nexit\nexit\nexit\nexit\ninterface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}} l2transport\nencapsulation dot1q {{vpls_show_sub_interface_index}}\nrewrite ingress tag pop 1 symmetric\nexit\nl2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\ninterface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}}\nexit\nexit\nexit\nexit\n\"\n  }\n}\n\n\n"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"l2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\nvfi {{vpls_ni_name}}\nvpn-id {{vpls_vccid}}\nautodiscovery bgp\nrd auto\nroute-target {{bgp_peer-as}}:{{vpls_vccid}}\nsignaling-protocol bgp\nve-id {{vpls_endpoint_id}}\nexit\nexit\nexit\nexit\nexit\nexit\ninterface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}} l2transport\nencapsulation dot1q {{vpls_show_sub_interface_index}}\nrewrite ingress tag pop 1 symmetric\nexit\nl2vpn\nbridge group frinx\nbridge-domain {{vpls_ni_name}}\ninterface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}}\ncommit\nexit\nexit\nexit\nexit\"\n  }\n}\n\n\n"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -4147,7 +4048,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}} l2transport \nno l2vpn\n\"\n  }\n}\n"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{vpls_show_interface2}}.{{vpls_show_sub_interface_index}} l2transport \nno l2vpn\ncommit\"\n  }\n}\n"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -4665,7 +4566,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "386adbc6-f94b-44b2-b7e8-1c8b367e9e87",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -4700,28 +4600,6 @@
 							"_postman_isSubFolder": true
 						}
 					],
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "228950e6-893c-4fdd-9ebe-0baf5a026405",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "6eca711d-798f-441f-bdfe-e65271db55d7",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						}
-					],
 					"_postman_isSubFolder": true
 				},
 				{
@@ -4736,7 +4614,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "96f27e19-8ad7-40e7-afa8-28d8d1cf8ffa",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -4760,7 +4637,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno vrf {{l3_vpn_bgp_vrf}}\nexit\nno vrf {{l3_vpn_bgp_vrf}}\n\"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno vrf {{l3_vpn_bgp_vrf}}\nexit\nno vrf {{l3_vpn_bgp_vrf}}\ncommit\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -4772,7 +4649,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "a4ed5c6b-c626-4a78-8c3e-596372d26d83",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -4796,7 +4672,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"vrf {{l3_vpn_bgp_vrf}}\naddress-family ipv4 unicast \nimport route-target \n{{l3_vpn_bgp_rt_imp_1}}\n{{l3_vpn_bgp_rt_imp_2}}\n{{l3_vpn_bgp_rt_imp_3}}\nexit\nexport route-target \n{{l3_vpn_bgp_rt_exp_1}}\n{{l3_vpn_bgp_rt_exp_2}}\n{{l3_vpn_bgp_rt_exp_3}}\nexit\nexit\nexit\ninterface {{l3_vpn_bgp_interface_id}}\nvrf {{l3_vpn_bgp_vrf}}\nexit\nrouter bgp {{l3_vpn_bgp_as_number}}\nbgp router-id {{l3_vpn_bgp_router_id}}\naddress-family vpnv4 unicast\nvrf {{l3_vpn_bgp_vrf}}\nrd {{l3_vpn_bgp_rd}}\naddress-family ipv4 unicast \nnetwork {{l3_vpn_bgp_network_prefix}} {{l3_vpn_bgp_network_prefix_mask1}}\nexit\nneighbor {{l3_vpn_bgp_neighbor_address}}\nremote-as {{l3_vpn_bgp_remote_as}}\naddress-family ipv4 unicast \nroute-policy RPL_PASS_ALL in\nroute-policy RPL_PASS_ALL out\nexit\nexit\nexit\nexit\n\"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"vrf {{l3_vpn_bgp_vrf}}\naddress-family ipv4 unicast \nimport route-target \n{{l3_vpn_bgp_rt_imp_1}}\n{{l3_vpn_bgp_rt_imp_2}}\n{{l3_vpn_bgp_rt_imp_3}}\nexit\nexport route-target \n{{l3_vpn_bgp_rt_exp_1}}\n{{l3_vpn_bgp_rt_exp_2}}\n{{l3_vpn_bgp_rt_exp_3}}\nexit\nexit\nexit\ninterface {{l3_vpn_bgp_interface_id}}\nvrf {{l3_vpn_bgp_vrf}}\nexit\nrouter bgp {{l3_vpn_bgp_as_number}}\nbgp router-id {{l3_vpn_bgp_router_id}}\naddress-family vpnv4 unicast\nvrf {{l3_vpn_bgp_vrf}}\nrd {{l3_vpn_bgp_rd}}\naddress-family ipv4 unicast \nnetwork {{l3_vpn_bgp_network_prefix}} {{l3_vpn_bgp_network_prefix_mask1}}\nexit\nneighbor {{l3_vpn_bgp_neighbor_address}}\nremote-as {{l3_vpn_bgp_remote_as}}\naddress-family ipv4 unicast \nroute-policy RPL_PASS_ALL in\nroute-policy RPL_PASS_ALL out\ncommit\nexit\nexit\nexit\nexit\n\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -4808,7 +4684,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "dd7fa9c0-bea6-4c03-a466-2faddc1fed00",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -5064,7 +4939,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "fb13d625-684f-4323-bd64-e49b6c9fd5f7",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -5088,7 +4962,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno vrf {{l3_vpn_bgp_vrf}}\nexit\nno vrf {{l3_vpn_bgp_vrf}}\n\"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno vrf {{l3_vpn_bgp_vrf}}\nexit\nno vrf {{l3_vpn_bgp_vrf}}\ncommit\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -5100,7 +4974,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "8ab84257-bbe4-4490-a4f6-b38edbe01309",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404 for non network instance.\")",
@@ -5145,7 +5018,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "7168309c-82f5-421f-b40c-2703cfe7933f",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -5184,28 +5056,6 @@
 							"_postman_isSubFolder": true
 						}
 					],
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "e799fcd7-db37-470b-8939-c75c34fb21d0",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "200b430c-eb46-4e97-b0f6-8eb87d89e781",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						}
-					],
 					"_postman_isSubFolder": true
 				},
 				{
@@ -5220,7 +5070,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "065bb8b3-b1cf-414c-a753-6636ac3f21a8",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Success\", function () {",
@@ -5256,7 +5105,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "4c51a91b-00ee-4803-b211-50c7d15e2518",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Success\", function () {",
@@ -5292,7 +5140,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "4d751163-640c-4e2a-a659-3a892ff6aecd",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -5328,7 +5175,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "31ab098e-33d0-435e-b2d0-47bd5720180c",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 200\", function () {",
@@ -5364,7 +5210,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "73d9debc-f34a-4442-9a98-72a0f9b13934",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404 for non network instance.\")",
@@ -5409,7 +5254,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "5b14b7fd-378d-41c4-997c-f7bc90b5dd43",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -5450,7 +5294,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "3f0e2965-57c5-4b78-b08d-18cc4bfcd453",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -5488,7 +5331,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "a9a1ff15-6e0c-4a2d-955c-045dfa432b7a",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404 for non BGP.\")",
@@ -5525,28 +5367,6 @@
 								}
 							],
 							"_postman_isSubFolder": true
-						}
-					],
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "5fcb0767-2eb2-4f63-9929-d1bb7d276884",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"id": "27f21068-55c6-4c93-9012-714cf11ef76b",
-								"type": "text/javascript",
-								"exec": [
-									""
-								]
-							}
 						}
 					],
 					"_postman_isSubFolder": true
@@ -5802,7 +5622,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no rsvp\"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no rsvp\n     commit\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -5877,7 +5697,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"rsvp\n interface {{rsvp_intf-id}} \n bandwidth\n exit\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"rsvp\n interface {{rsvp_intf-id}} \n bandwidth\n commit\n exit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -5975,7 +5795,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"rsvp\n interface {{rsvp_intf-id}} \n bandwidth {{rsvp_bandwidth_create}}\n exit\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"rsvp\n interface {{rsvp_intf-id}} \n bandwidth {{rsvp_bandwidth_create}}\n commit\n exit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -6075,7 +5895,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no rsvp\"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no rsvp\n     commit\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -6249,7 +6069,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no mpls traffic-eng\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no mpls traffic-eng\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -6324,7 +6144,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"mpls traffic-eng\n interface {{mpls_intf_id}} \n exit\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"mpls traffic-eng\n interface {{mpls_intf_id}} \n commit\n exit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -6424,7 +6244,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no mpls traffic-eng\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no mpls traffic-eng\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -6598,7 +6418,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface tunnel-te {{mpls_tunnel_id}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface tunnel-te {{mpls_tunnel_id}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -6673,7 +6493,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface tunnel-te {{mpls_tunnel_id}}\n autoroute announce\n metric absolute {{mpls_metric_100}}\n exit\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface tunnel-te {{mpls_tunnel_id}}\n autoroute announce\n metric absolute {{mpls_metric_100}}\n commit\n exit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -6775,7 +6595,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface tunnel-te {{mpls_tunnel_id}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface tunnel-te {{mpls_tunnel_id}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -6951,7 +6771,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router ospf {{ospf}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router ospf {{ospf}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7026,7 +6846,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router ospf {{ospf}}\nmax-metric router-lsa on-startup {{ospf_timeout}} include-stub summary-lsa external-lsa\narea {{ospf_area_id}}\ninterface {{test_interface}}\ncost {{ospf_cost}}\nexit\nexit\nexit\n\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router ospf {{ospf}}\nmax-metric router-lsa on-startup {{ospf_timeout}} include-stub summary-lsa external-lsa\narea {{ospf_area_id}}\ninterface {{test_interface}}\ncost {{ospf_cost}}\ncommit\nexit\nexit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7113,7 +6933,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router ospf {{ospf}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router ospf {{ospf}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7272,7 +7092,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"policy-map {{output_policy}}\n class class-default\n  shape average percent 50\n  exit\n  end-policy-map\npolicy-map {{input_policy}}\n class class-default\n  shape average percent 50\n  exit\n  end-policy-map\npolicy-map {{output_policy2}}\n class class-default\n  shape average percent 50\n  exit\n  end-policy-map\npolicy-map {{input_policy2}}\n class class-default\n  shape average percent 50\n  exit\n  end-policy-map\n \"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"policy-map {{output_policy}}\n class class-default\n  shape average percent 50\n  exit\n  end-policy-map\npolicy-map {{input_policy}}\n class class-default\n  shape average percent 50\n  exit\n  end-policy-map\npolicy-map {{output_policy2}}\n class class-default\n  shape average percent 50\n  exit\n  end-policy-map\npolicy-map {{input_policy2}}\n class class-default\n  shape average percent 50\n  exit\n  end-policy-map\n commit\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7307,7 +7127,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{policy_interface}}\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{policy_interface}}\n     commit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7342,7 +7162,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{policy_interface}}\n no service-policy output {{output_policy}}\n no service-policy input {{input_policy}}\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{policy_interface}}\n no service-policy output {{output_policy}}\n no service-policy input {{input_policy}}\n commit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7417,7 +7237,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{policy_interface}}\n service-policy output {{output_policy}}\n service-policy input {{input_policy}}\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{policy_interface}}\n service-policy output {{output_policy}}\n service-policy input {{input_policy}}\n commit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7496,7 +7316,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{policy_interface}}\n no service-policy output {{output_policy2}}\n no service-policy input {{input_policy2}}\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{policy_interface}}\n no service-policy output {{output_policy2}}\n no service-policy input {{input_policy2}}\n commit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7529,7 +7349,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{policy_interface}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{policy_interface}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -7562,7 +7382,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no policy-map {{output_policy}}\nno policy-map {{input_policy}}\nno policy-map {{output_policy2}}\nno policy-map {{input_policy2}}\n \"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no policy-map {{output_policy}}\nno policy-map {{input_policy}}\nno policy-map {{output_policy2}}\nno policy-map {{input_policy2}}\ncommit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -8434,7 +8254,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{lacp_intf-id}}\nbundle id {{lacp_bundle_id_nr}} mode {{lacp_mode_xr_active}}\nlacp period short\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{lacp_intf-id}}\nbundle id {{lacp_bundle_id_nr}} mode {{lacp_mode_xr_active}}\nlacp period short\ncommit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -8543,7 +8363,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{lacp_intf-id}}\nno bundle id {{lacp_bundle_id_nr}} mode {{lacp_mode_xr_active}}\nno lacp period short\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{lacp_intf-id}}\nno bundle id {{lacp_bundle_id_nr}} mode {{lacp_mode_xr_active}}\nno lacp period short\ncommit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -8628,7 +8448,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"snmp-server interface {{snmp_inf_id_physical}}\nno notification linkupdown disable\nexit\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"snmp-server interface {{snmp_inf_id_physical}}\nno notification linkupdown disable\ncommit\nexit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -8713,7 +8533,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"snmp-server interface {{snmp_inf_id_physical}}\nnotification linkupdown disable\nexit\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"snmp-server interface {{snmp_inf_id_physical}}\nnotification linkupdown disable\ncommit\nexit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -8835,7 +8655,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\n     commit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -8872,7 +8692,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\ndescription {{lag_description}}\nmtu {{lag_mtu}}\nipv4 address {{lag_ip}} {{lag_mask}}\ndampening {{lag_damp_half-life}} {{lag_damp_reuse}} {{lag_damp_suppress}} {{lag_damp_max-supress}}\nload-interval {{lag_load-interval}}\nbundle minimum-active links {{lag_min-links}}\nno shutdown\nexit\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\ndescription {{lag_description}}\nmtu {{lag_mtu}}\nipv4 address {{lag_ip}} {{lag_mask}}\ndampening {{lag_damp_half-life}} {{lag_damp_reuse}} {{lag_damp_suppress}} {{lag_damp_max-supress}}\nload-interval {{lag_load-interval}}\nbundle minimum-active links {{lag_min-links}}\nno shutdown\ncommit\nexit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -8909,7 +8729,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"snmp-server interface Bundle-Ether{{lag_inf-id}}\nno notification linkupdown disable\nexit\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"snmp-server interface Bundle-Ether{{lag_inf-id}}\nno notification linkupdown disable\ncommit\nexit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -8994,7 +8814,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"snmp-server interface Bundle-Ether{{lag_inf-id}}\nnotification linkupdown disable\nexit\"\n  }\n}"
+													"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"snmp-server interface Bundle-Ether{{lag_inf-id}}\nnotification linkupdown disable\ncommit\nexit\"\n  }\n}"
 												},
 												"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 											},
@@ -9260,7 +9080,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{bgp_as}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{bgp_as}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -9333,7 +9153,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router bgp {{bgp_as}} instance {{bgp_process-name}}\n neighbor-group {{bgp_group}}\n exit\n exit\"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router bgp {{bgp_as}} instance {{bgp_process-name}}\n neighbor-group {{bgp_group}}\n commit\n exit\n exit\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -9366,7 +9186,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router bgp {{bgp_as}} instance {{bgp_process-name}}\n neighbor-group {{bgp_group}}\n neighbor {{ip1}}\n remote-as {{bgp_peer-as}}\n use neighbor-group {{bgp_group}}\n no shutdown\n exit\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"router bgp {{bgp_as}} instance {{bgp_process-name}}\n neighbor-group {{bgp_group}}\n neighbor {{ip1}}\n remote-as {{bgp_peer-as}}\n use neighbor-group {{bgp_group}}\n no shutdown\n commit\n exit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -9459,7 +9279,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{bgp_as}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no router bgp {{bgp_as}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -9542,7 +9362,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}.0\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}.0\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -9579,7 +9399,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -9616,7 +9436,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\ndescription {{lag_description}}\nmtu {{lag_mtu}}\nipv4 address {{lag_ip}} {{lag_mask}}\ndampening {{lag_damp_half-life}} {{lag_damp_reuse}} {{lag_damp_suppress}} {{lag_damp_max-supress}}\nload-interval {{lag_load-interval}}\nbundle minimum-active links {{lag_min-links}}\nno shutdown\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\ndescription {{lag_description}}\nmtu {{lag_mtu}}\nipv4 address {{lag_ip}} {{lag_mask}}\ndampening {{lag_damp_half-life}} {{lag_damp_reuse}} {{lag_damp_suppress}} {{lag_damp_max-supress}}\nload-interval {{lag_load-interval}}\nbundle minimum-active links {{lag_min-links}}\nno shutdown\ncommit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -9711,7 +9531,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}.0\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}.0\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -9748,7 +9568,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10132,7 +9952,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n commit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10245,7 +10065,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{test_sub_interface}}.{{test_sub_interface_index}}\n description testing subinterface\n encapsulation dot1Q {{vlan_id}}\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{test_sub_interface}}.{{test_sub_interface_index}}\n description testing subinterface\n encapsulation dot1Q {{vlan_id}}\n commit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10321,7 +10141,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{test_sub_interface}}\n ipv4 address {{net3}} {{netmask}}\n exit\"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{test_sub_interface}}\n ipv4 address {{net3}} {{netmask}}\n commit\n exit\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10394,7 +10214,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n exit\"\n  }\n}\n"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n commit\n exit\"\n  }\n}\n"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10476,7 +10296,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10513,7 +10333,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\n exit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\n commit\n exit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10550,7 +10370,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\nlogging events link-status\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\nlogging events link-status\ncommit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10633,7 +10453,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\nno logging events link-status\nexit\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface bundle-ether {{lag_inf-id}}\nno logging events link-status\ncommit\nexit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -10670,7 +10490,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface bundle-ether {{lag_inf-id}}\n     commit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
@@ -16089,15 +15909,49 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "Interface",
+					"name": "Interface CRUD",
 					"item": [
+						{
+							"name": "Create Loopback NATIVE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"interface-configuration\": [\n        {\n            \"active\": \"act\",\n            \"interface-name\": \"{{test_interface}}\",\n            \"interface-virtual\": [\n                null\n            ],\n            \"shutdown\": [\n                null\n            ]\n        }\n    ]\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/{{test_interface}}"
+							},
+							"response": []
+						},
 						{
 							"name": "show all interfaces",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "558a21b0-0586-444b-802e-09ab3b03e5a9",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -16151,7 +16005,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "909f9b77-c9e3-4e77-8f80-cf2664c92617",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -16196,20 +16049,89 @@
 								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_interface}}"
 							},
 							"response": []
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "Interface IP",
-					"item": [
+						},
+						{
+							"name": "show no IP",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_interface}}/subinterfaces/subinterface/{{ip_subinterface_index}}/frinx-openconfig-if-ip:ipv4"
+							},
+							"response": []
+						},
+						{
+							"name": "Update: set IP4",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"ipv4-network\": {\n        \"addresses\": {\n            \"primary\": {\n                \"netmask\": \"255.255.255.0\",\n                \"address\": \"{{ip41}}\"\n            }\n        }\n    }\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/{{test_interface}}/Cisco-IOS-XR-ipv4-io-cfg:ipv4-network"
+							},
+							"response": []
+						},
 						{
 							"name": "show IP4",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "e5993269-83fa-44aa-b400-bab1f9b4a987",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -16257,7 +16179,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "ff209081-6648-411c-b6f5-89d689953f07",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -16305,7 +16226,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "2a63b1d9-c48e-4113-bbb2-cdd024feadbc",
 										"type": "text/javascript",
 										"exec": [
 											"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -16341,6 +16261,82 @@
 									"raw": ""
 								},
 								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_interface}}/subinterfaces/subinterface/{{ip_subinterface_index}}/frinx-openconfig-if-ip:ipv4/addresses/address/255.255.255.255"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Loopback NATIVE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/{{test_interface}}"
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted interface",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_interface}}"
 							},
 							"response": []
 						}
@@ -26988,7 +26984,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "56782d40-5d67-4a6a-9bfd-b1148b608518",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Success\", function () {",
@@ -27025,7 +27020,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "8384c878-5982-4a51-8508-79bb431c79fc",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Success\", function () {",
@@ -27062,7 +27056,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "ca498342-4581-414c-8cac-8db8e335918c",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28227,7 +28220,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "857d6f25-396f-451d-b267-2164af2a25d6",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28268,7 +28260,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "4f3f5290-e961-4e12-9b9c-9afc05d0a878",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28376,7 +28367,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "c3676fcb-a68d-4b5c-9484-a092e8b4c166",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28444,7 +28434,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "1e0082e2-ef32-4f4d-a5ff-3ed60ce059a0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28487,7 +28476,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "3da27c42-8a6d-4fb4-b24a-6261be853e1d",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28528,7 +28516,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "ac1d9c38-e3ee-4ef6-9bef-81192764e971",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28589,7 +28576,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "cc73981b-769c-44f6-9950-3e045354a89a",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28630,7 +28616,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "a9d1a732-3468-4349-9b18-22b5572aa997",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28700,7 +28685,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "c7ec7f02-d787-4604-bd0a-03a59cf2880e",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28743,7 +28727,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "00a2fe41-1d57-49a7-aa4b-8092aa49753f",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28784,7 +28767,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "93220708-110d-4e0d-8808-1c2ac03a31f0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -28885,7 +28867,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "5b04c19b-1d28-4998-b498-0eb5a25f4d5c",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29004,7 +28985,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "527eef1c-3be9-4a6c-a511-a8f45f5f45b6",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29041,7 +29021,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "b8c3561e-a6b0-4004-9156-9ed5e08976cb",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29082,7 +29061,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "19d74c2d-d77e-46e6-857c-2044e71262b7",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29143,7 +29121,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "f2247d45-4356-4d7f-afdb-5b1328041434",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29180,7 +29157,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "2a60870c-c71a-409c-b005-d90755828ad0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29286,7 +29262,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "c4484596-bf88-4c63-a034-4dcd7e52ea73",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29327,7 +29302,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "bc59806f-909e-49d2-bfc6-f1707aeb9bff",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Successful DELETE request\", function () {",
@@ -29363,7 +29337,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "08b274eb-7af3-440e-b843-4a23e7f185d9",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -29404,7 +29377,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "133b03d8-9dd8-48a1-aac2-ff7eaa2d6394",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29445,7 +29417,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "bb4b24f4-bb08-4480-8c4d-92ee195a124e",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns 200 instead of returning 500\")",
@@ -29461,7 +29432,6 @@
 										{
 											"listen": "prerequest",
 											"script": {
-												"id": "12dc75af-faa5-49a7-a841-8724116cefab",
 												"type": "text/javascript",
 												"exec": [
 													"postman.setNextRequest('TEARDOWN: Delete Subinterface neg');"
@@ -29499,7 +29469,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "2930ec59-ec9a-4797-8d38-e8b0145fe0d0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29536,7 +29505,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "a2191ebc-551c-4666-be77-ab145a760136",
 												"type": "text/javascript",
 												"exec": [
 													"console.warn(\"// FIXME this returns data instead of returning 404\")",
@@ -29719,7 +29687,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "99394ac4-bda2-4683-b860-821c171be605",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29742,7 +29709,6 @@
 										{
 											"listen": "prerequest",
 											"script": {
-												"id": "467d4ae5-828e-4f44-a519-c164b0f379d3",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Here we wait 60 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
@@ -29820,7 +29786,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "9e557eb5-89dd-4a6a-a936-95a8724fb737",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -29833,7 +29798,6 @@
 										{
 											"listen": "prerequest",
 											"script": {
-												"id": "7ba05e0d-68c1-4e1e-8147-3f47253b635f",
 												"type": "text/javascript",
 												"exec": [
 													"//console.log(\"Here we wait 60 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
@@ -30015,7 +29979,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "9ddb6f2b-b3df-4355-b726-5b78b394e631",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -30065,7 +30028,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "1cfb281c-73ef-4f52-a59c-bbcb4975c809",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -30926,7 +30888,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "5f2350ca-84c5-437d-9844-d84cc53cb0dc",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 404\", function () {",
@@ -31251,7 +31212,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "802516fb-2789-4d85-9fd0-4a8d32d61e4b",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -32785,7 +32745,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "ebc90e25-0126-445e-9d9a-1cb91b1a8e35",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -33140,7 +33099,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "1882a4ae-3530-4283-a8d7-f87064d3e1d2",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -33238,7 +33196,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "bd21898f-5747-488c-8a6b-1e125d9a4a5a",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -33632,7 +33589,7 @@
 									},
 									"response": [
 										{
-											"id": "97f2ba5b-dff6-4e8b-9ea8-01bb76c7d29b",
+											"id": "27e4331c-2ba6-402a-b0c3-515dc5813d8e",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -33800,7 +33757,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "c7202d42-d0f4-41d2-b20e-d77a9a79b6af",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -34063,7 +34019,7 @@
 									},
 									"response": [
 										{
-											"id": "a7a2812e-b1b6-4922-9766-87acffa020df",
+											"id": "a8750031-560a-41b0-aa25-27807fd3758d",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -34192,7 +34148,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "02c0be0a-8d13-4977-85e9-9c9b16233f8d",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -34496,7 +34451,7 @@
 									},
 									"response": [
 										{
-											"id": "2199522e-0b47-4be0-a8f6-b738c10f629e",
+											"id": "2ce6770a-c61d-46a8-b2e3-4adcf969a6ab",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -34927,7 +34882,7 @@
 									},
 									"response": [
 										{
-											"id": "0a758f09-bffa-405c-aea9-ea82505b7999",
+											"id": "485b2936-bf65-4d7c-a172-050b55882bc4",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -35262,7 +35217,6 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "aa7d4a2d-1ab2-4fde-b2da-1f8adc634447",
 												"type": "text/javascript",
 												"exec": [
 													"pm.test(\"Status code is 500\", function () {",

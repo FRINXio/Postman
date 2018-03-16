@@ -129,14 +129,14 @@ XR_folders=("Interface CRUD" "subinterface common CRUD basic" "static route" "CD
 #XR5_folders=(need fix: "General information")
 XR5_folders=("subinterface common" "subinterface common CRUD global" "OSPF CRUD" "RSVP CRUD" "Mpls-te CRUD" "Mpls-tunnel CRUD" "SYSLOG CRUD" "LACP CRUD" "LACP IFC CRUD interface" "LACP IFC CRUD element" "IFC ACL CRUD basic" "IFC ACL CRUD containers" "PF IFC CRUD" "ETH IFC CRUD basic" "ETH IFC CRUD subinterface-part" "ETH IFC CRUD holdtime-part" "ETH IFC CRUD damping-part" "ETH IFC CRUD stats-part" "ETH IFC CRUD eth-part" "ETH IFC CRUD subinterface-container" "ETH IFC CRUD holdtime-container" "ETH IFC CRUD damping-container" "ETH IFC CRUD stats-container" "ETH IFC CRUD eth-container" "LAG without-BFD" "LAG without BFD basic" "LAG without BFD aggregation" "LAG without BFD statistics" "LAG without BFD damping" "LAG without BFD ipv4" "SNMP CRUD GigabitEthernet" "SNMP server CRUD GigabitEthernet" "SNMP CRUD LAG" "SNMP server CRUD LAG" "SNMP server CRUD Negative" "BGP CRUD" "BGP instance CRUD basic")
 #ASR_folders=(need fix: "General information","5 LAG without BFD"-MU-212 "5 LAG with BFD"-MU-213, "SNMP"-MU-219 "SYSLOG CRUD"-MU-220  )
-ASR_folders=("Platform unified" "Interface" "Interface IP" "subinterface common CRUD basic" "static route" "CDP" "LLDP" "ospf" "L2VPN connection" "L2VPN connection CRUD locifc-remote" "L2VPN connection CRUD locsub-remote" "BGP summary" "L3VPN OSPF CRUD" "BGP instance CRUD global" "L3VPN BGP CRUD global" "L3VPN BGP CRUD Negative")
+ASR_folders=("Platform unified" "Interface CRUD" "subinterface common CRUD basic" "static route" "CDP" "LLDP" "ospf" "L2VPN connection" "L2VPN connection CRUD locifc-remote" "L2VPN connection CRUD locsub-remote" "BGP summary" "L3VPN OSPF CRUD" "BGP instance CRUD global" "L3VPN BGP CRUD global" "L3VPN BGP CRUD Negative")
 
 ### Test for IOS
 IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json" "xe4_env.json" "cat6500_env.json")
 #Classic_folders=(need fix:"General information" "L2P2P connection CRUD Negative")
 Classic_folders=("Interface" "static route" "journal-dryrun" "CDP" "subinterface common" "subinterface common CRUD global" "L2P2P connection" "L2P2P connection CRUD locifc-remote" "L2P2P connection CRUD locifc-sub" "L2P2P connection CRUD locsub-remote" "ospf-vrf" "L3VPN OSPF CRUD" "BGP summary" "L3VPN BGP" "BGP instance CRUD global" "L3VPN BGP CRUD global" "L3VPN BGP CRUD Negative" )
 #XE_folders=(need fix: "General information" ,"ospf-vrf"-bug MU-159,)
-XE_folders=("Interfaces" "Interfaces IP"  "static route"  "journal-dryrun" "CDP" "LLDP" "subinterface common" "subinterface common CRUD global" "ospf-vrf" "L3VPN OSPF CRUD"  "BGP summary" "L3VPN BGP" "BGP instance CRUD global" "L3VPN BGP CRUD global" "L3VPN BGP CRUD Negative")
+XE_folders=("Interface"  "static route"  "journal-dryrun" "CDP" "LLDP" "subinterface common" "subinterface common CRUD global" "ospf-vrf" "L3VPN OSPF CRUD"  "BGP summary" "L3VPN BGP" "BGP instance CRUD global" "L3VPN BGP CRUD global" "L3VPN BGP CRUD Negative")
 XE4_folders=("L2VPN connection" "L2VPN connection CRUD locifc-remote" "L2VPN connection CRUD locsub-remote")
 CAT6500_folders=("Platform cli")
 

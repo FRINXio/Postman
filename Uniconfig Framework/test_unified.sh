@@ -3,6 +3,9 @@ set +x
 
 collection=postman_collection_unified.json
 
+#https://superuser.com/questions/352697/preserve-colors-while-piping-to-tee
+command -v unbuffer >/dev/null 2>&1 || { echo >&2 "It's not installed *unbuffer* script. Please install it: sudo apt-get install expect-dev"; exit 1; }
+
 file=list.txt # list of failed tests
 if [ -f $file ] ; then
     rm $file
@@ -15,7 +18,7 @@ if [ -f $file2 ] ; then
 fi
 
 # function to write result of test
-# the first argument $1 is a result 0/1 of last newman execution
+# the first argument $1 is a result 0/1 of last newman execution (note: newman returs 0 also in case that all tests in folder have not any assertions! Solution is write some assertions.)
 # the second argument $2 is a char r/s/ /t which define the postman collection purpose (reader test/setup/main test/teardown)
 function test_pass() {
     #here process file folder_presence_check to prevent to make false entry to the file $file2
@@ -81,13 +84,16 @@ function test_failure_info() {
 # - $device_folder_string rfolder modifiers
 # - $device_id_string device specific string for test_failure_info
 # - $unmount_folder unmount folder
+#
+# it was added unbuffer script before newman command redirected via tee command
+# to preserve colloring of output
 function newman_stuff {
   # https://stackoverflow.com/questions/6871859/piping-command-output-to-tee-but-also-save-exit-code-of-command
   # testing of newman output status was done via variable $?
   # using tee - in variable $? is stored the succees of tee - output of newman will be stored in ${PIPESTATUS[0]}
   folder=$mount_folder
   # in case that mount does not happen we will return from this function because it is useless to try to run all list of tests ...
-  newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "" ""; test_pass "1" "";return; else test_pass "0" ""; fi
+  unbuffer newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "" ""; test_pass "1" "";return; else test_pass "0" ""; fi
   for folder in "${list_of_tests[@]}"
   do
      rfolder="$device_folder_string $folder READERS"
@@ -96,14 +102,14 @@ function newman_stuff {
      coll_arr=($folder)
      ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
      sfolder="$device_folder_string ${coll_arr[@]:0:${ll}} Setup"
-     newman run $collection $formatter_bail -e $device -n 1 --folder "$sfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
-     newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" ""; test_pass "1" ""; else test_pass "0" ""; fi
+     unbuffer newman run $collection $formatter_bail -e $device -n 1 --folder "$sfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "s"; test_pass "1" "s"; else test_pass "0" "s"; fi
+     unbuffer newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" ""; test_pass "1" ""; else test_pass "0" ""; fi
      tfolder="$device_folder_string ${coll_arr[@]:0:${ll}} Teardown"
-     newman run $collection $formatter_bail -e $device -n 1 --folder "$tfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
+     unbuffer newman run $collection $formatter_bail -e $device -n 1 --folder "$tfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "t"; test_pass "1" "t"; else test_pass "0" "t"; fi
      sleep 2
   done
   folder=$unmount_folder
-  newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
+  unbuffer newman run $collection $formatter_bail -e $device -n 1 --folder "$folder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "" ""; test_pass "1" ""; else test_pass "0" ""; fi
 }
 
 
@@ -161,21 +167,21 @@ do
     ####################################
     "xrv_env.json" )
         mount_folder="XR Mount"
-        device_id_string="XR" # present in texts
-        device_folder_string=$device_id_string # present in rfolder/sfolder/tfolder
+        device_id_string="(XR)" # present in texts
+        device_folder_string="XR" # present in rfolder/sfolder/tfolder
         list_of_tests=("${XR_folders[@]}") # copying of array
         unmount_folder="XR Unmount"
         ;;
     "xrv5_env.json" )
         mount_folder="XR5 Mount"
-        device_id_string="XR5" # present in texts
-        device_folder_string=$device_id_string # present in rfolder/sfolder/tfolder
+        device_id_string="(XR5)" # present in texts
+        device_folder_string="XR5" # present in rfolder/sfolder/tfolder
         list_of_tests=("${XR5_folders[@]}") # copying of array
         unmount_folder="XR5 Unmount"
         ;;
     "asr_env.json" )
         mount_folder="XR Mount"
-        device_id_string="ASR" # present in texts
+        device_id_string="(ASR)" # present in texts
         device_folder_string="XR" # present in rfolder/sfolder/tfolder
         list_of_tests=("${ASR_folders[@]}") # copying of array
         unmount_folder="XR Unmount"
@@ -190,28 +196,28 @@ do
         ;;
     "classic_1553_env.json" )
         mount_folder="Classic Mount"
-        device_id_string="Classic" # present in texts
+        device_id_string="(Classic)" # present in texts
         device_folder_string="Classic" # present in rfolder/sfolder/tfolder
         list_of_tests=("${Classic_folders[@]}") # copying of array
         unmount_folder="Classic Unmount"
         ;;
     "xe_env.json" )
         mount_folder="Classic Mount"
-        device_id_string="XE" # present in texts
+        device_id_string="(XE)" # present in texts
         device_folder_string="Classic" # present in rfolder/sfolder/tfolder
         list_of_tests=("${XE_folders[@]}") # copying of array
         unmount_folder="Classic Unmount"
         ;;
     "xe4_env.json" )
         mount_folder="Classic Mount"
-        device_id_string="XE4" # present in texts
+        device_id_string="(XE4)" # present in texts
         device_folder_string="Classic" # present in rfolder/sfolder/tfolder
         list_of_tests=("${XE4_folders[@]}") # copying of array
         unmount_folder="Classic Unmount"
         ;;
     "cat6500_env.json" )
         mount_folder="Classic Mount"
-        device_id_string="CAT" # present in texts
+        device_id_string="(CAT)" # present in texts
         device_folder_string="Classic" # present in rfolder/sfolder/tfolder
         list_of_tests=("${CAT6500_folders[@]}") # copying of array
         unmount_folder="Classic Unmount"

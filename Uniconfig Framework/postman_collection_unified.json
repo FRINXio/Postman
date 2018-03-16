@@ -2,7 +2,7 @@
 	"variables": [],
 	"info": {
 		"name": "FRINX UNIFIED",
-		"_postman_id": "79610988-4d7f-0710-2f28-3e4d539cb2b5",
+		"_postman_id": "6e38416f-c650-8219-7b45-d7b589fc4ca9",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
@@ -402,7 +402,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"node-extension:reconcile\" : false,\n      \"cli-topology:journal-size\": 150\n      }\n  }"
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"node-extension:reconcile\" : false,\n      \"cli-topology:journal-size\": 150\n    }\n  }"
 								},
 								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
 							},
@@ -2146,8 +2146,8 @@
 											"script": {
 												"type": "text/javascript",
 												"exec": [
-													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,404]);",
 													"});"
 												]
 											}
@@ -2169,7 +2169,7 @@
 											"mode": "raw",
 											"raw": ""
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
 									},
 									"response": []
 								},
@@ -2213,7 +2213,361 @@
 											"mode": "raw",
 											"raw": ""
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "XR subinterface common READERS",
+							"item": [
+								{
+									"name": "Delete previouse subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n commit\n exit\"\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show nonexisting subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show interface null without ipv4",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"tests[\"01. Body doesnt matches string\"] = !responseBody.has(String(postman.getEnvironmentVariable(\"net3\")));"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index_null}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Configure subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{test_sub_interface}}.{{test_sub_interface_index}}\n description testing subinterface\n encapsulation dot1Q {{vlan_id}}\n commit\n exit\"\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show configured subinterface common",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"tests[\"01. Body matches string\"] = responseBody.has(\"testing subinterface\");",
+													"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"test_sub_interface\")) + \".\" + String(postman.getEnvironmentVariable(\"test_sub_interface_index\")));",
+													"tests[\"03. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"vlan_id\")));"
+												]
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Here we wait 30 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+													"setTimeout(function(){}, 30000);"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Configure null subinterface ipv4",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"interface {{test_sub_interface}}\n ipv4 address {{net3}} {{netmask}}\n commit\n exit\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show configured null interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"tests[\"01. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"net3\")));"
+												]
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Here we wait 30 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+													"setTimeout(function(){}, 30000);"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index_null}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previouse subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n commit\n exit\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "Reconcile",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/"
 									},
 									"response": []
 								}
@@ -3107,13 +3461,7 @@
 								}
 							],
 							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "XR L2P2P connection",
-					"item": [
+						},
 						{
 							"name": "XR L2P2P connection READERS",
 							"item": [
@@ -3875,8 +4223,200 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "XR L2VPN connection",
+					"name": "XR L2VPN connection CRUD",
 					"item": [
+						{
+							"name": "XR L2VPN connection CRUD Setup",
+							"item": [
+								{
+									"name": "Delete previous Subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previous l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200 || 500"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "XR L2VPN connection CRUD Teardown",
+							"item": [
+								{
+									"name": "Delete Subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
 						{
 							"name": "XR L2VPN connection READERS",
 							"item": [
@@ -4331,204 +4871,6 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "XR L2VPN connection CRUD",
-					"item": [
-						{
-							"name": "XR L2VPN connection CRUD Setup",
-							"item": [
-								{
-									"name": "Delete previous Subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete previous l2vpn",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Successful DELETE request\"] = responseCode.code === 200 || 500"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted l2vpn",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns data instead of returning 404 for non existing IP\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						},
-						{
-							"name": "XR L2VPN connection CRUD Teardown",
-							"item": [
-								{
-									"name": "Delete Subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
 					"name": "XR L3VPN OSPF CRUD",
 					"item": [
 						{
@@ -4869,8 +5211,315 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "XR L3VPN BGP",
+					"name": "XR L3VPN BGP CRUD",
 					"item": [
+						{
+							"name": "XR L3VPN BGP CRUD Setup",
+							"item": [
+								{
+									"name": "Delete interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,404]);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l3_vpn_bgp_nonexist_interface_id}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete L3VPN BGP defined sets",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,404]);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets/frinx-openconfig-bgp-policy:bgp-defined-sets"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previous 2. L3VPN BGP",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf2}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previous L3VPN BGP",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted L3VPN BGP (network instance)",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non network instance.\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"/*",
+													"pm.test(\"Status code is 404\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});",
+													"*/"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted L3VPN BGP (defined sets)",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"pm.test(\"Status code is 404\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete BGP global",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:BGP/default"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted BGP global",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non BGP.\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"/*",
+													"pm.test(\"Status code is 404\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});",
+													"*/"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"protocol\": [  \n\t   {  \n\t      \"name\":\"default\",\n\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t      \"config\":{  \n\t         \"name\":\"default\",\n\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t         \"enabled\": true\n\t      },\n\t      \"local-aggregates\": {\n\t    \t\t\"aggregate\": [\n\t        \t\t{\n\t        \t\t\t\"prefix\": \"{{l3_vpn_bgp_global_network_prefix}}/{{l3_vpn_bgp_global_network_prefix_mask2}}\",\n\t        \t\t\t\"config\": {\n\t        \t\t\t\t\"prefix\": \"{{l3_vpn_bgp_global_network_prefix}}/{{l3_vpn_bgp_global_network_prefix_mask2}}\"\n\t        \t\t\t}\n\t        \t\t}\n\t        \t]\n\t        },\n\t      \"bgp\":{  \n\t         \"global\":{  \n\t            \"config\":{  \n\t               \"as\":\"{{l3_vpn_bgp_as_number_decimal}}\",\n\t               \"router-id\":\"{{l3_vpn_bgp_global_router_id}}\"\n\t            },\n\t            \"afi-safis\": {\n\t                \"afi-safi\": [\n\t                 {\n\t                  \"afi-safi-name\": \"frinx-openconfig-bgp-types:IPV4_UNICAST\",\n\t                     \"config\": {\n\t                         \"afi-safi-name\": \"frinx-openconfig-bgp-types:IPV4_UNICAST\",\n\t                         \"enabled\": true\n\t                     }\n\t                 }\n\t              ]\n\t            }\n\t         },\n\t         \"neighbors\": {\n                \"neighbor\": [\n                  {\n                  \"neighbor-address\"  : \"{{l3_vpn_bgp_global_neighbor_address}}\",\n                    \"config\": {\n                      \"neighbor-address\": \"{{l3_vpn_bgp_global_neighbor_address}}\",\n                      \"enabled\": true,\n                      \"peer-as\": \"{{l3_vpn_bgp_global_remote_as_decimal}}\"\n                    }\n                  }\n                ]\n              }\n\t      }\n\t   }\n\t]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:BGP/default"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
 						{
 							"name": "XR L3VPN BGP READERS",
 							"item": [
@@ -5315,319 +5964,6 @@
 											"raw": ""
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "XR L3VPN BGP CRUD",
-					"item": [
-						{
-							"name": "XR L3VPN BGP CRUD Setup",
-							"item": [
-								{
-									"name": "Delete interface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,404]);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l3_vpn_bgp_nonexist_interface_id}}"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete L3VPN BGP defined sets",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,404]);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets/frinx-openconfig-bgp-policy:bgp-defined-sets"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete previous 2. L3VPN BGP",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf2}}"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete previous L3VPN BGP",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted L3VPN BGP (network instance)",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns data instead of returning 404 for non network instance.\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"/*",
-													"pm.test(\"Status code is 404\", function () {",
-													"    pm.response.to.have.status(404);",
-													"});",
-													"*/"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted L3VPN BGP (defined sets)",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Status code is 404\", function () {",
-													"    pm.response.to.have.status(404);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete BGP global",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											},
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:BGP/default"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted BGP global",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns data instead of returning 404 for non BGP.\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"/*",
-													"pm.test(\"Status code is 404\", function () {",
-													"    pm.response.to.have.status(404);",
-													"});",
-													"*/"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											},
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n\t\"protocol\": [  \n\t   {  \n\t      \"name\":\"default\",\n\t      \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t      \"config\":{  \n\t         \"name\":\"default\",\n\t         \"identifier\":\"frinx-openconfig-policy-types:BGP\",\n\t         \"enabled\": true\n\t      },\n\t      \"local-aggregates\": {\n\t    \t\t\"aggregate\": [\n\t        \t\t{\n\t        \t\t\t\"prefix\": \"{{l3_vpn_bgp_global_network_prefix}}/{{l3_vpn_bgp_global_network_prefix_mask2}}\",\n\t        \t\t\t\"config\": {\n\t        \t\t\t\t\"prefix\": \"{{l3_vpn_bgp_global_network_prefix}}/{{l3_vpn_bgp_global_network_prefix_mask2}}\"\n\t        \t\t\t}\n\t        \t\t}\n\t        \t]\n\t        },\n\t      \"bgp\":{  \n\t         \"global\":{  \n\t            \"config\":{  \n\t               \"as\":\"{{l3_vpn_bgp_as_number_decimal}}\",\n\t               \"router-id\":\"{{l3_vpn_bgp_global_router_id}}\"\n\t            },\n\t            \"afi-safis\": {\n\t                \"afi-safi\": [\n\t                 {\n\t                  \"afi-safi-name\": \"frinx-openconfig-bgp-types:IPV4_UNICAST\",\n\t                     \"config\": {\n\t                         \"afi-safi-name\": \"frinx-openconfig-bgp-types:IPV4_UNICAST\",\n\t                         \"enabled\": true\n\t                     }\n\t                 }\n\t              ]\n\t            }\n\t         },\n\t         \"neighbors\": {\n                \"neighbor\": [\n                  {\n                  \"neighbor-address\"  : \"{{l3_vpn_bgp_global_neighbor_address}}\",\n                    \"config\": {\n                      \"neighbor-address\": \"{{l3_vpn_bgp_global_neighbor_address}}\",\n                      \"enabled\": true,\n                      \"peer-as\": \"{{l3_vpn_bgp_global_remote_as_decimal}}\"\n                    }\n                  }\n                ]\n              }\n\t      }\n\t   }\n\t]\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:BGP/default"
 									},
 									"response": []
 								}
@@ -12466,8 +12802,585 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "Classic L2P2P connection",
+					"name": "Classic subinterface common",
 					"item": [
+						{
+							"name": "Classic subinterface common READERS",
+							"item": [
+								{
+									"name": "Delete previouse subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n exit\n exit\"\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show nonexisting subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show interface null without ipv4",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"tests[\"01. Body doesnt matches string\"] = !responseBody.has(String(postman.getEnvironmentVariable(\"net3\")));"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index_null}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Configure subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n interface {{test_sub_interface}}.{{test_sub_interface_index}}\n description testing subinterface\n encapsulation dot1Q {{vlan_id}}\n exit\n exit\"\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show configured subinterface common",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"tests[\"01. Body matches string\"] = responseBody.has(\"testing subinterface\");",
+													"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"test_sub_interface\")) + \".\" + String(postman.getEnvironmentVariable(\"test_sub_interface_index\")));",
+													"tests[\"03. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"vlan_id\")));"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Configure null subinterface ipv4",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n interface {{test_sub_interface}}\n ip address {{net3}} {{netmask}}\n exit\n exit\"\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show configured null interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"tests[\"01. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"net3\")));"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index_null}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previouse subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n exit\n exit\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "Reconcile",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Classic L2P2P connection CRUD",
+					"item": [
+						{
+							"name": "Classic L2P2P connection CRUD Setup",
+							"item": [
+								{
+									"name": "Delete previous Subinterface lts",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted subinterface lts",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"if (responseCode.code === 404) {",
+													"    tests[\"Subinterface deleted\"] = true",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Subinterface still up! Too many attempts !\")",
+													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"        //tests[\"Subinterface not deleted\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Subinterface not deleted yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show deleted subinterface lts');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previous Connection lts",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l2p2p_ni_name1}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted loc to sub",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"// attempts counter",
+													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"",
+													"if (responseCode.code === 404) {",
+													"    tests[\"Connection removed\"] = true",
+													"    // Reset attempt counter",
+													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"} else {",
+													"    // If too many attempts, abort",
+													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+													"        console.log(\"Connection still present! Too many attempts !\")",
+													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"        //tests[\"Connection not removed\"] = false",
+													"    } else {",
+													"        // Schedule next check attempt",
+													"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
+													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+													"        postman.setNextRequest('show deleted loc to sub');",
+													"    }",
+													"}"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l2p2p_ni_name1}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Classic L2P2P connection CRUD Teardown",
+							"item": [
+								{
+									"name": "Delete Subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
 						{
 							"name": "Classic L2P2P connection READERS",
 							"item": [
@@ -13048,1012 +13961,6 @@
 										}
 									],
 									"_postman_isSubFolder": true
-								}
-							],
-							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "Classic subinterface common",
-					"item": [
-						{
-							"name": "Classic subinterface common READERS",
-							"item": [
-								{
-									"name": "Delete previouse subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n exit\n exit\"\n  }\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
-									},
-									"response": []
-								},
-								{
-									"name": "show nonexisting subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns data instead of returning 404\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show interface null without ipv4",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
-													"tests[\"01. Body doesnt matches string\"] = !responseBody.has(String(postman.getEnvironmentVariable(\"net3\")));"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index_null}}"
-									},
-									"response": []
-								},
-								{
-									"name": "Configure subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"tests[\"Status code is 200\"] = responseCode.code === 200;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n interface {{test_sub_interface}}.{{test_sub_interface_index}}\n description testing subinterface\n encapsulation dot1Q {{vlan_id}}\n exit\n exit\"\n  }\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
-									},
-									"response": []
-								},
-								{
-									"name": "show configured subinterface common",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
-													"});",
-													"",
-													"tests[\"01. Body matches string\"] = responseBody.has(\"testing subinterface\");",
-													"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"test_sub_interface\")) + \".\" + String(postman.getEnvironmentVariable(\"test_sub_interface_index\")));",
-													"tests[\"03. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"vlan_id\")));"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
-									},
-									"response": []
-								},
-								{
-									"name": "Configure null subinterface ipv4",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"tests[\"Status code is 200\"] = responseCode.code === 200;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n interface {{test_sub_interface}}\n ip address {{net3}} {{netmask}}\n exit\n exit\"\n  }\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
-									},
-									"response": []
-								},
-								{
-									"name": "show configured null interface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
-													"tests[\"01. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"net3\")));"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index_null}}"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete previouse subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"tests[\"Success\"] = responseCode.code === 200;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n no interface {{test_sub_interface}}.{{test_sub_interface_index}}\n interface {{test_sub_interface}}\n no ip address\n exit\n exit\"\n  }\n}\n"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
-									},
-									"response": []
-								},
-								{
-									"name": "Reconcile",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"tests[\"Status code is 200\"] = responseCode.code === 200;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "Classic L3VPN BGP",
-					"item": [
-						{
-							"name": "Classic L3VPN BGP READERS",
-							"item": [
-								{
-									"name": "Delete previous L3VPN BGP",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"tests[\"Success\"] = responseCode.code === 200;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno ip vrf forwarding {{l3_vpn_bgp_vrf}}\nexit\nno ip vrf {{l3_vpn_bgp_vrf}}\nexit\n\"\n  }\n}\n"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
-									},
-									"response": []
-								},
-								{
-									"name": "Configure L3VPN BGP",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"tests[\"Status code is 200\"] = responseCode.code === 200;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nip vrf {{l3_vpn_bgp_vrf}}\nrd {{l3_vpn_bgp_rd}}\nroute-target export {{l3_vpn_bgp_rt_exp_1}}\nroute-target export {{l3_vpn_bgp_rt_exp_2}}\nroute-target export {{l3_vpn_bgp_rt_exp_3}}\nroute-target import {{l3_vpn_bgp_rt_imp_1}}\nroute-target import {{l3_vpn_bgp_rt_imp_2}}\nroute-target import {{l3_vpn_bgp_rt_imp_3}}\nexit\ninterface {{l3_vpn_bgp_interface_id}}\nip vrf forwarding {{l3_vpn_bgp_vrf}}\nexit\nrouter bgp {{l3_vpn_bgp_as_number}}\nbgp router-id {{l3_vpn_bgp_router_id}}\naddress-family ipv4 vrf {{l3_vpn_bgp_vrf}}\nnetwork {{l3_vpn_bgp_network_prefix}} mask {{l3_vpn_bgp_network_prefix_mask1}}\nneighbor {{l3_vpn_bgp_neighbor_address}} remote-as {{l3_vpn_bgp_remote_as}}\nneighbor {{l3_vpn_bgp_neighbor_address}} activate\nexit\nexit\nexit\n\"\n  }\n}\n"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
-									},
-									"response": []
-								},
-								{
-									"name": "show L3VPN BGP network instance",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
-													"",
-													"var mystring = [];",
-													"mystring.push('\"name\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + '\"');",
-													"",
-													"var str = postman.getEnvironmentVariable(\"l3_vpn_bgp_as_number\");",
-													"var pos = str.lastIndexOf(\".\")",
-													"var res = str.substring(0, pos);",
-													"var num = res * 65536 + Number(str.substring(pos + 1,str.length));",
-													"mystring.push('\"as\":' + num.toString());",
-													"",
-													"//in SETUP Configure L3VPN BGP I configure router-id for global BGP",
-													"//this GET reader is for VRF - this is reason why it did not get into reader output",
-													"//mystring.push('\"router-id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_router_id\") + '\"');",
-													"",
-													"mystring.push('\"neighbor-address\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\") + '\"');",
-													"",
-													"var str = postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as\");",
-													"var pos = str.lastIndexOf(\".\")",
-													"var res = str.substring(0, pos);",
-													"var num = res * 65536 + Number(str.substring(pos + 1,str.length));",
-													"mystring.push('\"peer-as\":' + num.toString());",
-													"",
-													"mystring.push('\"prefix\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\") + '\"');",
-													"mystring.push('\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"');",
-													"mystring.push('\"route-distinguisher\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\") + '\"');",
-													"",
-													"mystring.forEach(function(entry) {",
-													"    tests[\"Body matches string \" + entry] = responseBody.has(entry);",
-													"});",
-													"",
-													""
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show L3VPN BGP defined sets",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"",
-													"",
-													"/*-- THIS DOES NOR WORK IN NEWMAN",
-													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")) === true;",
-													"",
-													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")) === true;",
-													"",
-													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")) === true;",
-													"*/",
-													"",
-													"if (jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\") {",
-													"    ",
-													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
-													"    ",
-													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
-													"",
-													"",
-													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"];",
-													"    console.log(pole);",
-													"    for (var i = 0; i < pole.length; i++) {",
-													"        switch(pole[i]) {",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\"):",
-													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = true;",
-													"                break;",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\"):",
-													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = true;",
-													"                break;",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\"):",
-													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = true;",
-													"                break;",
-													"            default:",
-													"                test[\"Found not expected value \" + pole[i]] = false;",
-													"        } ",
-													"    }",
-													"",
-													"",
-													"    /*",
-													"    // this is not good because it relies on ordered input in environmental variabes....",
-													"    ",
-													"    pole.sort();",
-													"    console.log(pole);",
-													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = pole[0] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\");",
-													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = pole[1] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\");",
-													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = pole[2] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\");",
-													"    */",
-													"",
-													"",
-													"} else {",
-													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
-													"    ",
-													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
-													"    ",
-													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-member\"];",
-													"    console.log(pole);",
-													"    for (var i = 0; i < pole.length; i++) {",
-													"        switch(pole[i]) {",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\"):",
-													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = true;",
-													"                break;",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\"):",
-													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = true;",
-													"                break;",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\"):",
-													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = true;",
-													"                break;",
-													"            default:",
-													"                test[\"Found not expected value \" + pole[i]] = false;",
-													"        } ",
-													"    }",
-													"    ",
-													"}",
-													"",
-													"",
-													"if (jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\") {",
-													"    ",
-													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
-													"    ",
-													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
-													"",
-													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"];",
-													"    console.log(pole);",
-													"    for (var i = 0; i < pole.length; i++) {",
-													"        switch(pole[i]) {",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\"):",
-													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\")] = true;",
-													"                break;",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\"):",
-													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\")] = true;",
-													"                break;",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\"):",
-													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\")] = true;",
-													"                break;",
-													"            default:",
-													"                test[\"Found not expected value \" + pole[i]] = false;",
-													"        } ",
-													"    }",
-													"} else {",
-													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
-													"    ",
-													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
-													"    ",
-													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-member\"];",
-													"    console.log(pole);",
-													"    for (var i = 0; i < pole.length; i++) {",
-													"        switch(pole[i]) {",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\"):",
-													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\")] = true;",
-													"                break;",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\"):",
-													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\")] = true;",
-													"                break;",
-													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\"):",
-													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\")] = true;",
-													"                break;",
-													"            default:",
-													"                test[\"Found not expected value \" + pole[i]] = false;",
-													"        } ",
-													"    }",
-													"    ",
-													"}",
-													"",
-													"",
-													""
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete previous L3VPN BGP",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"tests[\"Success\"] = responseCode.code === 200;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "POST",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno ip vrf forwarding {{l3_vpn_bgp_vrf}}\nexit\nno ip vrf {{l3_vpn_bgp_vrf}}\nexit\n\"\n  }\n}\n"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted L3VPN BGP (network instance)",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns data instead of returning 404 for non network instance.\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted L3VPN BGP (defined sets)",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "Classic L2P2P connection CRUD",
-					"item": [
-						{
-							"name": "Classic L2P2P connection CRUD Setup",
-							"item": [
-								{
-									"name": "Delete previous Subinterface lts",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted subinterface lts",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"if (responseCode.code === 404) {",
-													"    tests[\"Subinterface deleted\"] = true",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Subinterface still up! Too many attempts !\")",
-													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
-													"        //tests[\"Subinterface not deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Subinterface not deleted yet! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show deleted subinterface lts');",
-													"    }",
-													"}"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete previous Connection lts",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l2p2p_ni_name1}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted loc to sub",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"if (responseCode.code === 404) {",
-													"    tests[\"Connection removed\"] = true",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Connection still present! Too many attempts !\")",
-													"        console.warn(\"// FIXME this returns data instead of returning 404\")",
-													"        //tests[\"Connection not removed\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Connection not removed yet! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show deleted loc to sub');",
-													"    }",
-													"}"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l2p2p_ni_name1}}"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						},
-						{
-							"name": "Classic L2P2P connection CRUD Teardown",
-							"item": [
-								{
-									"name": "Delete Subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{l2p2p_show_interface2url}}/subinterfaces/subinterface/{{l2p2p_show_sub_interface_index}}"
-									},
-									"response": []
 								}
 							],
 							"_postman_isSubFolder": true
@@ -14652,13 +14559,622 @@
 								}
 							],
 							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Classic L3VPN BGP READERS",
+							"item": [
+								{
+									"name": "Delete previous L3VPN BGP",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno ip vrf forwarding {{l3_vpn_bgp_vrf}}\nexit\nno ip vrf {{l3_vpn_bgp_vrf}}\nexit\n\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "Configure L3VPN BGP",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Status code is 200\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nip vrf {{l3_vpn_bgp_vrf}}\nrd {{l3_vpn_bgp_rd}}\nroute-target export {{l3_vpn_bgp_rt_exp_1}}\nroute-target export {{l3_vpn_bgp_rt_exp_2}}\nroute-target export {{l3_vpn_bgp_rt_exp_3}}\nroute-target import {{l3_vpn_bgp_rt_imp_1}}\nroute-target import {{l3_vpn_bgp_rt_imp_2}}\nroute-target import {{l3_vpn_bgp_rt_imp_3}}\nexit\ninterface {{l3_vpn_bgp_interface_id}}\nip vrf forwarding {{l3_vpn_bgp_vrf}}\nexit\nrouter bgp {{l3_vpn_bgp_as_number}}\nbgp router-id {{l3_vpn_bgp_router_id}}\naddress-family ipv4 vrf {{l3_vpn_bgp_vrf}}\nnetwork {{l3_vpn_bgp_network_prefix}} mask {{l3_vpn_bgp_network_prefix_mask1}}\nneighbor {{l3_vpn_bgp_neighbor_address}} remote-as {{l3_vpn_bgp_remote_as}}\nneighbor {{l3_vpn_bgp_neighbor_address}} activate\nexit\nexit\nexit\n\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show L3VPN BGP network instance",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"var mystring = [];",
+													"mystring.push('\"name\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + '\"');",
+													"",
+													"var str = postman.getEnvironmentVariable(\"l3_vpn_bgp_as_number\");",
+													"var pos = str.lastIndexOf(\".\")",
+													"var res = str.substring(0, pos);",
+													"var num = res * 65536 + Number(str.substring(pos + 1,str.length));",
+													"mystring.push('\"as\":' + num.toString());",
+													"",
+													"//in SETUP Configure L3VPN BGP I configure router-id for global BGP",
+													"//this GET reader is for VRF - this is reason why it did not get into reader output",
+													"//mystring.push('\"router-id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_router_id\") + '\"');",
+													"",
+													"mystring.push('\"neighbor-address\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_neighbor_address\") + '\"');",
+													"",
+													"var str = postman.getEnvironmentVariable(\"l3_vpn_bgp_remote_as\");",
+													"var pos = str.lastIndexOf(\".\")",
+													"var res = str.substring(0, pos);",
+													"var num = res * 65536 + Number(str.substring(pos + 1,str.length));",
+													"mystring.push('\"peer-as\":' + num.toString());",
+													"",
+													"mystring.push('\"prefix\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix\") + '/' + postman.getEnvironmentVariable(\"l3_vpn_bgp_network_prefix_mask2\") + '\"');",
+													"mystring.push('\"id\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_interface_id\") + '\"');",
+													"mystring.push('\"route-distinguisher\":\"' + postman.getEnvironmentVariable(\"l3_vpn_bgp_rd\") + '\"');",
+													"",
+													"mystring.forEach(function(entry) {",
+													"    tests[\"Body matches string \" + entry] = responseBody.has(entry);",
+													"});",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show L3VPN BGP defined sets",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"",
+													"",
+													"/*-- THIS DOES NOR WORK IN NEWMAN",
+													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")) === true;",
+													"",
+													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")) === true;",
+													"",
+													"tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"].includes(postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")) === true;",
+													"*/",
+													"",
+													"if (jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\") {",
+													"    ",
+													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
+													"    ",
+													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
+													"",
+													"",
+													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"];",
+													"    console.log(pole);",
+													"    for (var i = 0; i < pole.length; i++) {",
+													"        switch(pole[i]) {",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = true;",
+													"                break;",
+													"            default:",
+													"                test[\"Found not expected value \" + pole[i]] = false;",
+													"        } ",
+													"    }",
+													"",
+													"",
+													"    /*",
+													"    // this is not good because it relies on ordered input in environmental variabes....",
+													"    ",
+													"    pole.sort();",
+													"    console.log(pole);",
+													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = pole[0] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\");",
+													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = pole[1] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\");",
+													"    tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = pole[2] === postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\");",
+													"    */",
+													"",
+													"",
+													"} else {",
+													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
+													"    ",
+													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-import-set\";",
+													"    ",
+													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-member\"];",
+													"    console.log(pole);",
+													"    for (var i = 0; i < pole.length; i++) {",
+													"        switch(pole[i]) {",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_1\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_2\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\"):",
+													"                tests[\"Route target import set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_imp_3\")] = true;",
+													"                break;",
+													"            default:",
+													"                test[\"Found not expected value \" + pole[i]] = false;",
+													"        } ",
+													"    }",
+													"    ",
+													"}",
+													"",
+													"",
+													"if (jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\") {",
+													"    ",
+													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
+													"    ",
+													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 0\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
+													"",
+													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][0][\"config\"][\"ext-community-member\"];",
+													"    console.log(pole);",
+													"    for (var i = 0; i < pole.length; i++) {",
+													"        switch(pole[i]) {",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\")] = true;",
+													"                break;",
+													"            default:",
+													"                test[\"Found not expected value \" + pole[i]] = false;",
+													"        } ",
+													"    }",
+													"} else {",
+													"    tests[\"1.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
+													"    ",
+													"    tests[\"2.\" + postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\" + \" in 1\"] = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-set-name\"] === postman.getEnvironmentVariable(\"l3_vpn_bgp_vrf\") + \"-route-target-export-set\";",
+													"    ",
+													"    var pole = jsonData[\"defined-sets\"][\"frinx-openconfig-bgp-policy:bgp-defined-sets\"][\"ext-community-sets\"][\"ext-community-set\"][1][\"config\"][\"ext-community-member\"];",
+													"    console.log(pole);",
+													"    for (var i = 0; i < pole.length; i++) {",
+													"        switch(pole[i]) {",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_1\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_2\")] = true;",
+													"                break;",
+													"            case postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\"):",
+													"                tests[\"Route target export set contains \" + postman.getEnvironmentVariable(\"l3_vpn_bgp_rt_exp_3\")] = true;",
+													"                break;",
+													"            default:",
+													"                test[\"Found not expected value \" + pole[i]] = false;",
+													"        } ",
+													"    }",
+													"    ",
+													"}",
+													"",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previous L3VPN BGP",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"tests[\"Success\"] = responseCode.code === 200;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno router bgp {{l3_vpn_bgp_as_number}}\ninterface {{l3_vpn_bgp_interface_id}}\nno ip vrf forwarding {{l3_vpn_bgp_vrf}}\nexit\nno ip vrf {{l3_vpn_bgp_vrf}}\nexit\n\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted L3VPN BGP (network instance)",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404 for non network instance.\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{l3_vpn_bgp_vrf}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted L3VPN BGP (defined sets)",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-routing-policy:routing-policy/defined-sets"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
 						}
 					],
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "Classic L2VPN connection",
+					"name": "Classic L2VPN connection CRUD",
 					"item": [
+						{
+							"name": "Classic L2VPN connection CRUD Setup",
+							"item": [
+								{
+									"name": "Delete previous Subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete previous l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted l2vpn",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Classic L2VPN connection CRUD Teardown",
+							"item": [
+								{
+									"name": "Delete Subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
 						{
 							"name": "Classic L2VPN connection READERS",
 							"item": [
@@ -15085,204 +15601,6 @@
 										}
 									],
 									"_postman_isSubFolder": true
-								}
-							],
-							"_postman_isSubFolder": true
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "Classic L2VPN connection CRUD",
-					"item": [
-						{
-							"name": "Classic L2VPN connection CRUD Setup",
-							"item": [
-								{
-									"name": "Delete previous Subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns data instead of returning 404\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": 44,\n          \"config\" : {\n            \"index\": 44,\n            \"enabled\": \"true\"\n          },\n          \"openconfig-vlan:vlan\" : {\n            \"config\" : {\n              \"vlan-id\" : 44\n            }\n          }\n        }\n    ]\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
-									},
-									"response": []
-								},
-								{
-									"name": "Delete previous l2vpn",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Successful DELETE request\"] = responseCode.code === 200"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
-									},
-									"response": []
-								},
-								{
-									"name": "show deleted l2vpn",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns data instead of returning 404\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "\t{\n\t    \"openconfig-network-instance:network-instance\": [\n\t      {\n\t        \"name\": \"conn1233\",\n\t        \"config\": {\n\t          \"name\": \"conn1233\",\n\t          \"type\": \"openconfig-network-instance-types:L2P2P\"\n\t        },\n\t        \"connection-points\": {\n\t          \"connection-point\": [\n\t            {\n\t              \"connection-point-id\": \"1\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"1\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:LOCAL\"\n\t                    },\n\t                    \"local\": {\n\t                      \"config\": {\n\t                        \"interface\": \"GigabitEthernet2/0\"\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            },\n\t            {\n\t              \"connection-point-id\": \"2\",\n\t              \"config\": {\n\t                \"connection-point-id\": \"2\"\n\t              },\n\t              \"endpoints\": {\n\t                \"endpoint\": [\n\t                  {\n\t                    \"endpoint-id\": \"default\",\n\t                    \"config\": {\n\t                      \"endpoint-id\": \"default\",\n\t                      \"precedence\": 0,\n\t                      \"type\": \"openconfig-network-instance-types:REMOTE\"\n\t                    },\n\t                    \"remote\": {\n\t                      \"config\": {\n\t                        \"remote-system\": \"1.1.1.1\",\n\t                        \"virtual-circuit-identifier\": 123\n\t                      }\n\t                    }\n\t                  }\n\t                ]\n\t              }\n\t            }\n\t          ]\n\t        }\n\t      }\n\t    ]\n\t  \n\t}\n"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{vpls_ni_name}}"
-									},
-									"response": []
-								}
-							],
-							"_postman_isSubFolder": true
-						},
-						{
-							"name": "Classic L2VPN connection CRUD Teardown",
-							"item": [
-								{
-									"name": "Delete Subinterface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.warn(\"// FIXME this returns 500 instead of returning 404 for non existing IP\")",
-													"",
-													"// console.log(\"Response: \" + responseBody)",
-													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "DELETE",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{vpls_show_interface2url}}/subinterfaces/subinterface/{{vpls_show_sub_interface_index}}"
-									},
-									"response": []
 								}
 							],
 							"_postman_isSubFolder": true
@@ -20888,42 +21206,6 @@
 								{
 									"name": "ETH IFC CRUD stats-container",
 									"item": [
-										{
-											"name": "Create frinx-stats",
-											"event": [
-												{
-													"listen": "test",
-													"script": {
-														"type": "text/javascript",
-														"exec": [
-															"console.log(\"Response: \" + responseBody)",
-															"pm.test(\"Success\", function () {",
-															"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-															"});"
-														]
-													}
-												}
-											],
-											"request": {
-												"method": "PUT",
-												"header": [
-													{
-														"key": "Authorization",
-														"value": "Basic YWRtaW46YWRtaW4="
-													},
-													{
-														"key": "Content-Type",
-														"value": "application/json"
-													}
-												],
-												"body": {
-													"mode": "raw",
-													"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"{{eth_intf-id}}\",\n            \"config\": {\n                \"type\": \"iana-if-type:ethernetCsmacd\",\n                \"name\": \"{{eth_intf-id}}\",\n                \"enabled\": true\n            },\n            \"subinterfaces\": {\n                \"subinterface\": [\n                    {\n                        \"index\": 0,\n                        \"config\": {\n                            \"index\": 0\n                        }\n                    }\n                ]\n            },\n            \"frinx-cisco-if-extension:statistics\": {\n                \"config\": {\n                    \"load-interval\": {{eth_load_interval}}\n                }\n            }\n        }\n    ]\n}"
-												},
-												"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
-											},
-											"response": []
-										},
 										{
 											"name": "show created frinx-stats",
 											"event": [
@@ -27212,7 +27494,7 @@
 											"mode": "raw",
 											"raw": "{\n    \"subinterface\": \n        {\n            \"index\": {{test_sub_interface_index}},\n            \"config\": {\n                \"index\": {{test_sub_interface_index}},\n                \"description\": \"testing subinterface\",\n                \"enabled\": true\n            }\n           \n        }\n    \n}"
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
 									},
 									"response": []
 								},
@@ -27248,7 +27530,7 @@
 											"mode": "raw",
 											"raw": "{\n    \"subinterface\": [\n        {\n            \"index\": {{test_sub_interface_index}},\n            \"config\": {\n                \"index\": {{test_sub_interface_index}},\n                \"enabled\": true,\n                \"description\": \"updated subinterface description\"\n            },\n            \n            \"frinx-openconfig-vlan:vlan\": {\n                \"config\": {\n                \t\"vlan-id\": {{vlan_id}}\n                }\n            }\n\n        }\n    ]\n}\n"
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
 									},
 									"response": []
 								},
@@ -27317,7 +27599,7 @@
 											"mode": "raw",
 											"raw": ""
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
 									},
 									"response": []
 								},
@@ -27352,7 +27634,47 @@
 											"mode": "raw",
 											"raw": ""
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted subinterface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.warn(\"// FIXME this returns data instead of returning 404\")",
+													"",
+													"// console.log(\"Response: \" + responseBody)",
+													"// tests[\"Status code is 404\"] = responseCode.code === 404;"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{test_sub_interface_url}}/subinterfaces/subinterface/{{test_sub_interface_index}}"
 									},
 									"response": []
 								}
@@ -34212,7 +34534,7 @@
 									},
 									"response": [
 										{
-											"id": "319986e1-0d24-4a50-a2c7-2c826e44c697",
+											"id": "603e7e99-d81d-4e0f-be31-12b426e74d5c",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -34695,7 +35017,7 @@
 									},
 									"response": [
 										{
-											"id": "4d53ac18-545a-49d1-bce8-d1008978bbd2",
+											"id": "c206eb8d-12f8-4664-9e06-13acdac5e766",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -35152,7 +35474,7 @@
 									},
 									"response": [
 										{
-											"id": "25611385-0d21-4dd6-ae4c-109addcc7004",
+											"id": "9e0119b7-32c4-49fe-ab2f-0a1cb9c6e404",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",
@@ -35660,7 +35982,7 @@
 									},
 									"response": [
 										{
-											"id": "731557df-a7b7-4bc2-8433-df37966723d5",
+											"id": "d542393f-0020-42be-b861-dcc3c2ffa774",
 											"name": "show L3VPN BGP defined-sets",
 											"originalRequest": {
 												"method": "GET",

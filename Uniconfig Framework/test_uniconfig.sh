@@ -11,7 +11,7 @@ fi
 ### Test for IOS XR router
 #XR_devices=("xrv5_env.json" "junos173virt_env.json")
 XR_devices=()
-#XR5_folders=("OSPF CRUD" "BGP CRUD" "LACP CRUD" "MPLS-TUNNEL-FULL CRUD" "MPLS-TUNNEL CRUD Config" "MPLS-TUNNEL CRUD Destination" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD Damping" "LAG CRUD Statistics" "LAG CRUD AggegationNoBfd" "LAG-FULL CRUD" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD CiscoExt" "SNMP Gig" "SNMP Lag" "SNMP Non" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface" "IFC CRUD Damping" "IFC CRUD Ethernet" "IFC CRUD  Statistics" "IFC-FULL CRUD" "SYSLOG CRUD")
+#XR5_folders=("OSPF CRUD" "BGP CRUD" "LACP CRUD" "MPLS-TUNNEL-FULL CRUD" "MPLS-TUNNEL CRUD Config" "MPLS-TUNNEL CRUD Destination" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD IPv6" "LAG CRUD Damping" "LAG CRUD Statistics" "LAG CRUD AggegationNoBfd" "LAG-FULL CRUD" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD CiscoExt" "SNMP Gig" "SNMP Lag" "SNMP Non" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface-IPv4" "IFC CRUD Subinterface-IPv6" "IFC CRUD Damping" "IFC CRUD Ethernet" "IFC CRUD Statistics" "IFC-FULL CRUD" "SYSLOG CRUD")
 XR5_folders=()
 #JUNOS_folders=("MPLS-TUNNEL-FULL CRUD" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD AggegationBfdLinkSpeed" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD JunosExt" "SNMP Gig" "IFC-FULL CRUD" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface" "IFC CRUD Damping" "IFC CRUD Ethernet" "BGP CRUD")
 JUNOS_folders=()

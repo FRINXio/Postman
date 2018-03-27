@@ -97,7 +97,7 @@ function newman_stuff {
   for folder in "${list_of_tests[@]}"
   do
      rfolder="$device_folder_string $folder READERS"
-     newman run $collection $formatter_bail -e $device -n 1 --folder "$rfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
+     unbuffer newman run $collection $formatter_bail -e $device -n 1 --folder "$rfolder" | tee folder_presence_check; if [ "${PIPESTATUS[0]}" != "0" ]; then test_failure_info "$device_id_string" "r"; test_pass "1" "r"; else test_pass "0" "r"; fi
      coll_len=`echo $folder | wc -w`
      coll_arr=($folder)
      ll=`if [ $coll_len -gt 3 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
@@ -355,6 +355,9 @@ with open(sys.argv[1]) as f:
 
 
 ## this is to select unique set of devices and of tests to the list structures and to alphabetically sort them
+## kw1  ->  testy   : all tests are going to be written to list structure "testy"
+## kw2_ ->  devices : all devices are going to be written to list structure "devices"
+## moznost vynechat tie testy ktore nechcem do tabulky zobrazit
 testy = []
 devices = []
 for kw1 in matrix_dict:
@@ -390,7 +393,7 @@ for riadok in testy:
             elif matrix_dict[riadok][stlpec + ' 0:r'] == '0':
                 tabulka = tabulka + '<td><span style="color:green;">' + 'pass' + '</span><br/>'
             elif matrix_dict[riadok][stlpec + ' 0:r'] == '9':
-                tabulka = tabulka + '<td><span>' + 'null' + '</span><br/>'
+                tabulka = tabulka + '<td><span>' + 'missing' + '</span><br/>'
             else:
                 tabulka = tabulka + '<td><span>' + '????' + '</span><br/>'
         except KeyError:
@@ -403,7 +406,7 @@ for riadok in testy:
             elif matrix_dict[riadok][stlpec + ' 2:m'] == '0':
                 tabulka = tabulka + '<span style="color:green;">' + 'pass' + '</span></td>'
             elif matrix_dict[riadok][stlpec + ' 2:m'] == '9':
-                tabulka = tabulka + '<span>' + 'null' + '</span></td>'
+                tabulka = tabulka + '<span>' + 'missing' + '</span></td>'
             else:
                 tabulka = tabulka + '<span>' + '????' + '</span></td>'
         except KeyError:
@@ -412,9 +415,12 @@ for riadok in testy:
     tabulka = tabulka + '</tr>'
 
 tabulka = tabulka + '</table>'
-#tabulka = tabulka + '<hr/>'
+tabulka = tabulka + '<hr/>'
 #tabulka = tabulka + 'Explanatory notes:<br/>'
 #tabulka = tabulka + '0:r - readers test / 1:s - setup test / 2:m - main test / 3:t - teardown test'
+tabulka = tabulka + 'Legend:<br/>'
+tabulka = tabulka + 'The value on the first line in a cell is a result of the reader test.<br/>'
+tabulka = tabulka + 'The value below on the second line in a cell is a result of the CRUD test.<br/>'
 
 ## this is to store TABLE to HTML file
 f = open( 'tbl.html', 'w' )

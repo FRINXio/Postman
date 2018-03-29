@@ -136,9 +136,6 @@ XR_folders=("Interface CRUD" "subinterface common" "subinterface common CRUD bas
 XR5_folders=("subinterface common" "subinterface common CRUD global" "OSPF CRUD" "RSVP CRUD" "Mpls-te CRUD" "Mpls-tunnel CRUD" "SYSLOG CRUD" "LACP CRUD" "LACP IFC CRUD interface" "LACP IFC CRUD element" "IFC ACL CRUD basic" "IFC ACL CRUD containers" "PF IFC CRUD" "ETH IFC" "ETH IFC CRUD basic" "ETH IFC CRUD subinterface-part" "ETH IFC CRUD holdtime-part" "ETH IFC CRUD damping-part" "ETH IFC CRUD stats-part" "ETH IFC CRUD eth-part" "ETH IFC CRUD subinterface-container" "ETH IFC CRUD holdtime-container" "ETH IFC CRUD damping-container" "ETH IFC CRUD stats-container" "ETH IFC CRUD eth-container" "LAG without-BFD" "LAG without BFD basic" "LAG without BFD aggregation" "LAG without BFD statistics" "LAG without BFD damping" "LAG without BFD ipv4" "LAG without BFD ipv6" "SNMP CRUD GigabitEthernet" "SNMP server CRUD GigabitEthernet" "SNMP CRUD LAG" "SNMP server CRUD LAG" "SNMP server CRUD Negative" "BGP CRUD" "BGP instance CRUD basic")
 #ASR_folders=(need fix: "General information","5 LAG without BFD"-MU-212 "5 LAG with BFD"-MU-213, "SNMP"-MU-219 "SYSLOG CRUD"-MU-220  )
 ASR_folders=("Platform unified" "Interface CRUD" "subinterface common" "subinterface common CRUD basic" "static route" "CDP" "LLDP" "ospf" "L2VPN connection" "L2VPN connection CRUD locifc-remote" "L2VPN connection CRUD locsub-remote" "BGP summary" "L3VPN OSPF CRUD" "BGP instance CRUD global" "L3VPN BGP CRUD global" "L3VPN BGP CRUD Negative")
-XR5_folders_tested_on_ASR=("ETH IFC" "ETH IFC CRUD flows" "ETH IFC CRUD acls" "LAG with-BFD" "LAG with BFD flows CRUD" "LAG with BFD acls CRUD")
-
-#
 
 ### Test for IOS
 IOS_devices=("classic_152_env.json" "classic_1553_env.json" "xe_env.json" "xe4_env.json" "cat6500_env.json")
@@ -189,15 +186,7 @@ do
         list_of_tests=("${ASR_folders[@]}") # copying of array
         unmount_folder="XR Unmount"
         ;;
-     "asr_env.json with XR5 folders" )
-	device="asr_env.json" 
-        mount_folder="XR5 Mount"
-        device_id_string="(ASR with XR5 folders)" # present in texts
-        device_folder_string="XR5" # present in rfolder/sfolder/tfolder
-        list_of_tests=("${XR5_folders_tested_on_ASR[@]}") # copying of array
-        unmount_folder="XR5 Unmount"
-         ;;
-   ####################################
+    ####################################
     "classic_152_env.json" )
         mount_folder="Classic Mount"
         device_id_string="" # present in texts

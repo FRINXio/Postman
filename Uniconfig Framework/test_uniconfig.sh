@@ -17,8 +17,10 @@ XR5_folders=()
 JUNOS_folders=()
 
 ### Special case - some test written for XR5 do not run on virtual devices - we test them on ASR XR6 device
-XR_devices=("asr_env.json")
-XR5_folders=("IFC CRUD Flows" "IFC CRUD Acls" "LAG CRUD Flows" "LAG CRUD Acls")
+#XR_devices=("asr_env.json")
+XR_devices=()
+#XR5_folders=("IFC CRUD Flows" "IFC CRUD Acls" "LAG CRUD Flows" "LAG CRUD Acls")
+XR5_folders=()
 
 
 for device in ${XR_devices[@]}
@@ -52,7 +54,7 @@ do
 
          if [ "$device" == "asr_env.json" ]
          then
-             folder="XR5 Mount"
+             folder="XR6 Mount"
              #echo "$folder"
              newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
              for folder in "${XR5_folders[@]}"
@@ -60,18 +62,18 @@ do
                 coll_len=`echo $folder | wc -w`
                 coll_arr=($folder)
                 ll=`if [ $coll_len -gt 2 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
-                sfolder="XR5 ${coll_arr[@]:0:${ll}} Setup"
+                sfolder="XR6 ${coll_arr[@]:0:${ll}} Setup"
                 #echo "$sfolder"
-                newman run $collection -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $sfolder FAILED" >> $file; fi
+                newman run $collection -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR6) $sfolder FAILED" >> $file; fi
                 #echo "$folder"
-                newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $folder FAILED" >> $file; fi
+                newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR6) $folder FAILED" >> $file; fi
                 
-                tfolder="XR5 ${coll_arr[@]:0:${ll}} Teardown"
+                tfolder="XR6 ${coll_arr[@]:0:${ll}} Teardown"
                 #echo "$tfolder"
-                newman run $collection -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $tfolder FAILED" >> $file; fi
+                newman run $collection -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR6) $tfolder FAILED" >> $file; fi
                 sleep 2
              done
-             folder="XR5 Unmount"
+             folder="XR6 Unmount"
              #echo "$folder"
              newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
          fi

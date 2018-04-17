@@ -8,16 +8,16 @@
 	},
 	"item": [
 		{
-			"name": "ASR",
+			"name": "IOS XR6",
 			"item": [
 				{
-					"name": "ASR IFC CRUD",
+					"name": "XR6 IFC CRUD",
 					"item": [
 						{
-							"name": "ASR IFC CRUD Setup",
+							"name": "XR6 IFC CRUD Setup",
 							"item": [
 								{
-									"name": "Create flow prerequisites",
+									"name": "create flow prerequisites",
 									"event": [
 										{
 											"listen": "test",
@@ -49,14 +49,14 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"ipv6 access-list {{flow_prereq_ipv6_acl1}}\n10 deny ipv6 any any\nexit\nipv6 access-list {{flow_prereq_ipv6_acl2}}\n20 deny ipv6 any any\nexit\nipv4 access-list {{flow_prereq_ipv4_acl1}}\n10 deny ipv4 any any\nexit\nipv4 access-list {{flow_prereq_ipv4_acl2}}\n20 deny ipv4 any any\nexit\nflow monitor-map {{flow_prereq_ipv6_monitor1}}\nrecord ipv6\nexit\nflow monitor-map {{flow_prereq_ipv6_monitor2}}\nrecord ipv6\nexit\nflow monitor-map {{flow_prereq_ipv4_monitor1}}\nrecord ipv4\nexit\nflow monitor-map {{flow_prereq_ipv4_monitor2}}\nrecord ipv4 peer-as\nexit\nsampler-map {{flow_prereq_sampler1}}\nrandom 1 out-of 10000\nexit\nsampler-map {{flow_prereq_sampler2}}\nrandom 1 out-of 10\nexit\nsampler-map {{flow_prereq_sampler1}}1\nrandom 1 out-of 10000\nexit\nsampler-map {{flow_prereq_sampler2}}2\nrandom 1 out-of 10\nexit\ncommit\n\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"ipv6 access-list {{flow_prereq_ipv6_acl1}}\n10 deny ipv6 any any\nexit\nipv6 access-list {{flow_prereq_ipv6_acl2}}\n20 deny ipv6 any any\nexit\nipv4 access-list {{flow_prereq_ipv4_acl1}}\n10 deny ipv4 any any\nexit\nipv4 access-list {{flow_prereq_ipv4_acl2}}\n20 deny ipv4 any any\nexit\nflow monitor-map {{flow_prereq_ipv6_monitor1}}\nrecord ipv6\nexit\nflow monitor-map {{flow_prereq_ipv6_monitor2}}\nrecord ipv6\nexit\nflow monitor-map {{flow_prereq_ipv4_monitor1}}\nrecord ipv4\nexit\nflow monitor-map {{flow_prereq_ipv4_monitor2}}\nrecord ipv4 peer-as\nexit\nsampler-map {{flow_prereq_sampler1}}\nrandom 1 out-of 10000\nexit\nsampler-map {{flow_prereq_sampler2}}\nrandom 1 out-of 10\nexit\nsampler-map {{flow_prereq_sampler1}}1\nrandom 1 out-of 10000\nexit\nsampler-map {{flow_prereq_sampler2}}2\nrandom 1 out-of 10\nexit\ncommit\"\n  }\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
 									},
 									"response": []
 								},
 								{
-									"name": "Configure ETH IFC",
+									"name": "configure ETH IFC",
 									"event": [
 										{
 											"listen": "test",
@@ -147,44 +147,7 @@
 									"response": []
 								},
 								{
-									"name": "create empty interface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"pm.test(\"Status code is 200\", function () {",
-													"  pm.response.to.have.status(200);",
-													"});"
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "PUT",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"{{eth_intf-id}}\",\n            \"config\": {\n                \"type\": \"iana-if-type:ethernetCsmacd\",\n                \"name\": \"{{eth_intf-id}}\",\n    \t        \"enabled\": {{eth_enabled_true}}\n            }\n        }\n    ]\n}"
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
-									},
-									"response": []
-								},
-								{
-									"name": "interface commit",
+									"name": "bgp replace-config-with-operational",
 									"event": [
 										{
 											"listen": "test",
@@ -196,14 +159,8 @@
 													"pm.test(\"Status code is 200\", function () {",
 													"  pm.response.to.have.status(200);",
 													"});",
-													"pm.test(\"Validate overall-configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-													"});",
-													"pm.test(\"Validate configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-													"});",
-													"pm.test(\"Validate nodeId\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"pm.test(\"Validate result\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 													"});",
 													""
 												]
@@ -230,86 +187,7 @@
 											"mode": "raw",
 											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
-									},
-									"response": []
-								},
-								{
-									"name": "show cleaned empty interface",
-									"event": [
-										{
-											"listen": "test",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Response: \" + responseBody)",
-													"",
-													"pm.test(\"Status code is 200\", function () {",
-													"  pm.response.to.have.status(200);",
-													"});",
-													"pm.test(\"Validate enabled\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"enabled\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"eth_enabled_true\")));",
-													"});",
-													"/* -- see MCCAS-40",
-													"pm.test(\"Validate description\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"]).to.not.have.property(\"description\")",
-													"});",
-													"*/",
-													"pm.test(\"Validate name\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(postman.getEnvironmentVariable(\"eth_intf-id\"));",
-													"});",
-													"pm.test(\"Validate mtu\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"]).to.not.have.property(\"mtu\")",
-													"});",
-													"pm.test(\"Validate name\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(postman.getEnvironmentVariable(\"eth_intf-id\"));",
-													"});",
-													"",
-													"pm.test(\"Subinterface not present\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0]).to.not.have.property(\"subinterfaces\");",
-													"});",
-													"",
-													"pm.test(\"Statistics not present\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0]).to.not.have.property(\"frinx-cisco-if-extension:statistics\");",
-													"});",
-													"",
-													"pm.test(\"Ethernet not present\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0]).to.not.have.property(\"frinx-openconfig-if-ethernet:ethernet\");",
-													"});",
-													"",
-													"pm.test(\"Damping not present\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0]).to.not.have.property(\"frinx-damping:damping\");",
-													"});",
-													"",
-													"pm.test(\"Validate hold-time presence\", function() {",
-													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0]).to.not.have.property(\"hold-time\");",
-													"});",
-													""
-												]
-											}
-										}
-									],
-									"request": {
-										"method": "GET",
-										"header": [
-											{
-												"key": "Authorization",
-												"value": "Basic YWRtaW46YWRtaW4="
-											},
-											{
-												"key": "Accept",
-												"value": "application/json"
-											},
-											{
-												"key": "Content-Type",
-												"value": "application/json"
-											}
-										],
-										"body": {
-											"mode": "raw",
-											"raw": ""
-										},
-										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{eth_url_intf-id}}"
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational"
 									},
 									"response": []
 								}
@@ -317,7 +195,7 @@
 							"_postman_isSubFolder": true
 						},
 						{
-							"name": "ASR IFC CRUD Teardown",
+							"name": "XR6 IFC CRUD Teardown",
 							"item": [
 								{
 									"name": "make interface empty",
@@ -485,7 +363,7 @@
 									"response": []
 								},
 								{
-									"name": "Delete flow prerequisites",
+									"name": "delete flow prerequisites",
 									"event": [
 										{
 											"listen": "test",
@@ -579,13 +457,13 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "ASR LAG CRUD",
+					"name": "XR6 LAG CRUD",
 					"item": [
 						{
-							"name": "XR5 LAG CRUD Setup",
+							"name": "XR6 LAG CRUD Setup",
 							"item": [
 								{
-									"name": "Create flow prerequisites",
+									"name": "create flow prerequisites",
 									"event": [
 										{
 											"listen": "test",
@@ -669,6 +547,51 @@
 											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network"
+									},
+									"response": []
+								},
+								{
+									"name": "bgp replace-config-with-operational",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate result\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational"
 									},
 									"response": []
 								},
@@ -842,7 +765,7 @@
 							"_postman_isSubFolder": true
 						},
 						{
-							"name": "XR5 LAG CRUD Teardown",
+							"name": "XR6 LAG CRUD Teardown",
 							"item": [
 								{
 									"name": "delete lag interface",
@@ -1019,7 +942,7 @@
 									"response": []
 								},
 								{
-									"name": "Delete flow prerequisites",
+									"name": "delete flow prerequisites",
 									"event": [
 										{
 											"listen": "test",
@@ -1108,6 +1031,217 @@
 								}
 							],
 							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "XR6 Mount",
+					"item": [
+						{
+							"name": "Mount IOS XR cli",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Successful PUT request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"node-extension:reconcile\" : false,\n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Check status connected CLI",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('Check status connected CLI');",
+											"    }",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "XR6 Unmount",
+					"item": [
+						{
+							"name": "DELETE Mount IOS XR cli",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Successful PUT request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Check unmounted CLI",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"No data expected\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
+							},
+							"response": []
 						}
 					],
 					"_postman_isSubFolder": true
@@ -4910,9 +5044,9 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_out-acl-name1}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n            \"config\": {\n            \t\"name\": \"{{iacl_out-acl-name1}}\",\n            \t\"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n            }\n        }\n    ]\n}"
+											"raw": "{\n    \"frinx-openconfig-acl:acl-set\": [\n        {\n            \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n            \"name\": \"{{iacl_out-acl-name1}}\",\n            \"config\": {\n                \"name\": \"{{iacl_out-acl-name1}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 5,\n                        \"ipv6\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_PROTOCOL\",\n                                \"source-address\": \"::/0\",\n                                \"destination-address\": \"::/0\"\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 5\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
 										},
-										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_out-acl-name1}}/frinx-openconfig-acl:ACL_IPV4"
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_out-acl-name1}}/frinx-openconfig-acl:ACL_IPV6"
 									},
 									"response": []
 								},
@@ -4986,16 +5120,32 @@
 													"    pm.test('dryrun - contains ipv4 access-list outacl2', function () {",
 													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"ipv4 access-list outacl2\");",
 													"    });",
+													"    pm.test('dryrun - contains ipv4 access-list outacl2', function () {",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"ipv6 access-list outacl1\");",
+													"    });",
 													"    pm.test('dryrun - contains 10 deny ipv4 0.0.0.0/0 0.0.0.0/0', function () {",
 													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"10 deny ipv4 0.0.0.0/0 0.0.0.0/0\");",
 													"    });",
-													"        pm.test('dryrun - contains 3 permit tcp 1.1.1.1/32 eq 1024 2.2.2.2/32 eq 0', function () {",
+													"    pm.test('dryrun - contains 3 permit tcp 1.1.1.1/32 eq 1024 2.2.2.2/32 eq 0', function () {",
 													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"3 permit tcp 1.1.1.1/32 eq 1024 2.2.2.2/32 eq 0\");",
 													"    });",
-													"        pm.test('dryrun - contains 2 permit ipv4 4.4.4.4/32 0.0.0.0/0', function () {",
+													"    pm.test('dryrun - contains 2 permit ipv4 4.4.4.4/32 0.0.0.0/0', function () {",
 													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"2 permit ipv4 4.4.4.4/32 0.0.0.0/0\");",
 													"    });",
+													"    pm.test('dryrun - contains 2 permit ipv4 4.4.4.4/32 0.0.0.0/0', function () {",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"5 deny ipv6 ::/0 ::/0\");",
+													"    });",
 													"}"
+												]
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Here we wait 10 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+													"setTimeout(function(){}, 10000);"
 												]
 											}
 										}
@@ -13900,7 +14050,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC flow",
+									"name": "show updated ETH IFC flow (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -14246,7 +14396,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC flow",
+									"name": "show updated ETH IFC flow (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -14419,7 +14569,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC flow",
+									"name": "show updated ETH IFC flow (deleted ipv6 egress flow)",
 									"event": [
 										{
 											"listen": "test",
@@ -14598,7 +14748,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC flow",
+									"name": "show updated ETH IFC flow (deleted ingress)",
 									"event": [
 										{
 											"listen": "test",
@@ -14763,7 +14913,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC flow",
+									"name": "show updated ETH IFC flow (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -14845,7 +14995,7 @@
 									"response": []
 								},
 								{
-									"name": "update ETH IFC flow",
+									"name": "delete ETH IFC netflow",
 									"event": [
 										{
 											"listen": "test",
@@ -14936,7 +15086,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC flow",
+									"name": "show deleted ETH IFC netflow",
 									"event": [
 										{
 											"listen": "test",
@@ -15024,7 +15174,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC flow",
+									"name": "delete ETH IFC flow",
 									"event": [
 										{
 											"listen": "test",
@@ -15368,7 +15518,7 @@
 									"response": []
 								},
 								{
-									"name": "update ETH IFC acl",
+									"name": "delete created ETH IFC acl",
 									"event": [
 										{
 											"listen": "test",
@@ -15379,6 +15529,97 @@
 													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/interfaces/interface/{{eth_url_intf-id}}"
+									},
+									"response": []
+								},
+								{
+									"name": "delete commit",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate overall-configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate nodeId\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+									},
+									"response": []
+								},
+								{
+									"name": "update ETH IFC acl",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
 													"});"
 												]
 											}
@@ -15459,7 +15700,7 @@
 									"response": []
 								},
 								{
-									"name": "show created ETH IFC acl",
+									"name": "show updated ETH IFC acl",
 									"event": [
 										{
 											"listen": "test",
@@ -15537,7 +15778,7 @@
 									"response": []
 								},
 								{
-									"name": "update ETH IFC acl (to original)",
+									"name": "delete updated ETH IFC acl",
 									"event": [
 										{
 											"listen": "test",
@@ -15548,6 +15789,97 @@
 													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/interfaces/interface/{{eth_url_intf-id}}"
+									},
+									"response": []
+								},
+								{
+									"name": "delete commit",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate overall-configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate nodeId\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+									},
+									"response": []
+								},
+								{
+									"name": "update ETH IFC acl (to original)",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
 													"});"
 												]
 											}
@@ -15628,7 +15960,7 @@
 									"response": []
 								},
 								{
-									"name": "show created ETH IFC acl copy",
+									"name": "show updated ETH IFC acl (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -15797,7 +16129,7 @@
 									"response": []
 								},
 								{
-									"name": "show created ETH IFC acl copy copy",
+									"name": "show updated ETH IFC acl",
 									"event": [
 										{
 											"listen": "test",
@@ -15966,7 +16298,7 @@
 									"response": []
 								},
 								{
-									"name": "show created ETH IFC acl copy",
+									"name": "show updated ETH IFC acl (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -16135,7 +16467,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC acl",
+									"name": "show updated ETH IFC acl (deleted ipv6 egress acl)",
 									"event": [
 										{
 											"listen": "test",
@@ -16311,7 +16643,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC acl",
+									"name": "show updated ETH IFC acl (deleted ingress)",
 									"event": [
 										{
 											"listen": "test",
@@ -16473,7 +16805,7 @@
 									"response": []
 								},
 								{
-									"name": "show created ETH IFC acl copy",
+									"name": "show updated ETH IFC acl (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -16551,7 +16883,7 @@
 									"response": []
 								},
 								{
-									"name": "update ETH IFC acl",
+									"name": "delete ETH IFC acl",
 									"event": [
 										{
 											"listen": "test",
@@ -16727,7 +17059,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated ETH IFC acl",
+									"name": "delete updated ETH IFC acl",
 									"event": [
 										{
 											"listen": "test",
@@ -19728,7 +20060,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"interface\": [\n        {\n            \"id\": \"{{iacl_intf-id}}\",\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name1}}\",\n                        \"type\": \"ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name1}}\",\n                            \"type\": \"ACL_IPV4\"\n                        }\n                    }\n                ]\n            },\n            \"egress-acl-sets\": {\n                \"egress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_out-acl-name1}}\",\n                        \"type\": \"ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_out-acl-name1}}\",\n                            \"type\": \"ACL_IPV4\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+											"raw": "{\n    \"interface\": [\n        {\n            \"id\": \"{{iacl_intf-id}}\",\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name1}}\",\n                        \"type\": \"ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name1}}\",\n                            \"type\": \"ACL_IPV4\"\n                        }\n                    }\n                ]\n            },\n            \"egress-acl-sets\": {\n                \"egress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_out-acl-name1}}\",\n                        \"type\": \"ACL_IPV6\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_out-acl-name1}}\",\n                            \"type\": \"ACL_IPV6\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
 										},
 										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/interfaces/interface/{{iacl_url_intf-id}}"
 									},
@@ -19765,8 +20097,8 @@
 													"    pm.test('dryrun - contains ipv4 access-group inacl1 ingress', function () {",
 													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"ipv4 access-group inacl1 ingress\");",
 													"    });",
-													"    pm.test('dryrun - contains ipv4 access-group outacl1 egress', function () {",
-													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"ipv4 access-group outacl1 egress\");",
+													"    pm.test('dryrun - contains ipv6 access-group outacl1 egress', function () {",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"ipv6 access-group outacl1 egress\");",
 													"    });",
 													"    pm.test('dryrun - contains interface GigabitEthernet0/0/0/0', function () {",
 													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"interface GigabitEthernet0/0/0/0\");",
@@ -19780,8 +20112,8 @@
 											"script": {
 												"type": "text/javascript",
 												"exec": [
-													"console.log(\"Here we wait 15 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
-													"setTimeout(function(){}, 15000);"
+													"console.log(\"Here we wait 10 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+													"setTimeout(function(){}, 10000);"
 												]
 											}
 										}
@@ -19832,16 +20164,6 @@
 													"pm.test(\"Validate nodeId\", function() {",
 													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
 													"});"
-												]
-											}
-										},
-										{
-											"listen": "prerequest",
-											"script": {
-												"type": "text/javascript",
-												"exec": [
-													"console.log(\"Here we wait 15 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
-													"setTimeout(function(){}, 15000);"
 												]
 											}
 										}
@@ -19910,7 +20232,12 @@
 													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name1\"));",
 													"});",
 													"",
-													""
+													"pm.test(\"Validate egress acl type = frinx-openconfig-acl:ACL_IPV6 \", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"pm.test(\"Validate ingress acl type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});"
 												]
 											}
 										}
@@ -20027,8 +20354,8 @@
 											"script": {
 												"type": "text/javascript",
 												"exec": [
-													"console.log(\"Here we wait 15 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
-													"setTimeout(function(){}, 15000);"
+													"console.log(\"Here we wait 10 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+													"setTimeout(function(){}, 10000);"
 												]
 											}
 										}
@@ -26610,7 +26937,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG flow",
+									"name": "show updated LAG flow (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -26956,7 +27283,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG flow",
+									"name": "show updated LAG flow (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -27129,7 +27456,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG flow",
+									"name": "show updated LAG flow (deleted ipv6 egress flow)",
 									"event": [
 										{
 											"listen": "test",
@@ -27308,7 +27635,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG flow",
+									"name": "show updated LAG flow (deleted ingress)",
 									"event": [
 										{
 											"listen": "test",
@@ -27473,7 +27800,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG flow",
+									"name": "show updated LAG flow (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -27555,7 +27882,7 @@
 									"response": []
 								},
 								{
-									"name": "update LAG flow",
+									"name": "delete LAG netflow",
 									"event": [
 										{
 											"listen": "test",
@@ -27646,7 +27973,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG flow",
+									"name": "show deleted LAG netflow",
 									"event": [
 										{
 											"listen": "test",
@@ -27734,7 +28061,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG flow",
+									"name": "delete LAG flow",
 									"event": [
 										{
 											"listen": "test",
@@ -28078,7 +28405,7 @@
 									"response": []
 								},
 								{
-									"name": "update LAG acl",
+									"name": "delete created LAG acl",
 									"event": [
 										{
 											"listen": "test",
@@ -28089,6 +28416,97 @@
 													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/interfaces/interface/Bundle-Ether{{lag_inf-id}}"
+									},
+									"response": []
+								},
+								{
+									"name": "delete commit",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate overall-configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate nodeId\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+									},
+									"response": []
+								},
+								{
+									"name": "update LAG acl",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
 													"});"
 												]
 											}
@@ -28169,7 +28587,7 @@
 									"response": []
 								},
 								{
-									"name": "show created LAG acl",
+									"name": "show updated LAG acl",
 									"event": [
 										{
 											"listen": "test",
@@ -28247,7 +28665,7 @@
 									"response": []
 								},
 								{
-									"name": "update LAG acl (to original)",
+									"name": "delete updated LAG acl",
 									"event": [
 										{
 											"listen": "test",
@@ -28258,6 +28676,97 @@
 													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/interfaces/interface/Bundle-Ether{{lag_inf-id}}"
+									},
+									"response": []
+								},
+								{
+									"name": "delete commit",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate overall-configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate nodeId\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+									},
+									"response": []
+								},
+								{
+									"name": "update LAG acl (to original)",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
 													"});"
 												]
 											}
@@ -28338,7 +28847,7 @@
 									"response": []
 								},
 								{
-									"name": "show created LAG acl copy",
+									"name": "show updated LAG acl (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -28507,7 +29016,7 @@
 									"response": []
 								},
 								{
-									"name": "show created LAG acl copy copy",
+									"name": "show updated LAG acl",
 									"event": [
 										{
 											"listen": "test",
@@ -28676,7 +29185,7 @@
 									"response": []
 								},
 								{
-									"name": "show created LAG acl copy",
+									"name": "show updated LAG acl (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -28845,7 +29354,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG acl",
+									"name": "show updated LAG acl (deleted ipv6 egress acl)",
 									"event": [
 										{
 											"listen": "test",
@@ -29021,7 +29530,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG acl",
+									"name": "show updated LAG acl (deleted ingress)",
 									"event": [
 										{
 											"listen": "test",
@@ -29183,7 +29692,7 @@
 									"response": []
 								},
 								{
-									"name": "show created LAG acl copy",
+									"name": "show updated LAG acl (original)",
 									"event": [
 										{
 											"listen": "test",
@@ -29261,7 +29770,7 @@
 									"response": []
 								},
 								{
-									"name": "update LAG acl",
+									"name": "delete LAG acl netflow",
 									"event": [
 										{
 											"listen": "test",
@@ -29352,7 +29861,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG acl",
+									"name": "show deleted LAG acl netflow",
 									"event": [
 										{
 											"listen": "test",
@@ -29437,7 +29946,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated LAG acl",
+									"name": "delete LAG acl netflow",
 									"event": [
 										{
 											"listen": "test",

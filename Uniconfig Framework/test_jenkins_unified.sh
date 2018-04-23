@@ -114,15 +114,18 @@ function newman_stuff {
 
 
 ### Warning: all folders will be the same, input must be trusted
-XR_folders=("${@:2}")
-XR5_folders=("${@:2}")
-ASR_folders=("${@:2}")
-XR5_folders_tested_on_ASR=("${@:2}")
-Classic_folders=("${@:2}")
-XE_folders=("${@:2}")
-XE4_folders=("${@:2}")
-CAT6500_folders=("${@:2}")
-junos_folders=("${@:2}")
+echo "XXXXXXX Please check that your syntax is ./a env.file '\"folder 1\" \"folder 2\" . . . \"foledr n\"'"
+declare -a "inp_folders=($2)"
+
+XR_folders=("${inp_folders[@]}")
+XR5_folders=("${inp_folders[@]}")
+ASR_folders=("${inp_folders[@]}")
+XR5_folders_tested_on_ASR=("${inp_folders[@]}")
+Classic_folders=("${inp_folders[@]}")
+XE_folders=("${inp_folders[@]}")
+XE4_folders=("${inp_folders[@]}")
+CAT6500_folders=("${inp_folders[@]}")
+junos_folders=("${inp_folders[@]}")
 
 chosen_devices=("$1")
 

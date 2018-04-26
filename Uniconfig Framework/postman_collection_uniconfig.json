@@ -2,11 +2,516 @@
 	"variables": [],
 	"info": {
 		"name": "FRINX Uniconfig",
-		"_postman_id": "63e79e3e-f0f3-532a-22b9-c112bbf7bcf7",
+		"_postman_id": "0cc6d5fe-ec5f-28de-042e-6b72629fb510",
 		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
+		{
+			"name": "IOS XE",
+			"item": [
+				{
+					"name": "XE Mount",
+					"item": [
+						{
+							"name": "Mount IOS XE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 180,\n      \n      \"cli-topology:keepalive-delay\" : 45,\n      \"cli-topology:keepalive-timeout\" : 45\n    }\n  }"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Check status connected",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('Check status connected CLI');",
+											"    }",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "XE Unmount",
+					"item": [
+						{
+							"name": "DELETE Mount IOS XE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Check unmounted",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 404\", function () {",
+											"  pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}"
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "XE BGP CRUD-EXT",
+					"description": "",
+					"item": [
+						{
+							"name": "XE BGP CRUD-EXT Setup",
+							"description": "",
+							"item": [
+								{
+									"name": "configurate interafces and ipv6",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     interface {{test_interface}}\n     no shutdown\n     exit\n     interface {{test_interface_upd}}\n     no shutdown\n     exit\n     ipv6 unicast-routing\n     end\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"  }",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network"
+									},
+									"response": []
+								},
+								{
+									"name": "replace-config-with-operational",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate result\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "XE BGP CRUD-EXT Teardown",
+							"description": "",
+							"item": [
+								{
+									"name": "deconfigurate interafces",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     no interface {{test_interface}}\n     no interface {{test_interface_upd}}\n     end\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"  }",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network"
+									},
+									"response": []
+								},
+								{
+									"name": "replace-config-with-operational",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate result\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			]
+		},
 		{
 			"name": "IOS XR6",
 			"item": [
@@ -33459,6 +33964,1961 @@
 									"raw": ""
 								},
 								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}"
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "BGP CRUD-EXT",
+					"item": [
+						{
+							"name": "Configure global bgp",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 201\", function () {",
+											"  pm.response.to.have.status(201);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"protocol\": [\n    {\n      \"identifier\": \"{{l3_vpn_bgp_table_policy}}\",\n      \"name\": \"{{bgp_ni-name}}\",\n      \"bgp\": {\n        \"global\": {\n          \"config\": {\n            \"as\": \"{{bgp_peer-as4}}\"\n          },\n          \"afi-safis\": {\n            \"afi-safi\": [\n              {\n                \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                \"config\": {\n                  \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                }\n              }\n            ]\n          }\n        },\n        \"neighbors\": {\n          \"neighbor\": [\n            {\n              \"neighbor-address\": \"{{neighbor2}}\",\n              \"config\": {\n                \"enabled\": true,\n                \"peer-group\": \"{{bgp_peer_name}}\",\n                \"neighbor-address\": \"{{neighbor2}}\",\n                \"description\": \"{{eth_description}}\"\n              },\n              \"afi-safis\": {\n                \"afi-safi\": [\n                  {\n                    \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                    \"config\": {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                    }\n                  },\n                  {\n                    \"afi-safi-name\": \"{{bgp_openconfig_types_UPD}}\",\n                    \"config\": {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types_UPD}}\"\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  }\n                ]\n              },\n              \"transport\": {\n                \"config\": {\n                  \"passive-mode\": false\n                }\n              }\n            },\n            {\n              \"neighbor-address\": \"{{neighbor3}}\",\n              \"config\": {\n                \"enabled\": true,\n                \"peer-group\": \"{{bgp_peer_name}}\",\n                \"neighbor-address\": \"{{neighbor3}}\",\n                \"description\": \"{{eth_description}}\"\n              },\n              \"afi-safis\": {\n                \"afi-safi\": [\n                  {\n                    \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                    \"config\": {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                    }\n                  }\n                ]\n              },\n              \"transport\": {\n                \"config\": {\n                  \"passive-mode\": false\n                }\n              }\n            }\n          ]\n        },\n        \"peer-groups\": {\n          \"peer-group\": [\n            {\n              \"peer-group-name\": \"{{bgp_peer_name}}\",\n              \"config\": {\n                \"auth-password\": \"{{bgp_password}}\",\n                \"send-community\": \"{{bgp_send_community}}\",\n                \"peer-as\": \"{{bgp_peer-as4}}\",\n                \"peer-group-name\": \"{{bgp_peer_name}}\"\n              },\n              \"afi-safis\": {\n                \"afi-safi\": [\n                  {\n                    \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                    \"config\": {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \"export-policy\": [\n                          \"{{export_policy}}\"\n                        ]\n                      }\n                    }\n                  }\n                ]\n              },\n              \"route-reflector\": {\n                \"config\": {\n                  \"route-reflector-client\": true\n                }\n              },\n              \"transport\": {\n                \"config\": {\n                  \"passive-mode\": true,\n                  \"local-address\": \"{{test_interface}}\"\n                }\n              }\n            }\n          ]\n        }\n      },\n      \"config\": {\n        \"identifier\": \"{{l3_vpn_bgp_table_policy}}\",\n        \"name\": \"{{bgp_ni-name}}\"\n      }\n    }\n  ]\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}"
+							},
+							"response": []
+						},
+						{
+							"name": "configure dry-run commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"if ( \"cisco_xe\" === postman.getEnvironmentVariable(\"env_type\") ){",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - nodeId\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains router bgp 17676', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"router bgp 17676\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - no bgp router id', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"bgp router id\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains address-family ipv4', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"address-family ipv4\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 peer-group', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 peer-group\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 remote-as 17676', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 remote-as 17676\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 password frinx18$%', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 password frinx18$%\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 update-source Loopback97', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 update-source Loopback97\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 transport connection-mode passive', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 transport connection-mode passive\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 send-community both', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 send-community both\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 route-reflector-client', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 route-reflector-client\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 route-map TC-out', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 route-map TC-out\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor 10.64.2.195 peer-group group_a_b-3', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.195 peer-group group_a_b-3\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor 10.64.2.195 description some text', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.195 description some text\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor 10.64.2.195 activate', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.195 activate\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains address-family ipv6', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"address-family ipv6\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor 10.64.2.194 peer-group group_a_b-3', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.194 peer-group group_a_b-3\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor 10.64.2.194 description some text', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.194 description some text\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor 10.64.2.194 activate', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.194 activate\");",
+											"    });",
+											"",
+											"    ",
+											"}"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\": {\n    \"target-nodes\": {\n      \n    }\n  }\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit"
+							},
+							"response": []
+						},
+						{
+							"name": "configure commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": {
+										"username": "admin",
+										"password": "admin",
+										"showPassword": false
+									}
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\": {\n    \"target-nodes\": {\n      \n    }\n  }\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+							},
+							"response": []
+						},
+						{
+							"name": "Show configure global bgp",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//neighbor-address",
+											"pm.test(\"Validate neighbor-address = \" + pm.environment.get(\"neighbor2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor2\"));",
+											"});",
+											"//config peer-group",
+											"pm.test(\"Validate config peer-group = \" + pm.environment.get(\"bgp_peer_name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+											"});",
+											"//config neighbor-address",
+											"pm.test(\"Validate config neighbor-address = \" + pm.environment.get(\"neighbor2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor2\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+											"});",
+											"//export-policy",
+											"pm.test(\"Validate export-policy = \" + pm.environment.get(\"export_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"apply-policy\"][\"config\"][\"export-policy\"][0]).to.eql(pm.environment.get(\"export_policy\"));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types_UPD\"));",
+											"});",
+											"//afi-safi-name 2",
+											"pm.test(\"Validate afi-safi-name 2 = \" + pm.environment.get(\"bgp_openconfig_types_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types_UPD\"));",
+											"});",
+											"//neighbor-address 2",
+											"pm.test(\"Validate neighbor-address 2 = \" + pm.environment.get(\"neighbor3\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor3\"));",
+											"});",
+											"//config peer-group",
+											"pm.test(\"Validate config peer-group 2 = \" + pm.environment.get(\"bgp_peer_name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+											"});",
+											"//description 2",
+											"pm.test(\"Validate description 2 = \" + pm.environment.get(\"eth_description\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+											"});",
+											"//neighbor-address 3",
+											"pm.test(\"Validate neighbor-address 3 = \" + pm.environment.get(\"neighbor3\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor3\"));",
+											"});",
+											"//passive-mode 2",
+											"pm.test(\"Validate passive-mode 2 = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+											"});",
+											"//afi-safi-name 3",
+											"pm.test(\"Validate afi-safi-name 3 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 4",
+											"pm.test(\"Validate afi-safi-name 4 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 5 ",
+											"pm.test(\"Validate afi-safi-name 5 = \" + pm.environment.get(\"bgp_openconfig_types_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types_UPD\"));",
+											"});",
+											"//afi-safi-name 6",
+											"pm.test(\"Validate afi-safi-name 6 = \" + pm.environment.get(\"bgp_openconfig_types_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types_UPD\"));",
+											"});",
+											"//route-reflector-client",
+											"pm.test(\"Validate route-reflector-client = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"route-reflector\"][\"config\"][\"route-reflector-client\"]).to.eql(true);",
+											"});",
+											"//send-community",
+											"pm.test(\"Validate send-community = \" + pm.environment.get(\"bgp_send_community\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"send-community\"]).to.eql(pm.environment.get(\"bgp_send_community\"));",
+											"});",
+											"//auth-password",
+											"pm.test(\"Validate auth-password = \" + pm.environment.get(\"bgp_password\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"auth-password\"]).to.eql(pm.environment.get(\"bgp_password\"));",
+											"});",
+											"//peer-as",
+											"pm.test(\"Validate peer-as = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"peer-as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//config peer-group-name",
+											"pm.test(\"Validate config peer-group-name = \" + pm.environment.get(\"bgp_peer_name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+											"});",
+											"//peer-group-name",
+											"pm.test(\"Validate peer-group-name = \" + pm.environment.get(\"bgp_peer_name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+											"});",
+											"//local-address",
+											"pm.test(\"Validate local-address = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"//afi-safi-name 7",
+											"pm.test(\"Validate afi-safi-name 7 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 8",
+											"pm.test(\"Validate afi-safi-name 8 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//passive-mode 3",
+											"pm.test(\"Validate passive-mode 3 = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(true);",
+											"});",
+											"//as",
+											"pm.test(\"Validate as = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"][\"config\"][\"as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//identifier",
+											"pm.test(\"Validate identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//config identifier",
+											"pm.test(\"Validate config identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//config name",
+											"pm.test(\"Validate config name = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(\"default\");",
+											"});",
+											"//afi-safi-name 9",
+											"pm.test(\"Validate afi-safi-name 9 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 10",
+											"pm.test(\"Validate afi-safi-name 10 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//name ",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//name 2",
+											"pm.test(\"Validate name 2 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "    <vrf xmlns=\"urn:opendaylight:params:xml:ns:yang:ios-cli\">\n        <id>2</id>\n        <address-type>random</address-type>\n        <unicast>no</unicast>\n    </vrf>"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}/"
+							},
+							"response": []
+						},
+						{
+							"name": "Update global bgp",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"protocol\": [\n    {\n      \"identifier\": \"{{l3_vpn_bgp_table_policy}}\",\n      \"name\": \"{{bgp_ni-name}}\",\n      \"bgp\": {\n        \"global\": {\n          \"config\": {\n            \"as\": \"{{bgp_peer-as4}}\"\n          },\n          \"afi-safis\": {\n            \"afi-safi\": [\n              {\n                \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                \"config\": {\n                  \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                }\n              }\n            ]\n          }\n        },\n        \"neighbors\": {\n          \"neighbor\": [\n            {\n              \"neighbor-address\": \"{{neighbor3}}\",\n              \"config\": {\n                \"enabled\": true,\n                \"peer-group\": \"{{bgp_peer_name}}\",\n                \"neighbor-address\": \"{{neighbor3}}\",\n                \"description\": \"{{eth_description_upd}}\"\n              },\n              \"afi-safis\": {\n                \"afi-safi\": [\n                  {\n                    \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                    \"config\": {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  }\n                ]\n              },\n              \"transport\": {\n                \"config\": {\n                  \"passive-mode\": false\n                }\n              },\n              \"apply-policy\": {\n                \"config\": {\n                  \n                }\n              }\n            },\n            {\n              \"neighbor-address\": \"{{neighbor2}}\",\n              \"config\": {\n                \"enabled\": true,\n                \"peer-group\": \"{{bgp_peer_name}}\",\n                \"neighbor-address\": \"{{neighbor2}}\",\n                \"description\": \"{{eth_description_upd}}\"\n              },\n              \"afi-safis\": {\n                \"afi-safi\": [\n                  {\n                    \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                    \"config\": {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  }\n                ]\n              },\n              \"transport\": {\n                \"config\": {\n                  \"passive-mode\": false\n                }\n              },\n              \"apply-policy\": {\n                \"config\": {\n                  \n                }\n              }\n            }\n          ]\n        },\n        \"peer-groups\": {\n          \"peer-group\": [\n            {\n              \"peer-group-name\": \"{{bgp_peer_name}}\",\n              \"config\": {\n                \"auth-password\": \"{{bgp_password_upd}}\",\n                \"send-community\": \"{{bgp_send_community}}\",\n                \"peer-as\": \"{{bgp_peer-as4}}\",\n                \"peer-group-name\": \"{{bgp_peer_name}}\"\n              },\n              \"afi-safis\": {\n                \"afi-safi\": [\n                  {\n                    \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                    \"config\": {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \"export-policy\": [\n                          \"{{export_policy_upd}}\"\n                        ]\n                      }\n                    }\n                  }\n                ]\n              },\n              \"route-reflector\": {\n                \"config\": {\n                  \"route-reflector-client\": true\n                }\n              },\n              \"transport\": {\n                \"config\": {\n                  \"passive-mode\": true,\n                  \"local-address\": \"{{test_interface_upd}}\"\n                }\n              },\n              \"apply-policy\": {\n                \"config\": {\n                  \n                }\n              }\n            }\n          ]\n        }\n      },\n      \"config\": {\n        \"identifier\": \"{{l3_vpn_bgp_table_policy}}\",\n        \"name\": \"{{bgp_ni-name}}\"\n      }\n    }\n  ]\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Update dry-run commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"if ( \"cisco_xe\" === postman.getEnvironmentVariable(\"env_type\") ){",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - nodeId\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains router bgp 17676', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"router bgp 17676\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor 10.64.2.195 peer-group group_a_b-3', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.195 peer-group group_a_b-3\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor 10.64.2.195 description some text updated', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.195 description some text updated\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains address-family ipv4', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"address-family ipv4\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor 10.64.2.195 activate', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.195 activate\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 peer-group', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 peer-group\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 remote-as 56000', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 remote-as 56000\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 password 99$%xnirf', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 password 99$%xnirf\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 update-source Loopback79', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 update-source Loopback79\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 transport connection-mode passive', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 transport connection-mode passive\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 send-community extended', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 send-community extended\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 route-reflector-client', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 route-reflector-client\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 route-map TC-upd out', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 route-map TC-upd out\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor 10.64.2.194 peer-group group_a_b-3', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.194 peer-group group_a_b-3\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor 10.64.2.194 description some text updated', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.64.2.194 description some text updated\");",
+											"    });",
+											"",
+											"    ",
+											"}"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit"
+							},
+							"response": []
+						},
+						{
+							"name": "Update commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": {
+										"username": "admin",
+										"password": "admin",
+										"showPassword": false
+									}
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+							},
+							"response": []
+						},
+						{
+							"name": "Show update global bgp",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//neighbor-address",
+											"pm.test(\"Validate neighbor-address = \" + pm.environment.get(\"neighbor2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor2\"));",
+											"});",
+											"//peer-group",
+											"pm.test(\"Validate peer-group = \" + pm.environment.get(\"bgp_peer_name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description_upd\"));",
+											"});",
+											"//neighbor-address 2",
+											"pm.test(\"Validate neighbor-address 2 = \" + pm.environment.get(\"neighbor2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor2\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//neighbor-address 3",
+											"pm.test(\"Validate neighbor-address 3 = \" + pm.environment.get(\"neighbor3\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor3\"));",
+											"});",
+											"//peer-group 2",
+											"pm.test(\"Validate peer-group 2 = \" + pm.environment.get(\"bgp_peer_name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description_upd\"));",
+											"});",
+											"//neighbor-address 4 ",
+											"pm.test(\"Validate neighbor-address 4 = \" + pm.environment.get(\"neighbor3\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor3\"));",
+											"});",
+											"//passive-mode 2",
+											"pm.test(\"Validate passive-mode 2= \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//route-reflector-client",
+											"pm.test(\"Validate route-reflector-client = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"route-reflector\"][\"config\"][\"route-reflector-client\"]).to.eql(true);",
+											"});",
+											"//peer-group-name",
+											"pm.test(\"Validate peer-group-name = \" + pm.environment.get(\"bgp_peer_name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//send-community",
+											"pm.test(\"Validate send-community = \" + pm.environment.get(\"bgp_send_community\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"send-community\"]).to.eql(pm.environment.get(\"bgp_send_community\"));",
+											"});",
+											"//auth-password",
+											"pm.test(\"Validate auth-password = \" + pm.environment.get(\"bgp_password_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"auth-password\"]).to.eql(pm.environment.get(\"bgp_password_upd\"));",
+											"});",
+											"//peer-as",
+											"pm.test(\"Validate peer-as = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"peer-as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//peer-group-name 2",
+											"pm.test(\"Validate peer-group-name 2 = \" + pm.environment.get(\"bgp_peer_name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+											"});",
+											"//local-address",
+											"pm.test(\"Validate local-address = \" + pm.environment.get(\"test_interface_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface_upd\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(true);",
+											"});",
+											"//as",
+											"pm.test(\"Validate as = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"][\"config\"][\"as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//identifier",
+											"pm.test(\"Validate identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//identifier 2",
+											"pm.test(\"Validate identifier 2 = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//name ",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//name 2",
+											"pm.test(\"Validate name 2 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//export-policy",
+											"pm.test(\"Validate export-policy = \" + pm.environment.get(\"export_policy_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"apply-policy\"][\"config\"][\"export-policy\"][0]).to.eql(pm.environment.get(\"export_policy_upd\"));",
+											"});",
+											"//NO afi-safi-name",
+											"pm.test(\"Validate NO afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][1][\"afi-safis\"][\"afi-safi\"]).to.not.have.property(\"afi-safi-name\");",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "    <vrf xmlns=\"urn:opendaylight:params:xml:ns:yang:ios-cli\">\n        <id>2</id>\n        <address-type>random</address-type>\n        <unicast>no</unicast>\n    </vrf>"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Create network-instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"network-instance\": [\n    {\n      \"name\": \"{{bgp_ni-name_UPD}}\",\n      \"config\": {\n        \"name\": \"{{bgp_ni-name_UPD}}\",\n        \"type\": \"{{bgp_network_types}}\",\n        \"route-distinguisher\": \"{{bgp_route_distinguisher}}\"\n      },\n      \"protocols\": {\n        \"protocol\": [\n          {\n            \"identifier\": \"{{l3_vpn_bgp_table_policy}}\",\n            \"name\": \"{{bgp_ni-name}}\",\n            \"bgp\": {\n              \"global\": {\n                \"config\": {\n                  \"as\": \"{{bgp_peer-as4}}\"\n                },\n                \"afi-safis\": {\n                  \"afi-safi\": [\n                    {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                      \"config\": {\n                        \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                      }\n                    }\n                  ]\n                }\n              },\n              \"neighbors\": {\n                \"neighbor\": [\n                  {\n                    \"neighbor-address\": \"{{neighbor}}\",\n                    \"config\": {\n                      \"enabled\": true,\n                      \"peer-group\": \"{{bgp_peer_name4}}\",\n                      \"neighbor-address\": \"{{neighbor}}\",\n                      \"description\": \"{{eth_description}}\"\n                    },\n                    \"afi-safis\": {\n                      \"afi-safi\": [\n                        {\n                          \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                          \"config\": {\n                            \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                          },\n                          \"apply-policy\": {\n                            \"config\": {\n                              \"import-policy\": [\n                                \"{{input_policy}}\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    },\n                    \"transport\": {\n                      \"config\": {\n                        \"passive-mode\": false,\n                        \"local-address\": \"{{test_interface}}\"\n                      }\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  }\n                ]\n              },\n              \"peer-groups\": {\n                \"peer-group\": [\n                  {\n                    \"peer-group-name\": \"{{bgp_peer_name4}}\",\n                    \"config\": {\n                      \"auth-password\": \"{{bgp_password}}\",\n                      \"send-community\": \"{{bgp_send_community_UPD}}\",\n                      \"peer-as\": \"{{bgp_peer-as}}\",\n                      \"peer-group-name\": \"{{bgp_peer_name4}}\",\n                      \"description\": \"{{eth_description_upd}}\"\n                    },\n                    \"afi-safis\": {\n                      \"afi-safi\": [\n                        {\n                          \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                          \"config\": {\n                            \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                          }\n                        }\n                      ]\n                    },\n                    \"transport\": {\n                      \"config\": {\n                        \"passive-mode\": true,\n                        \"local-address\": \"{{test_interface}}\"\n                      }\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  },\n                  {\n                    \"peer-group-name\": \"{{bgp_peer_name2}}\",\n                    \"config\": {\n                      \"peer-as\": \"{{bgp_peer-as2}}\",\n                      \"peer-group-name\": \"{{bgp_peer_name2}}\"\n                    },\n                    \"afi-safis\": {\n                      \"afi-safi\": [\n                        {\n                          \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                          \"config\": {\n                            \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                          }\n                        }\n                      ]\n                    },\n                    \"transport\": {\n                      \"config\": {\n                        \"passive-mode\": false\n                      }\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  },\n                  {\n                    \"peer-group-name\": \"{{bgp_peer_name3}}\",\n                    \"config\": {\n                      \"auth-password\": \"{{bgp_password}}\",\n                      \"send-community\": \"{{bgp_send_community_UPD}}\",\n                      \"peer-as\": \"{{bgp_peer-as5}}\",\n                      \"peer-group-name\": \"{{bgp_peer_name3}}\",\n                      \"description\": \"{{eth_description_upd}}\"\n                    },\n                    \"afi-safis\": {\n                      \"afi-safi\": [\n                        {\n                          \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                          \"config\": {\n                            \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                          }\n                        }\n                      ]\n                    },\n                    \"route-reflector\": {\n                      \"config\": {\n                        \"route-reflector-client\": true\n                      }\n                    },\n                    \"transport\": {\n                      \"config\": {\n                        \"passive-mode\": true,\n                        \"local-address\": \"{{test_interface}}\"\n                      }\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  }\n                ]\n              }\n            },\n            \"config\": {\n              \"identifier\": \"{{l3_vpn_bgp_table_policy}}\",\n              \"name\": \"{{bgp_ni-name}}\"\n            }\n          },\n          {\n            \"identifier\": \"{{bgp_openconfig-policy_types}}\",\n            \"name\": \"{{bgp_ni-name}}\",\n            \"config\": {\n              \"identifier\": \"{{bgp_openconfig-policy_types}}\",\n              \"name\": \"{{bgp_ni-name}}\"\n            }\n          }\n        ]\n      }\n    }\n  ]\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name_UPD}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Create dry-run commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"if ( \"cisco_xe\" === postman.getEnvironmentVariable(\"env_type\") ){",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - nodeId\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains router bgp 17676', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"router bgp 17676\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains address-family ipv4 vrf ab', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"address-family ipv4 vrf ab\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 peer-group', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 peer-group\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 remote-as 65000', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 remote-as 65000\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 description some text updated', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 description some text updated\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 password frinx18$%', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 password frinx18$%\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 update-source Loopback97', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 update-source Loopback97\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 transport connection-mode passive', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 transport connection-mode passive\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor group_a_b-3 send-community extended', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-3 send-community extended\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 10.255.255.2 peer-group group_a_b-3', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.255.255.2 peer-group group_a_b-3\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 10.255.255.2 description some text', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.255.255.2 description some text\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 10.255.255.2 update-source Loopback97', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.255.255.2 update-source Loopback97\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 10.255.255.2 route-map policy2 in', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.255.255.2 route-map policy2 in\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 10.255.255.2 activate', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 10.255.255.2 activate\");",
+											"    });",
+											"",
+											"    ",
+											"}"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit"
+							},
+							"response": []
+						},
+						{
+							"name": "Create commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": {
+										"username": "admin",
+										"password": "admin",
+										"showPassword": false
+									}
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+							},
+							"response": []
+						},
+						{
+							"name": "Show created network-instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//type",
+											"pm.test(\"Validate type = \" + pm.environment.get(\"bgp_network_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"config\"][\"type\"]).to.eql(pm.environment.get(\"bgp_network_types\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_ni-name_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name_UPD\"));",
+											"});",
+											"//route-distinguisher",
+											"pm.test(\"Validate route-distinguisher = \" + pm.environment.get(\"bgp_route_distinguisher\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"config\"][\"route-distinguisher\"]).to.eql(pm.environment.get(\"bgp_route_distinguisher\"));",
+											"});",
+											"//name 2",
+											"pm.test(\"Validate name 2 = \" + pm.environment.get(\"bgp_ni-name_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name_UPD\"));",
+											"});",
+											"//neighbor-address",
+											"pm.test(\"Validate neighbor-address = \" + pm.environment.get(\"neighbor\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor\"));",
+											"});",
+											"//peer-group 2",
+											"pm.test(\"Validate peer-group 2 = \" + pm.environment.get(\"bgp_peer_name4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name4\"));",
+											"});",
+											"//enabled",
+											"pm.test(\"Validate enabled = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"enabled\"]).to.eql(true);",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+											"});",
+											"//neighbor-address 2",
+											"pm.test(\"Validate neighbor-address 2 = \" + pm.environment.get(\"neighbor\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor\"));",
+											"});",
+											"//local-address",
+											"pm.test(\"Validate local-address = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+											"});",
+											"//import-policy",
+											"pm.test(\"Validate import-policy = \" + pm.environment.get(\"input_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"apply-policy\"][\"config\"][\"import-policy\"][0]).to.eql(pm.environment.get(\"input_policy\"));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 2",
+											"pm.test(\"Validate afi-safi-name 2 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//send-community",
+											"pm.test(\"Validate send-community = \" + pm.environment.get(\"bgp_send_community_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"send-community\"]).to.eql(pm.environment.get(\"bgp_send_community_UPD\"));",
+											"});",
+											"//auth-password",
+											"pm.test(\"Validate auth-password = \" + pm.environment.get(\"bgp_password\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"auth-password\"]).to.eql(pm.environment.get(\"bgp_password\"));",
+											"});",
+											"//peer-as",
+											"pm.test(\"Validate peer-as = \" + pm.environment.get(\"bgp_peer-as\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"peer-as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as\")));",
+											"});",
+											"//peer-group-name 7",
+											"pm.test(\"Validate peer-group-name 7 = \" + pm.environment.get(\"bgp_peer_name4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name4\"));",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description_upd\"));",
+											"});",
+											"//peer-group-name 2",
+											"pm.test(\"Validate peer-group-name 2 = \" + pm.environment.get(\"bgp_peer_name4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name4\"));",
+											"});",
+											"//afi-safi-name 3",
+											"pm.test(\"Validate afi-safi-name 3 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 4",
+											"pm.test(\"Validate afi-safi-name 4 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//local-address",
+											"pm.test(\"Validate local-address = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(true);",
+											"});",
+											"//peer-as 2",
+											"pm.test(\"Validate peer-as 2 = \" + pm.environment.get(\"bgp_peer-as2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"peer-as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as2\")));",
+											"});",
+											"//peer-group-name 3",
+											"pm.test(\"Validate peer-group-name 3 = \" + pm.environment.get(\"bgp_peer_name2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name2\"));",
+											"});",
+											"//peer-group-name 4",
+											"pm.test(\"Validate peer-group-name 4 = \" + pm.environment.get(\"bgp_peer_name2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name2\"));",
+											"});",
+											"//afi-safi-name 5",
+											"pm.test(\"Validate afi-safi-name 5 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 6",
+											"pm.test(\"Validate afi-safi-name 6 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+											"});",
+											"//route-reflector-client",
+											"pm.test(\"Validate route-reflector-client = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"route-reflector\"][\"config\"][\"route-reflector-client\"]).to.eql(true);",
+											"});",
+											"//peer-group-name 5",
+											"pm.test(\"Validate peer-group-name 5 = \" + pm.environment.get(\"bgp_peer_name3\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name3\"));",
+											"});",
+											"//afi-safi-name 7",
+											"pm.test(\"Validate afi-safi-name 7 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 8",
+											"pm.test(\"Validate afi-safi-name 8 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//send-community 2",
+											"pm.test(\"Validate send-community 2 = \" + pm.environment.get(\"bgp_send_community_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"config\"][\"send-community\"]).to.eql(pm.environment.get(\"bgp_send_community_UPD\"));",
+											"});",
+											"//auth-password 2",
+											"pm.test(\"Validate auth-password 2 = \" + pm.environment.get(\"bgp_password\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"config\"][\"auth-password\"]).to.eql(pm.environment.get(\"bgp_password\"));",
+											"});",
+											"//peer-as 3 ",
+											"pm.test(\"Validate peer-as 3 = \" + pm.environment.get(\"bgp_peer-as5\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"config\"][\"peer-as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as5\")));",
+											"});",
+											"//peer-group-name 6",
+											"pm.test(\"Validate peer-group-name 6 = \" + pm.environment.get(\"bgp_peer_name3\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name3\"));",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description_upd\"));",
+											"});",
+											"//local-address",
+											"pm.test(\"Validate local-address = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][2][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(true);",
+											"});",
+											"//as",
+											"pm.test(\"Validate as = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"global\"][\"config\"][\"as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//afi-safi-name 9",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"global\"][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name `0",
+											"pm.test(\"Validate afi-safi-name 10 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"global\"][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//identifier",
+											"pm.test(\"Validate identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//identifier 2",
+											"pm.test(\"Validate identifier 2 = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//name 3",
+											"pm.test(\"Validate name 3 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//name 4",
+											"pm.test(\"Validate name 4 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//identifier 3",
+											"pm.test(\"Validate identifier 3 = \" + pm.environment.get(\"bgp_openconfig-policy_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][1][\"identifier\"]).to.eql(pm.environment.get(\"bgp_openconfig-policy_types\"));",
+											"});",
+											"//identifier 4",
+											"pm.test(\"Validate identifier 4 = \" + pm.environment.get(\"bgp_openconfig-policy_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][1][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"bgp_openconfig-policy_types\"));",
+											"});",
+											"//name 5",
+											"pm.test(\"Validate name 5 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][1][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//name 6",
+											"pm.test(\"Validate name 6 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][1][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "    <vrf xmlns=\"urn:opendaylight:params:xml:ns:yang:ios-cli\">\n        <id>2</id>\n        <address-type>random</address-type>\n        <unicast>no</unicast>\n    </vrf>"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name_UPD}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Update network-instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"network-instance\": [\n    {\n      \"name\": \"{{bgp_ni-name_UPD}}\",\n      \"config\": {\n        \"name\": \"{{bgp_ni-name_UPD}}\",\n        \"type\": \"{{bgp_network_types}}\",\n        \"route-distinguisher\": \"{{bgp_route_distinguisher}}\"\n      },\n      \"protocols\": {\n        \"protocol\": [\n          {\n            \"identifier\": \"{{l3_vpn_bgp_table_policy}}\",\n            \"name\": \"{{bgp_ni-name}}\",\n            \"bgp\": {\n              \"global\": {\n                \"config\": {\n                  \"as\": \"{{bgp_peer-as4}}\"\n                },\n                \"afi-safis\": {\n                  \"afi-safi\": [\n                    {\n                      \"afi-safi-name\": \"{{bgp_openconfig_types_UPD}}\",\n                      \"config\": {\n                        \"afi-safi-name\": \"{{bgp_openconfig_types_UPD}}\"\n                      }\n                    }\n                  ]\n                }\n              },\n              \"neighbors\": {\n                \"neighbor\": [\n                  {\n                    \"neighbor-address\": \"{{neighbor_upd}}\",\n                    \"config\": {\n                      \"enabled\": true,\n                      \"peer-group\": \"{{bgp_peer_name4}}\",\n                      \"neighbor-address\": \"{{neighbor_upd}}\",\n                      \"description\": \"{{eth_description_upd}}\"\n                    },\n                    \"afi-safis\": {\n                      \"afi-safi\": [\n                        {\n                          \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                          \"config\": {\n                            \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                          },\n                          \"apply-policy\": {\n                            \"config\": {\n                              \"import-policy\": [\n                                \"{{input_policy}}\"\n                              ]\n                            }\n                          }\n                        }\n                      ]\n                    },\n                    \"transport\": {\n                      \"config\": {\n                        \"passive-mode\": false,\n                        \"local-address\": \"{{test_interface_upd}}\"\n                      }\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  }\n                ]\n              },\n              \"peer-groups\": {\n                \"peer-group\": [\n                  {\n                    \"peer-group-name\": \"{{bgp_peer_name2}}\",\n                    \"config\": {\n                      \"auth-password\": \"{{bgp_password_upd}}\",\n                      \"send-community\": \"{{bgp_send_community_UPD}}\",\n                      \"peer-as\": \"{{bgp_peer-as5}}\",\n                      \"peer-group-name\": \"{{bgp_peer_name2}}\",\n                      \"description\": \"{{eth_description}}\"\n                    },\n                    \"afi-safis\": {\n                      \"afi-safi\": [\n                        {\n                          \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                          \"config\": {\n                            \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                          }\n                        }\n                      ]\n                    },\n                    \"transport\": {\n                      \"config\": {\n                        \"passive-mode\": true,\n                        \"local-address\": \"{{test_interface}}\"\n                      }\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  },\n                  {\n                    \"peer-group-name\": \"{{bgp_peer_name3}}\",\n                    \"config\": {\n                      \"auth-password\": \"{{bgp_password}}\",\n                      \"send-community\": \"{{bgp_send_community}}\",\n                      \"peer-as\": \"{{bgp_peer-as4}}\",\n                      \"peer-group-name\": \"{{bgp_peer_name3}}\",\n                      \"description\": \"{{eth_description}}\"\n                    },\n                    \"afi-safis\": {\n                      \"afi-safi\": [\n                        {\n                          \"afi-safi-name\": \"{{bgp_openconfig_types}}\",\n                          \"config\": {\n                            \"afi-safi-name\": \"{{bgp_openconfig_types}}\"\n                          }\n                        }\n                      ]\n                    },\n                    \"route-reflector\": {\n                      \"config\": {\n                        \"route-reflector-client\": true\n                      }\n                    },\n                    \"transport\": {\n                      \"config\": {\n                        \"passive-mode\": true,\n                        \"local-address\": \"{{test_interface}}\"\n                      }\n                    },\n                    \"apply-policy\": {\n                      \"config\": {\n                        \n                      }\n                    }\n                  }\n                ]\n              }\n            },\n            \"config\": {\n              \"identifier\": \"{{l3_vpn_bgp_table_policy}}\",\n              \"name\": \"{{bgp_ni-name}}\"\n            }\n          },\n          {\n            \"identifier\": \"{{bgp_openconfig-policy_types}}\",\n            \"name\": \"{{bgp_ni-name}}\",\n            \"config\": {\n              \"identifier\": \"{{bgp_openconfig-policy_types}}\",\n              \"name\": \"{{bgp_ni-name}}\"\n            }\n          }\n        ]\n      }\n    }\n  ]\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name_UPD}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Update dry-run commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"if ( \"cisco_xe\" === postman.getEnvironmentVariable(\"env_type\") ){",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - nodeId\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains router bgp 17676', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"router bgp 17676\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - no neighbor 10.255.255.2 peer-group group_a_b-3', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"neighbor 10.255.255.2 peer-group group_a_b-3\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - no neighbor group_a_b-3 peer-group', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"neighbor group_a_b-3 peer-group\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - no address-family ipv4 vrf ab', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"address-family ipv4 vrf ab\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains ip vrf ab', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"ip vrf ab\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - no description', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"description\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains address-family ipv6 vrf ab', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"address-family ipv6 vrf ab\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-4 peer-group', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-4 peer-group\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-4 remote-as 17676', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-4 remote-as 17676\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-4 description some text', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-4 description some text\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-4 password frinx18$%', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-4 password frinx18$%\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-4 update-source Loopback97', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-4 update-source Loopback97\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-4 transport connection-mode passive', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-4 transport connection-mode passive\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-4 send-community both', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-4 send-community both\");",
+											"    });",
+											"",
+											"    pm.test('dryrun - contains neighbor group_a_b-4 route-reflector-client', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-4 route-reflector-client\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor group_a_b-min peer-group', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-min peer-group\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor group_a_b-min remote-as 484', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-min remote-as 484\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains neighbor group_a_b-min description some text', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-min description some text\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor group_a_b-min password 99$%xnirf', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-min password 99$%xnirf\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor group_a_b-min update-source Loopback97', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-min update-source Loopback97\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor group_a_b-min transport connection-mode passive', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-min transport connection-mode passive\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor group_a_b-min send-community extended', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor group_a_b-min send-community extended\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 55.0.0.55 peer-group group_a_b-3', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 55.0.0.55 peer-group group_a_b-3\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 55.0.0.55 description some text updated', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 55.0.0.55 description some text updated\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 55.0.0.55 update-source Loopback79', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 55.0.0.55 update-source Loopback79\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 55.0.0.55 route-map policy2 in', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 55.0.0.55 route-map policy2 in\");",
+											"    });",
+											"        ",
+											"    pm.test('dryrun - contains neighbor 55.0.0.55 activate', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 55.0.0.55 activate\");",
+											"    });",
+											"",
+											"    ",
+											"}"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit"
+							},
+							"response": []
+						},
+						{
+							"name": "Update commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": {
+										"username": "admin",
+										"password": "admin",
+										"showPassword": false
+									}
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+							},
+							"response": []
+						},
+						{
+							"name": "Show updated network-instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//type",
+											"pm.test(\"Validate type = \" + pm.environment.get(\"bgp_network_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"config\"][\"type\"]).to.eql(pm.environment.get(\"bgp_network_types\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_ni-name_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name_UPD\"));",
+											"});",
+											"//route-distinguisher",
+											"pm.test(\"Validate route-distinguisher = \" + pm.environment.get(\"bgp_route_distinguisher\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"config\"][\"route-distinguisher\"]).to.eql(pm.environment.get(\"bgp_route_distinguisher\"));",
+											"});",
+											"//name 2",
+											"pm.test(\"Validate name 2 = \" + pm.environment.get(\"bgp_ni-name_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name_UPD\"));",
+											"});",
+											"//neighbor-address",
+											"pm.test(\"Validate neighbor-address = \" + pm.environment.get(\"neighbor_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor_upd\"));",
+											"});",
+											"//peer-group 2",
+											"pm.test(\"Validate peer-group 2 = \" + pm.environment.get(\"bgp_peer_name4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name4\"));",
+											"});",
+											"//enabled",
+											"pm.test(\"Validate enabled = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"enabled\"]).to.eql(true);",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description_upd\"));",
+											"});",
+											"//neighbor-address 2",
+											"pm.test(\"Validate neighbor-address 2 = \" + pm.environment.get(\"neighbor_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor_upd\"));",
+											"});",
+											"//local-address",
+											"pm.test(\"Validate local-address = \" + pm.environment.get(\"test_interface_upd\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface_upd\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+											"});",
+											"//import-policy",
+											"pm.test(\"Validate import-policy = \" + pm.environment.get(\"input_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"apply-policy\"][\"config\"][\"import-policy\"][0]).to.eql(pm.environment.get(\"input_policy\"));",
+											"});",
+											"//afi-safi-name",
+											"pm.test(\"Validate afi-safi-name = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 2",
+											"pm.test(\"Validate afi-safi-name 2 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//send-community",
+											"pm.test(\"Validate send-community = \" + pm.environment.get(\"bgp_send_community\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"send-community\"]).to.eql(pm.environment.get(\"bgp_send_community\"));",
+											"});",
+											"//auth-password",
+											"pm.test(\"Validate auth-password = \" + pm.environment.get(\"bgp_password\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"auth-password\"]).to.eql(pm.environment.get(\"bgp_password\"));",
+											"});",
+											"//peer-as",
+											"pm.test(\"Validate peer-as = \" + pm.environment.get(\"bgp_peer-as5\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"peer-as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as5\")));",
+											"});",
+											"//peer-group-name 7",
+											"pm.test(\"Validate peer-group-name 7 = \" + pm.environment.get(\"bgp_peer_name2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name2\"));",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+											"});",
+											"//peer-group-name 2",
+											"pm.test(\"Validate peer-group-name 2 = \" + pm.environment.get(\"bgp_peer_name2\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name2\"));",
+											"});",
+											"//afi-safi-name 3",
+											"pm.test(\"Validate afi-safi-name 3 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 4",
+											"pm.test(\"Validate afi-safi-name 4 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//local-address",
+											"pm.test(\"Validate local-address = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][0][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(true);",
+											"});",
+											"//peer-as 2",
+											"pm.test(\"Validate peer-as 2 = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"peer-as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//NO peer-group-name",
+											"pm.test(\"Validate NO peer-group-name = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"]).to.not.have.property(\"peer-group-name\");",
+											"});",
+											"//afi-safi-name 5",
+											"pm.test(\"Validate afi-safi-name 5 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 6",
+											"pm.test(\"Validate afi-safi-name 6 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//passive-mode",
+											"pm.test(\"Validate passive-mode = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"transport\"][\"config\"][\"passive-mode\"]).to.eql(true);",
+											"});",
+											"//route-reflector-client",
+											"pm.test(\"Validate route-reflector-client = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"route-reflector\"][\"config\"][\"route-reflector-client\"]).to.eql(true);",
+											"});",
+											"//peer-group-name 5",
+											"pm.test(\"Validate peer-group-name 5 = \" + pm.environment.get(\"bgp_peer_name3\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name3\"));",
+											"});",
+											"//afi-safi-name 7",
+											"pm.test(\"Validate afi-safi-name 7 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//afi-safi-name 8",
+											"pm.test(\"Validate afi-safi-name 8 = \" + pm.environment.get(\"bgp_openconfig_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types\"));",
+											"});",
+											"//send-community 2",
+											"pm.test(\"Validate send-community 2 = \" + pm.environment.get(\"bgp_send_community\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"send-community\"]).to.eql(pm.environment.get(\"bgp_send_community\"));",
+											"});",
+											"//auth-password 2",
+											"pm.test(\"Validate auth-password 2 = \" + pm.environment.get(\"bgp_password\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"auth-password\"]).to.eql(pm.environment.get(\"bgp_password\"));",
+											"});",
+											"//peer-as 3",
+											"pm.test(\"Validate peer-as 3 = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"peer-as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//peer-group-name 6",
+											"pm.test(\"Validate peer-group-name 6 = \" + pm.environment.get(\"bgp_peer_name3\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name3\"));",
+											"});",
+											"//description",
+											"pm.test(\"Validate description = \" + pm.environment.get(\"eth_description\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+											"});",
+											"//local-address",
+											"pm.test(\"Validate local-address = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"][1][\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"//as",
+											"pm.test(\"Validate as = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"global\"][\"config\"][\"as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//afi-safi-name 9",
+											"pm.test(\"Validate afi-safi-name 9 = \" + pm.environment.get(\"bgp_openconfig_types_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"global\"][\"afi-safis\"][\"afi-safi\"][0][\"config\"][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types_UPD\"));",
+											"});",
+											"//afi-safi-name 10",
+											"pm.test(\"Validate afi-safi-name 10 = \" + pm.environment.get(\"bgp_openconfig_types_UPD\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"bgp\"][\"global\"][\"afi-safis\"][\"afi-safi\"][0][\"afi-safi-name\"]).to.eql(pm.environment.get(\"bgp_openconfig_types_UPD\"));",
+											"});",
+											"//identifier",
+											"pm.test(\"Validate identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//identifier 2",
+											"pm.test(\"Validate identifier 2 = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//name 3",
+											"pm.test(\"Validate name 3 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//name 4",
+											"pm.test(\"Validate name 4 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//identifier 3",
+											"pm.test(\"Validate identifier 3 = \" + pm.environment.get(\"bgp_openconfig-policy_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][1][\"identifier\"]).to.eql(pm.environment.get(\"bgp_openconfig-policy_types\"));",
+											"});",
+											"//identifier 4",
+											"pm.test(\"Validate identifier 4 = \" + pm.environment.get(\"bgp_openconfig-policy_types\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][1][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"bgp_openconfig-policy_types\"));",
+											"});",
+											"//name 5",
+											"pm.test(\"Validate name 5 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][1][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											"//name 6",
+											"pm.test(\"Validate name 6 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:network-instance\"][0][\"protocols\"][\"protocol\"][1][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "    <vrf xmlns=\"urn:opendaylight:params:xml:ns:yang:ios-cli\">\n        <id>2</id>\n        <address-type>random</address-type>\n        <unicast>no</unicast>\n    </vrf>"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name_UPD}}"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}/"
+							},
+							"response": []
+						},
+						{
+							"name": "Detele dry-run commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"if ( \"cisco_xe\" === postman.getEnvironmentVariable(\"env_type\") ){",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - nodeId\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    ",
+											"    pm.test('dryrun - contains router bgp 17676', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"router bgp 17676\");",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - no neighbor 10.64.2.195 peer-group group_a_b-3\", function() {",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"neighbor 10.64.2.195 peer-group group_a_b-3\");",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - no neighbor 10.64.2.194 peer-group group_a_b-3\", function() {",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"neighbor 10.64.2.194 peer-group group_a_b-3\");",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - no neighbor group_a_b-3 peer-group\", function() {",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"neighbor group_a_b-3 peer-group\");",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - no address-family ipv4\", function() {",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"address-family ipv4\");",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - no router bgp 17676\", function() {",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"router bgp 17676\");",
+											"    });",
+											"",
+											"}"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\": {\n    \"target-nodes\": {\n      \n    }\n  }\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit"
+							},
+							"response": []
+						},
+						{
+							"name": "Detele commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": {
+										"username": "admin",
+										"password": "admin",
+										"showPassword": false
+									}
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\": {\n    \"target-nodes\": {\n      \n    }\n  }\n}"
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 404\", function () {",
+											"  pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}"
 							},
 							"response": []
 						}

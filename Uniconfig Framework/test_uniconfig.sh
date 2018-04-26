@@ -8,7 +8,11 @@ if [ -f $file ] ; then
     rm $file
 fi
 
-### Test for IOS XR router
+### Test for IOS XR/XE router
+#XE_devices=("xe_env.json")
+XE_devices=()
+#XE_folders=("BGP CRUD-EXT")
+XE_folders=()
 #XR_devices=("xrv5_env.json" "junos173virt_env.json")
 XR_devices=()
 #XR5_folders=("OSPF CRUD" "BGP CRUD" "LACP CRUD" "MPLS-TUNNEL-FULL CRUD" "MPLS-TUNNEL CRUD Config" "MPLS-TUNNEL CRUD Destination" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD IPv6" "LAG CRUD Damping" "LAG CRUD Statistics" "LAG CRUD AggegationNoBfd" "LAG-FULL CRUD" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "IFC-ACL CRUD Acl-sets" "RSVP CRUD" "PF-IFC CRUD CiscoExt" "SNMP Gig" "SNMP Lag" "SNMP Non" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface-IPv4" "IFC CRUD Subinterface-IPv6" "IFC CRUD Damping" "IFC CRUD Ethernet" "IFC CRUD Statistics" "IFC-FULL CRUD" "SYSLOG CRUD" "QOS CRUD" "RP CRUD")
@@ -23,9 +27,38 @@ XR_devices=()
 XR5_folders=()
 
 
+for device in ${XE_devices[@]}
+do
+	echo Collection running with $device
+         if [ "$device" == "xe_env.json" ]
+         then
+             folder="XE Mount"
+             #echo "$folder"
+             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
+             for folder in "${XE_folders[@]}"
+             do
+                coll_len=`echo $folder | wc -w`
+                coll_arr=($folder)
+                ll=`if [ $coll_len -gt 2 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
+                sfolder="XE ${coll_arr[@]:0:${ll}} Setup"
+                #echo "$sfolder"
+                newman run $collection -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE) $sfolder FAILED" >> $file; fi
+                #echo "$folder"
+                newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE) $folder FAILED" >> $file; fi              
+                tfolder="XE ${coll_arr[@]:0:${ll}} Teardown"
+                #echo "$tfolder"
+                newman run $collection -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XE) $tfolder FAILED" >> $file; fi
+                sleep 2
+             done
+             folder="XE Unmount"
+             #echo "$folder"
+             newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
+         fi
+done
+
 for device in ${XR_devices[@]}
 do
-   echo Collection running with $device
+	echo Collection running with $device
          if [ "$device" == "xrv5_env.json" ]
          then
              folder="XR5 Mount"

@@ -38,6 +38,7 @@ fi
 
 # Configuration part
 i=0
+mounted_peer_devices=0
 for (( ; ; ))
 do
 
@@ -58,6 +59,16 @@ do
    echo "Newman return code $?"
 
    rm $env_file_name
+   nrc=$?
+   echo "Newman return code $nrc"
+
+   rm $env_file_name
+
+   # let's break if miounting a node failed 
+   if [ $nrc -ne 0 ]; then
+     break
+   fi
+   mounted_peer_devices=$i
 
    # do not break the loop if unlimited nodes to be configured 
    if [ $max_devices_configured -eq 0 ]; then
@@ -71,7 +82,8 @@ do
 done
 
 configured_peer_devices=$i
-echo "Configured devices: $i"
+echo "Mounted devices: $mounted_peer_devices"
+echo "$mounted_peer_devices" > ./mounted_devices.count
 
 # Deconfiguration part missing for now
 for (( i=1; i <= $configured_peer_devices; i++ ))
@@ -85,8 +97,8 @@ do
    sed -i "s/ODL_IP/$odl_ip_address/g" $env_file_name
    sed -i "s/NODE_NAME/$node_name/g" $env_file_name
 
-   rc=`newman run $collection_file --bail -e $env_file_name -n 1 --folder "$router_unmount_folder"`
-   echo "Return code"
+   newman run $collection_file --bail -e $env_file_name -n 1 --folder "$router_unmount_folder"
+   echo "Deconfigure newman rc: $?"
 
    rm $env_file_name
 

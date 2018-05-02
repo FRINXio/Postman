@@ -56,9 +56,6 @@ do
    sed -i "s/NODE_IP/$router_ip/g" $env_file_name
 
    newman run $collection_file --bail -e $env_file_name -n 1 --folder "$router_mount_folder"
-   echo "Newman return code $?"
-
-   rm $env_file_name
    nrc=$?
    echo "Newman return code $nrc"
 
@@ -83,7 +80,8 @@ done
 
 configured_peer_devices=$i
 echo "Mounted devices: $mounted_peer_devices"
-echo "$mounted_peer_devices" > ./mounted_devices.count
+echo "Mounted_devices" > ./mounted_devices.csv
+echo "$mounted_peer_devices" >> ./mounted_devices.csv
 
 # Deconfiguration part missing for now
 for (( i=1; i <= $configured_peer_devices; i++ ))

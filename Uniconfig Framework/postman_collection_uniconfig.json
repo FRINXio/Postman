@@ -8250,6 +8250,1084 @@
 						}
 					],
 					"_postman_isSubFolder": true
+				},
+				{
+					"name": "XR5 QOS CRUD",
+					"description": "",
+					"item": [
+						{
+							"name": "XR5 QOS CRUD READERS",
+							"description": "",
+							"item": [
+								{
+									"name": "configure class-map match-all",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n class-map match-all {{qos_class_name3}}\n match qos-group {{qos_group}}\n match mpls experimental topmost {{qos_mpls_topmost_min}}\n match precedence {{qos_precedence5}}\n match access-group ipv4 {{qos_class_name3}}\n end-class-map\n commit\n end\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"  }",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network"
+									},
+									"response": []
+								},
+								{
+									"name": "replace-config-with-operational",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate result\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational"
+									},
+									"response": []
+								},
+								{
+									"name": "show class-map match-all",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//id",
+													"pm.test(\"Validate config id = all\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"config\"][\"id\"]).to.eql(\"all\");",
+													"});",
+													"//",
+													"pm.test(\"Validate  = \" + pm.environment.get(\"qos_precedence5\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"conditions\"][\"frinx-qos-extension:precedences\"][0]).to.eql(pm.environment.get(\"qos_precedence5\"));",
+													"});",
+													"//traffic-class",
+													"pm.test(\"Validate traffic-class = \" + pm.environment.get(\"qos_mpls_topmost_min\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"conditions\"][\"mpls\"][\"config\"][\"traffic-class\"]).to.eql(JSON.parse(pm.environment.get(\"qos_mpls_topmost_min\")));",
+													"});",
+													"//frinx-qos-extension:acl-ref",
+													"pm.test(\"Validate frinx-qos-extension:acl-ref = \" + pm.environment.get(\"qos_class_name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"conditions\"][\"ipv4\"][\"config\"][\"frinx-qos-extension:acl-ref\"]).to.eql(pm.environment.get(\"qos_class_name3\"));",
+													"});",
+													"//frinx-qos-extension:qos-group",
+													"pm.test(\"Validate frinx-qos-extension:qos-group = \" + pm.environment.get(\"qos_group\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"conditions\"][\"frinx-qos-extension:qos-group\"]).to.eql(JSON.parse(pm.environment.get(\"qos_group\")));",
+													"});",
+													"//id",
+													"pm.test(\"Validate id = all\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"id\"]).to.eql(\"all\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"qos_class_name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"qos_class_name3\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"qos_class_name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"name\"]).to.eql(pm.environment.get(\"qos_class_name3\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-qos:qos/classifiers/classifier/{{qos_class_name3}}"
+									},
+									"response": []
+								},
+								{
+									"name": "delete class-map match-all",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n no class-map match-all {{qos_class_name3}}\n commit\n end\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"  }",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network"
+									},
+									"response": []
+								},
+								{
+									"name": "replace-config-with-operational",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate result\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted class-map match-all",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 404\", function () {",
+													"  pm.response.to.have.status(404);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-qos:qos/classifiers/classifier/{{qos_class_name3}}"
+									},
+									"response": []
+								},
+								{
+									"name": "configure class-map match-any and policy-map",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nclass-map match-any {{qos_class_name5}}\n match mpls experimental topmost {{qos_mpls_topmost_min}} \n match precedence {{qos_precedence0}} \n end-class-map\npolicy-map {{qos_policy_name3}}\n class {{qos_class_name5}}\n  set qos-group {{qos_set_group}}\n  set mpls experimental topmost {{qos_set_mpls_topmost_upd}}\n  set precedence {{qos_precedence0}}\n  priority level {{qos_weight_priority}} \n exit\n class class-default\n  set qos-group {{qos_set_group}}\n  set mpls experimental topmost {{qos_set_mpls_topmost_upd}}\n  set precedence {{qos_precedence0}}\n  police rate percent 1 \n  exit \n  queue-limit {{qos_queue_limit_ms}} ms \n  bandwidth remaining percent {{bandwidth_percent_remaining}} \n exit \n end-policy-map \n commit\n end\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"  }",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network"
+									},
+									"response": []
+								},
+								{
+									"name": "replace-config-with-operational",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate result\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational"
+									},
+									"response": []
+								},
+								{
+									"name": "show class-map match-any",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//id",
+													"pm.test(\"Validate config id = 1\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"config\"][\"id\"]).to.eql(\"1\");",
+													"});",
+													"//traffic-class",
+													"pm.test(\"Validate traffic-class = \" + pm.environment.get(\"qos_mpls_topmost_min\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"conditions\"][\"mpls\"][\"config\"][\"traffic-class\"]).to.eql(JSON.parse(pm.environment.get(\"qos_mpls_topmost_min\")));",
+													"});",
+													"//id",
+													"pm.test(\"Validate id = 1\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"id\"]).to.eql(\"1\");",
+													"});",
+													"//set-mpls-tc",
+													"pm.test(\"Validate set-mpls-tc1 = \" + pm.environment.get(\"qos_set_mpls_topmost_upd\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"actions\"][\"remark\"][\"config\"][\"set-mpls-tc\"]).to.eql(JSON.parse(pm.environment.get(\"qos_set_mpls_topmost_upd\")));",
+													"});",
+													"//frinx-qos-extension:set-qos-group",
+													"pm.test(\"Validate frinx-qos-extension:set-qos-group1 = \" + pm.environment.get(\"qos_set_group\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"actions\"][\"remark\"][\"config\"][\"frinx-qos-extension:set-qos-group\"]).to.eql(JSON.parse(pm.environment.get(\"qos_set_group\")));",
+													"});",
+													"//",
+													"pm.test(\"Validate precedence = \" + pm.environment.get(\"qos_precedence0\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"actions\"][\"remark\"][\"config\"][\"frinx-qos-extension:set-precedences\"][0]).to.eql(pm.environment.get(\"qos_precedence0\"));",
+													"});",
+													"//target-group",
+													"pm.test(\"Validate target-group = \" + pm.environment.get(\"qos_policy_name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"actions\"][\"config\"][\"target-group\"]).to.eql(pm.environment.get(\"qos_policy_name3\"));",
+													"});",
+													"//id",
+													"pm.test(\"Validate config id = 2\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][1][\"config\"][\"id\"]).to.eql(\"2\");",
+													"});",
+													"//",
+													"pm.test(\"Validate  precedense2= \" + pm.environment.get(\"qos_precedence0\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][1][\"conditions\"][\"frinx-qos-extension:precedences\"][0]).to.eql(pm.environment.get(\"qos_precedence0\"));",
+													"});",
+													"//id",
+													"pm.test(\"Validate id = 2\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][1][\"id\"]).to.eql(\"2\");",
+													"});",
+													"//set-mpls-tc",
+													"pm.test(\"Validate set-mpls-tc2 = \" + pm.environment.get(\"qos_set_mpls_topmost_upd\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][1][\"actions\"][\"remark\"][\"config\"][\"set-mpls-tc\"]).to.eql(JSON.parse(pm.environment.get(\"qos_set_mpls_topmost_upd\")));",
+													"});",
+													"//frinx-qos-extension:set-qos-group",
+													"pm.test(\"Validate frinx-qos-extension:set-qos-group2 = \" + pm.environment.get(\"qos_set_group\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][1][\"actions\"][\"remark\"][\"config\"][\"frinx-qos-extension:set-qos-group\"]).to.eql(JSON.parse(pm.environment.get(\"qos_set_group\")));",
+													"});",
+													"//",
+													"pm.test(\"Validate precedence3 = \" + pm.environment.get(\"qos_precedence0\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][1][\"actions\"][\"remark\"][\"config\"][\"frinx-qos-extension:set-precedences\"][0]).to.eql(pm.environment.get(\"qos_precedence0\"));",
+													"});",
+													"//target-group",
+													"pm.test(\"Validate target-group2= \" + pm.environment.get(\"qos_policy_name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][1][\"actions\"][\"config\"][\"target-group\"]).to.eql(pm.environment.get(\"qos_policy_name3\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"qos_class_name5\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"qos_class_name5\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"qos_class_name5\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"name\"]).to.eql(pm.environment.get(\"qos_class_name5\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-qos:qos/classifiers/classifier/{{qos_class_name5}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show default class",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//id",
+													"pm.test(\"Validate config id =all \", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"config\"][\"id\"]).to.eql(\"all\");",
+													"});",
+													"//id",
+													"pm.test(\"Validate id = all\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"id\"]).to.eql(\"all\");",
+													"});",
+													"//set-mpls-tc",
+													"pm.test(\"Validate set-mpls-tc = \" + pm.environment.get(\"qos_set_mpls_topmost_upd\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"actions\"][\"remark\"][\"config\"][\"set-mpls-tc\"]).to.eql(JSON.parse(pm.environment.get(\"qos_set_mpls_topmost_upd\")));",
+													"});",
+													"//frinx-qos-extension:set-qos-group",
+													"pm.test(\"Validate frinx-qos-extension:set-qos-group = \" + pm.environment.get(\"qos_set_group\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"actions\"][\"remark\"][\"config\"][\"frinx-qos-extension:set-qos-group\"]).to.eql(JSON.parse(pm.environment.get(\"qos_set_group\")));",
+													"});",
+													"//",
+													"pm.test(\"Validate  = \" + pm.environment.get(\"qos_precedence0\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"actions\"][\"remark\"][\"config\"][\"frinx-qos-extension:set-precedences\"][0]).to.eql(pm.environment.get(\"qos_precedence0\"));",
+													"});",
+													"//target-group",
+													"pm.test(\"Validate target-group = \" + pm.environment.get(\"qos_policy_name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"terms\"][\"term\"][0][\"actions\"][\"config\"][\"target-group\"]).to.eql(pm.environment.get(\"qos_policy_name3\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"qos_policy_name_default\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"qos_policy_name_default\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"qos_policy_name_default\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:classifier\"][0][\"name\"]).to.eql(pm.environment.get(\"qos_policy_name_default\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-qos:qos/classifiers/classifier/{{qos_policy_name_default}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show policy-map",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"qos_policy_name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"qos_policy_name3\"));",
+													"});",
+													"//queue",
+													"pm.test(\"Validate queue = class-default\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][0][\"inputs\"][\"input\"][0][\"config\"][\"queue\"]).to.eql(\"class-default\");",
+													"});",
+													"//id",
+													"pm.test(\"Validate config id = class-default\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][0][\"inputs\"][\"input\"][0][\"config\"][\"id\"]).to.eql(\"class-default\");",
+													"});",
+													"//id",
+													"pm.test(\"Validate id = class-default\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][0][\"inputs\"][\"input\"][0][\"id\"]).to.eql(\"class-default\");",
+													"});",
+													"//sequence",
+													"pm.test(\"Validate config sequence2 =2\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][0][\"config\"][\"sequence\"]).to.eql(2);",
+													"});",
+													"//frinx-qos-extension:max-queue-depth-ms",
+													"pm.test(\"Validate frinx-qos-extension:max-queue-depth-ms = \" + pm.environment.get(\"qos_queue_limit_ms\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][0][\"one-rate-two-color\"][\"config\"][\"frinx-qos-extension:max-queue-depth-ms\"]).to.eql(JSON.parse(pm.environment.get(\"qos_queue_limit_ms\")));",
+													"});",
+													"//cir-pct-remaining",
+													"pm.test(\"Validate cir-pct-remaining = \" + pm.environment.get(\"bandwidth_percent_remaining\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][0][\"one-rate-two-color\"][\"config\"][\"cir-pct-remaining\"]).to.eql(JSON.parse(pm.environment.get(\"bandwidth_percent_remaining\")));",
+													"});",
+													"//max-queue-depth-percent",
+													"pm.test(\"Validate max-queue-depth-percent = 1\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][0][\"one-rate-two-color\"][\"config\"][\"max-queue-depth-percent\"]).to.eql(1);",
+													"});",
+													"//sequence",
+													"pm.test(\"Validate sequence2 = 2\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][0][\"sequence\"]).to.eql(2);",
+													"});",
+													"//queue",
+													"pm.test(\"Validate queue2 = \" + pm.environment.get(\"qos_class_name5\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][1][\"inputs\"][\"input\"][0][\"config\"][\"queue\"]).to.eql(pm.environment.get(\"qos_class_name5\"));",
+													"});",
+													"//id",
+													"pm.test(\"Validate config id = \" + pm.environment.get(\"qos_class_name5\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][1][\"inputs\"][\"input\"][0][\"config\"][\"id\"]).to.eql(pm.environment.get(\"qos_class_name5\"));",
+													"});",
+													"//weight",
+													"pm.test(\"Validate weight = \" + pm.environment.get(\"qos_weight_priority\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][1][\"inputs\"][\"input\"][0][\"config\"][\"weight\"]).to.eql(JSON.parse(pm.environment.get(\"qos_weight_priority\")));",
+													"});",
+													"//id",
+													"pm.test(\"Validate id = \" + pm.environment.get(\"qos_class_name5\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][1][\"inputs\"][\"input\"][0][\"id\"]).to.eql(pm.environment.get(\"qos_class_name5\"));",
+													"});",
+													"//sequence",
+													"pm.test(\"Validate config sequence1 =1 \", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][1][\"config\"][\"sequence\"]).to.eql(1);",
+													"});",
+													"//sequence",
+													"pm.test(\"Validate sequence1 =1 \", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"schedulers\"][\"scheduler\"][1][\"sequence\"]).to.eql(1);",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"qos_policy_name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-qos:scheduler-policy\"][0][\"name\"]).to.eql(pm.environment.get(\"qos_policy_name3\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-qos:qos/scheduler-policies/scheduler-policy/{{qos_policy_name3}}"
+									},
+									"response": []
+								},
+								{
+									"name": "delete class-map match-any and policy-map",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n no policy-map {{qos_policy_name3}}\n no class-map match-any {{qos_class_name5}}\n commit\n end\"\n  }\n}\n"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read"
+									},
+									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"  }",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network"
+									},
+									"response": []
+								},
+								{
+									"name": "replace-config-with-operational",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate result\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted class-map match-any",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 404\", function () {",
+													"  pm.response.to.have.status(404);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-qos:qos/classifiers/classifier/{{qos_class_name5}}"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted default class",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 404\", function () {",
+													"  pm.response.to.have.status(404);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-qos:qos/classifiers/classifier/{{qos_policy_name3}}-default"
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted policy-map",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 404\", function () {",
+													"  pm.response.to.have.status(404);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-qos:qos/scheduler-policies/scheduler-policy/{{qos_policy_name3}}"
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
 				}
 			]
 		},

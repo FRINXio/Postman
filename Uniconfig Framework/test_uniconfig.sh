@@ -66,6 +66,8 @@ do
              newman run $collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing $folder FAILED" >> $file; fi
              for folder in "${XR5_folders[@]}"
              do
+                rfolder="XR5 $folder READERS"
+                newman run $collection -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $rfolder FAILED" >> $file; fi
                 coll_len=`echo $folder | wc -w`
                 coll_arr=($folder)
                 ll=`if [ $coll_len -gt 2 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
@@ -73,8 +75,7 @@ do
                 #echo "$sfolder"
                 newman run $collection -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $sfolder FAILED" >> $file; fi
                 #echo "$folder"
-                newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $folder FAILED" >> $file; fi
-                
+                newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $folder FAILED" >> $file; fi 
                 tfolder="XR5 ${coll_arr[@]:0:${ll}} Teardown"
                 #echo "$tfolder"
                 newman run $collection -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing (XR5) $tfolder FAILED" >> $file; fi

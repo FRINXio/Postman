@@ -26062,6 +26062,261 @@
 									"response": []
 								},
 								{
+									"name": "update acl TEST1 to ipv4 udp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "02311210-cd14-485c-8e7d-dc64374e5f96",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_in-acl-name3}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n            \"config\": {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 4,\n                        \"ipv4\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_UDP\",\n                                \"frinx-acl-extension:source-address-wildcarded\": {\n                                    \"wildcard-mask\": \"0.255.255.255\",\n                                    \"address\": \"0.0.0.0\"\n                                },\n                                \"frinx-acl-extension:destination-address-wildcarded\": {\n                                    \"wildcard-mask\": \"0.255.255.255\",\n                                    \"address\": \"0.0.0.0\"\n                                }\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 4\n                        },\n                        \"transport\": {\n                            \"config\": {\n                                \"source-port\": 10,\n                                \"destination-port\": \"10..65535\"\n                            }\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:ACCEPT\"\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4"
+									},
+									"response": []
+								},
+								{
+									"name": "updated dry-run commit",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") ){",
+													"    pm.test(\"Status code is 200\", function () {",
+													"        pm.response.to.have.status(200);",
+													"    });",
+													"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+													"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"    });",
+													"    pm.test(\"dryrun - nodeId\", function() {",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"    });",
+													"    ",
+													"    ",
+													"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+													"    });",
+													"    pm.test('dryrun - contains ipv6 access-list TEST1', function () {",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"ipv6 access-list TEST1\");",
+													"    });",
+													"    pm.test('dryrun - contains 33 deny tcp 10:11:12::2/128 range 1024 6553 100:1:1:2:3::1/128 range 4 1023', function () {",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"33 deny tcp 10:11:12::2/128 range 1024 6553 100:1:1:2:3::1/128 range 4 1023\");",
+													"    });",
+													"}"
+												]
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Here we wait 15 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+													"setTimeout(function(){}, 15000);"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\": {\n        \"target-nodes\": {\n    }\n\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit"
+									},
+									"response": []
+								},
+								{
+									"name": "update commit",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate overall-configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate nodeId\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": {
+												"username": "admin",
+												"password": "admin",
+												"showPassword": false
+											}
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"input\": {\n        \"target-nodes\": {\n    }\n\n  }\n}"
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit"
+									},
+									"response": []
+								},
+								{
+									"name": "show updated TEST1 ipv4 udp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "a2576506-71c6-4a4f-aa9b-fbfd3d138826",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id config",
+													"pm.test(\"Validate config sequence-id = 33\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(4);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 33\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(4);",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:destination-address-wildcarded\"][\"wildcard-mask\"]).to.eql(\"0.255.255.255\");",
+													"});",
+													"",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:destination-address-wildcarded\"][\"wildcard-mask\"]).to.eql(\"0.255.255.255\");",
+													"});",
+													"",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_TCP\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_UDP\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:source-address-wildcarded\"][\"wildcard-mask\"]).to.eql(\"0.255.255.255\");",
+													"});",
+													"",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:source-address-wildcarded\"][\"address\"]).to.eql(\"0.0.0.0\");",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action =frinx-openconfig-acl:DROP \", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:ACCEPT\");",
+													"});",
+													"//type config",
+													"pm.test(\"Validate config type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name config",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//destination-port",
+													"pm.test(\"Validate destination-port =4..1023 \", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"destination-port\"]).to.eql(\"10..65535\");",
+													"});",
+													"//source-port",
+													"pm.test(\"Validate source-port = 1024..6553\", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"source-port\"]).to.eql(10);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4"
+									},
+									"response": []
+								},
+								{
 									"name": "delete TEST1 ipv4",
 									"event": [
 										{

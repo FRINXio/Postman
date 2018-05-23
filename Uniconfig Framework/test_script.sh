@@ -33,44 +33,47 @@ if [ -f $file ] ; then
 fi
 
 echo "Going to test with env_file $env_file. Assigned prefix is: \"$dev_pref\"."
+mkdir -p junit_results
 
 folder="$dev_pref Mount"
 echo "Performing $folder"
-unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
+unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/mount.xml"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
 
 txt_collections="`cat $tests_input_file | jq -c keys[]`"
 echo $txt_collections
 declare -a "collections=($txt_collections)"
 echo ${collections[@]}
+i=0
 for collection in "${collections[@]}"
 do
   txt_folders=`cat $tests_input_file | jq -c ."\"$collection\""[]`
   declare -a "folders=($txt_folders)"
   for folder in "${folders[@]}"
-  do 
+  do
+    ((i++))
     rfolder="$dev_pref $folder READERS"
     echo "Performing $rfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$rfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $rfolder FAILED" >> $file; fi
+    unbuffer newman run $collection -e $device -n 1 --folder "$rfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$rfolder.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $rfolder FAILED" >> $file; fi
 
     coll_len=`echo $folder | wc -w`
     coll_arr=($folder)
     ll=`if [ $coll_len -gt 2 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
     sfolder="$dev_pref ${coll_arr[@]:0:${ll}} Setup"
     echo "Performing $sfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$sfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $sfolder FAILED" >> $file; fi
+    unbuffer newman run $collection -e $device -n 1 --folder "$sfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$sfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $sfolder FAILED" >> $file; fi
     echo "Performing $folder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $folder FAILED" >> $file; fi
+    unbuffer newman run $collection -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/$folder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $folder FAILED" >> $file; fi
 
     tfolder="$dev_pref ${coll_arr[@]:0:${ll}} Teardown"
     echo "Performing $tfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$tfolder"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $tfolder FAILED" >> $file; fi
+    unbuffer newman run $collection -e $device -n 1 --folder "$tfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$tfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $tfolder FAILED" >> $file; fi
     sleep 2
   done
 done
 
 folder="$dev_pref Unmount"
 echo "Performing $folder"
-unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
+unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/unmount.xml"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
 
 if [ -f $file ] ; then
     cat $file

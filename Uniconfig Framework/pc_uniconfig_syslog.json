@@ -1,0 +1,1354 @@
+{
+	"info": {
+		"_postman_id": "52eaff65-4f3c-4545-86ee-421ef855188a",
+		"name": "pc_uniconfig_syslog",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Tests",
+			"description": "",
+			"item": [
+				{
+					"name": "SYSLOG CRUD",
+					"description": null,
+					"item": [
+						{
+							"name": "create syslog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 201\", function () {",
+											"  pm.response.to.have.status(201);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"interface\": [\n        {\n            \"interface-id\": \"{{lag_prefix}}{{lag_inf-id}}\",\n            \"config\": {\n                \"interface-id\": \"{{lag_prefix}}{{lag_inf-id}}\",\n                \"enabled-logging-for-event\": [\n                    {\n                        \"event-name\": \"frinx-event-types:LINK_UP_DOWN\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-logging:logging",
+										"interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create syslog dry-run commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") ){",
+											"    ",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - nodeId\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    pm.test('dryrun - contains interface Bundle-Ether7029', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"interface Bundle-Ether7029\");",
+											"    });",
+											"    pm.test('dryrun - contains logging events link-status', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"logging events link-status\");",
+											"    });",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Here we wait 15 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+											"setTimeout(function(){}, 15000);"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"dryrun-manager:dryrun-commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create syslog commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show created syslog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate interface-id\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"interface-id\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
+											"});",
+											"pm.test(\"Validate interface-id\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"config\"][\"interface-id\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
+											"});",
+											"pm.test(\"Validate event-name\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"config\"][\"enabled-logging-for-event\"][0][\"event-name\"]).to.eql(\"frinx-event-types:LINK_UP_DOWN\");",
+											"});",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-logging:logging",
+										"interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update syslog => delete",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"interface\": [\n        {\n            \"interface-id\": \"{{lag_prefix}}{{lag_inf-id}}\",\n            \"config\": {\n                \"interface-id\": \"{{lag_prefix}}{{lag_inf-id}}\"\n            }\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-logging:logging",
+										"interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update dry-run commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") ){",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - nodeId\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    ",
+											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    pm.test('dryrun - contains interface Bundle-Ether7029', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"interface Bundle-Ether7029\");",
+											"    });",
+											"    pm.test('dryrun - contains no logging events link-status', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no logging events link-status\");",
+											"    });",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Here we wait 15 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+											"setTimeout(function(){}, 15000);"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"dryrun-manager:dryrun-commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update syslog commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted syslog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate interface-id\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"interface-id\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
+											"});",
+											"pm.test(\"Validate interface-id\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"config\"][\"interface-id\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
+											"});",
+											"pm.test(\"Validate event-name\", function() {",
+											"  pm.expect(pm.response.text()).not.to.include(\"frinx-event-types:LINK_UP_DOWN\");",
+											"});",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-logging:logging",
+										"interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete syslog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-logging:logging",
+										"interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete syslog commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted syslog",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-logging:logging",
+										"interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "syslog replace-config-with-operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\"target-nodes\": {\n\t\t\t\"node\": [\n\t\t\t\t\"{{node_id}}\"\n\t\t\t]\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			]
+		},
+		{
+			"name": "XR5 SYSLOG CRUD",
+			"description": null,
+			"item": [
+				{
+					"name": "XR5 SYSLOG CRUD Setup",
+					"description": null,
+					"item": [
+						{
+							"name": "create lag interface",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 201\", function () {",
+											"  pm.response.to.have.status(201);",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"{{lag_prefix}}{{lag_inf-id}}\",\n            \"config\": {\n                \"type\": \"iana-if-type:ieee8023adLag\",\n                \"enabled\": {{lag_enabled}},\n                \"mtu\": {{lag_mtu}},\n                \"description\": \"{{lag_description}}\",\n                \"name\": \"{{lag_prefix}}{{lag_inf-id}}\"\n            },\n            \"subinterfaces\": {\n                \"subinterface\": [\n                    {\n                        \"index\": 0,\n                        \"config\": {\n                            \"index\": 0\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								},
+								"description": "At first we try to update all values via openconfig - no change in comparing with previous values."
+							},
+							"response": []
+						},
+						{
+							"name": "create lag interface commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show lag interface",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate enabled\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"enabled\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"lag_enabled\")));",
+											"});",
+											"pm.test(\"Validate description\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"description\"]).to.eql(postman.getEnvironmentVariable(\"lag_description\"));",
+											"});",
+											"pm.test(\"Validate name\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
+											"});",
+											"pm.test(\"Validate mtu\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"mtu\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"lag_mtu\")));",
+											"});",
+											"pm.test(\"Validate name\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "XR5 SYSLOG CRUD Teardown",
+					"description": null,
+					"item": [
+						{
+							"name": "delete lag interface",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete lag interface commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted lag interface from interface list",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\")+\" not included\", function() {",
+											"  pm.expect(pm.response.text()).not.to.include(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"))",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted lag interface",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 404\", function () {",
+											"  pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface",
+										"{{lag_prefix}}{{lag_inf-id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			]
+		}
+	]
+}

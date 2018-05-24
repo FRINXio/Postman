@@ -1,0 +1,2157 @@
+{
+	"info": {
+		"_postman_id": "45a9e5cc-3922-4f51-a606-7b853a8d2104",
+		"name": "pc_unified_ospf",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Tests",
+			"description": "",
+			"item": [
+				{
+					"name": "OSPF CRUD",
+					"description": null,
+					"item": [
+						{
+							"name": "OSPF CRUD non-cisco",
+							"description": null,
+							"item": [
+								{
+									"name": "Configure ospf NATIVE",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Request data: \" + request.data.toString());",
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"protocol\": [\n        {\n            \"name\": {{ospf}},\n            \"identifier\": \"frinx-openconfig-policy-types:OSPF\",\n            \"config\": {\n                \"name\": {{ospf}},\n                \"identifier\": \"frinx-openconfig-policy-types:OSPF\"\n            },\n            \"ospfv2\": {\n                \"global\": {\n                    \"timers\": {\n                        \"max-metric\": {\n                            \"config\": {\n                                \"set\": true,\n                                \"timeout\": {{ospf_timeout}},\n                                \"include\": [ \n                                    \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_STUB\", \n                                    \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_TYPE2_EXTERNAL\",\n                                    \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE\",\n                                    \"frinx-cisco-ospf-extension:MAX_METRIC_SUMMARY_LSA\"\n                                    \n                                ]\n                            }\n                        }\n                    }\n                },\n                \"areas\": {\n                    \"area\": [\n                        {\n                            \"identifier\":{{ospf_area_id}},\n                            \"config\": {\n                                \"identifier\": {{ospf_area_id}}\n                            },\n                            \"interfaces\": {\n                                \"interface\": [\n                                    {\n                                        \"id\": \"{{test_interface}}\",\n                                        \"config\": {\n                                            \"metric\": {{ospf_cost}}\n                                        },\n                                        \"interface-ref\": {\n                                            \"config\": {\n                                                \"interface\": \"{{test_interface}}\"\n                                            }\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show ospf process",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"var mystring = \"\\\"name\\\":\\\"\" + String (postman.getEnvironmentVariable(\"ospf\"))+\"\\\"\";",
+													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring);",
+													"var mystring = \"\\\"timeout\\\":\" + String (postman.getEnvironmentVariable(\"ospf_timeout\"));",
+													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring); ",
+													"var mystring = '\"identifier\":' + postman.getEnvironmentVariable(\"ospf_area_id\");",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
+													"var mystring = '\"id\":\"' + postman.getEnvironmentVariable(\"test_interface\")+\"\\\"\";",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
+													"var mystring = '\"metric\":' + postman.getEnvironmentVariable(\"ospf_cost\");",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update ospf process",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Request data: \" + request.data.toString());",
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"protocol\": [\n        {\n            \"name\": {{ospf}},\n            \"identifier\": \"frinx-openconfig-policy-types:OSPF\",\n            \"config\": {\n                \"name\": {{ospf}},\n                \"identifier\": \"frinx-openconfig-policy-types:OSPF\"\n            },\n            \"ospfv2\": {\n                \"global\": {\n                    \"timers\": {\n                        \"max-metric\": {\n                            \"config\": {\n                                \"set\": true,\n                                \"timeout\": {{ospf_timeout2}},\n                                \"include\": [ \n                                    \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_STUB\", \n                                    \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_TYPE2_EXTERNAL\",\n                                    \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE\",\n                                    \"frinx-cisco-ospf-extension:MAX_METRIC_SUMMARY_LSA\"\n                                ]\n                            }\n                        }\n                    }\n                },\n                \"areas\": {\n                    \"area\": [\n                        {\n                            \"identifier\":{{ospf_area_id2}},\n                            \"config\": {\n                                \"identifier\": {{ospf_area_id2}}\n                            },\n                            \"interfaces\": {\n                                \"interface\": [\n                                    {\n                                        \"id\": \"{{test_interface}}\",\n                                        \"config\": {\n                                            \"metric\": {{ospf_cost2}}\n                                        },\n                                        \"interface-ref\": {\n                                            \"config\": {\n                                                \"interface\": \"{{test_interface}}\"\n                                            }\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show updated ospf process",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"var mystring = \"\\\"name\\\":\\\"\" + String (postman.getEnvironmentVariable(\"ospf\"))+\"\\\"\";",
+													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring);",
+													"var mystring = \"\\\"timeout\\\":\" + String (postman.getEnvironmentVariable(\"ospf_timeout2\"));",
+													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring); ",
+													"var mystring = '\"identifier\":' + postman.getEnvironmentVariable(\"ospf_area_id2\");",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
+													"var mystring = '\"id\":\"' + postman.getEnvironmentVariable(\"test_interface\")+\"\\\"\";",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
+													"var mystring = '\"metric\":' + postman.getEnvironmentVariable(\"ospf_cost2\");",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Invalid ospf name",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"pm.test(\"Status code is 500\", function () {",
+													"  pm.response.to.have.status(500);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"protocol\": [\n    {\n      \"name\": {{ospf_invalid}},\n      \"identifier\": \"frinx-openconfig-policy-types:OSPF\",\n      \"config\": {\n        \"name\": {{ospf_invalid}},\n        \"identifier\": \"frinx-openconfig-policy-types:OSPF\"\n      },\n      \"ospfv2\": {\n        \"areas\": {\n          \"area\": [\n            {\n              \"identifier\":{{ospf_area_id3}},\n              \"config\": {\n                \"identifier\": {{ospf_area_id3}}\n              },\n              \"interfaces\": {\n                \"interface\": [\n                  {\n                    \"id\": \"{{test_interface}}\",\n                    \"config\": {\n                      \"metric\": {{ospf_cost2}}\n                    }\n                  }\n                ]          \n              }\n            }\n          ]\n        }\n      }\n    }\n  ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf_invalid}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"default",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf_invalid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete ospf configuration",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "OSPF CRUD cisco",
+							"description": null,
+							"item": [
+								{
+									"name": "Configure ospf NATIVE",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Request data: \" + request.data.toString());",
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"protocol\": [\n        {\n            \"name\": {{ospf}},\n            \"identifier\": \"frinx-openconfig-policy-types:OSPF\",\n            \"config\": {\n                \"name\": {{ospf}},\n                \"identifier\": \"frinx-openconfig-policy-types:OSPF\"\n            },\n            \"ospfv2\": {\n                \"global\": {\n                    \"timers\": {\n                        \"frinx-cisco-ospf-extension:max-metric-timers\" : {\n                            \"max-metric-timer\": [\n                                {\n                                    \"trigger\": \"frinx-openconfig-ospf-types:MAX_METRIC_ON_SYSTEM_BOOT\",\n                                    \"config\": {\n                                        \"trigger\": \"frinx-openconfig-ospf-types:MAX_METRIC_ON_SYSTEM_BOOT\",\n                                        \"timeout\": {{ospf_timeout}},\n                                        \"include\": [ \n                                            \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_STUB\", \n                                            \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_TYPE2_EXTERNAL\",\n                                            \"frinx-cisco-ospf-extension:MAX_METRIC_SUMMARY_LSA\"\n                                        ]\n                                    }\n                                }\n                            ]\n                        }\n                    }\n                },\n                \"areas\": {\n                    \"area\": [\n                        {\n                            \"identifier\":{{ospf_area_id}},\n                            \"config\": {\n                                \"identifier\": {{ospf_area_id}}\n                            },\n                            \"interfaces\": {\n                                \"interface\": [\n                                    {\n                                        \"id\": \"{{test_interface}}\",\n                                        \"config\": {\n                                            \"metric\": {{ospf_cost}}\n                                        },\n                                        \"interface-ref\": {\n                                            \"config\": {\n                                                \"interface\": \"{{test_interface}}\"\n                                            }\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show ospf process",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"var mystring = \"\\\"name\\\":\\\"\" + String (postman.getEnvironmentVariable(\"ospf\"))+\"\\\"\";",
+													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring);",
+													"var mystring = \"\\\"timeout\\\":\" + String (postman.getEnvironmentVariable(\"ospf_timeout\"));",
+													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring); ",
+													"var mystring = '\"identifier\":' + postman.getEnvironmentVariable(\"ospf_area_id\");",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
+													"var mystring = '\"id\":\"' + postman.getEnvironmentVariable(\"test_interface\")+\"\\\"\";",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
+													"var mystring = '\"metric\":' + postman.getEnvironmentVariable(\"ospf_cost\");",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update ospf process",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Request data: \" + request.data.toString());",
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"protocol\": [\n        {\n            \"name\": {{ospf}},\n            \"identifier\": \"frinx-openconfig-policy-types:OSPF\",\n            \"config\": {\n                \"name\": {{ospf}},\n                \"identifier\": \"frinx-openconfig-policy-types:OSPF\"\n            },\n            \"ospfv2\": {\n                \"global\": {\n                    \"timers\": {\n                        \"frinx-cisco-ospf-extension:max-metric-timers\" : {\n                            \"max-metric-timer\": [\n                                {\n                                    \"trigger\": \"frinx-openconfig-ospf-types:MAX_METRIC_ON_SYSTEM_BOOT\",\n                                    \"config\": {\n                                        \"trigger\": \"frinx-openconfig-ospf-types:MAX_METRIC_ON_SYSTEM_BOOT\",\n                                        \"timeout\": {{ospf_timeout2}},\n                                        \"include\": [ \n                                            \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_STUB\", \n                                            \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_TYPE2_EXTERNAL\",\n                                            \"frinx-cisco-ospf-extension:MAX_METRIC_SUMMARY_LSA\"\n                                        ]\n                                    }\n                                }\n                            ]\n                        }\n                    }\n                },\n                \"areas\": {\n                    \"area\": [\n                        {\n                            \"identifier\":{{ospf_area_id2}},\n                            \"config\": {\n                                \"identifier\": {{ospf_area_id2}}\n                            },\n                            \"interfaces\": {\n                                \"interface\": [\n                                    {\n                                        \"id\": \"{{test_interface}}\",\n                                        \"config\": {\n                                            \"metric\": {{ospf_cost2}}\n                                        },\n                                        \"interface-ref\": {\n                                            \"config\": {\n                                                \"interface\": \"{{test_interface}}\"\n                                            }\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show updated ospf process",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"",
+													"var mystring = \"\\\"name\\\":\\\"\" + String (postman.getEnvironmentVariable(\"ospf\"))+\"\\\"\";",
+													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring);",
+													"var mystring = \"\\\"timeout\\\":\" + String (postman.getEnvironmentVariable(\"ospf_timeout2\"));",
+													"tests[\"Body matches string\" + mystring] = responseBody.has(mystring); ",
+													"var mystring = '\"identifier\":' + postman.getEnvironmentVariable(\"ospf_area_id2\");",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
+													"var mystring = '\"id\":\"' + postman.getEnvironmentVariable(\"test_interface\")+\"\\\"\";",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);",
+													"var mystring = '\"metric\":' + postman.getEnvironmentVariable(\"ospf_cost2\");",
+													"tests[\"Body matches string \" + mystring] = responseBody.has(mystring);"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Invalid ospf name",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"pm.test(\"Status code is 500\", function () {",
+													"  pm.response.to.have.status(500);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"protocol\": [\n    \t{\n    \t\t\"name\": {{ospf_invalid}},\n    \t\t\"identifier\": \"frinx-openconfig-policy-types:OSPF\",\n    \t\t\"config\": {\n        \t\t\"name\": {{ospf_invalid}},\n        \t\t\"identifier\": \"frinx-openconfig-policy-types:OSPF\"\n    \t\t},\n    \t\t\"ospfv2\": {\n        \t\t\"areas\": {\n        \t\t\t\"area\": [\n            \t\t\t{\n            \t\t\t\t\"identifier\":{{ospf_area_id3}},\n            \t\t\t\t\"config\": {\n                \t\t\t\t\"identifier\": {{ospf_area_id3}}\n            \t\t\t\t},\n            \t\t\t\t\"interfaces\": {\n                \t\t\t\t\"interface\": [\n                \t\t\t\t\t{\n                    \t\t\t\t\t\"id\": \"{{test_interface}}\",\n                    \t\t\t\t\t\"config\": {\n                    \t\t\t\t\t\t\"metric\": {{ospf_cost2}}\n                    \t\t\t\t\t}\n                \t\t\t\t\t}\n                \t\t\t\t]          \n            \t\t\t\t}\n            \t\t\t}\n        \t\t\t]\n        \t\t}\n    \t\t}\n    \t}\n\t]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf_invalid}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"default",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf_invalid}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete ospf configuration",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Configure ospf interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Request data: \" + request.data.toString());",
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"protocol\": [\n        {\n            \"name\": {{ospf2}},\n            \"identifier\": \"frinx-openconfig-policy-types:OSPF\",\n            \"config\": {\n                \"name\": {{ospf2}},\n                \"identifier\": \"frinx-openconfig-policy-types:OSPF\"\n            },\n            \"ospfv2\": {\n                \"areas\": {\n                    \"area\": [\n                        {\n                            \"identifier\": {{ospf_area_id}},\n                            \"config\": {\n                                    \"identifier\": {{ospf_area_id}}\n                            },\n                            \"interfaces\": {\n                                \"interface\": [\n                                    {\n                                        \"id\": \"{{test_sub_interface}}\",\n                                       \t\"config\": {\n                                       \t\t \"id\": \"{{test_sub_interface}}\"\n                                        }\n                                    }\n                \t\t\t\t]\n                            }\n                        }\n                \t]\n            \t}\n        \t}\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf2}}/",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf2}}",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show ospf interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate id\", function() {",
+													"  pm.expect(pm.response.json()[\"interfaces\"][\"interface\"][0][\"id\"]).to.eql(postman.getEnvironmentVariable(\"test_sub_interface\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf2}}/ospfv2/areas/area/{{ospf_area_id}}/interfaces",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf2}}",
+												"ospfv2",
+												"areas",
+												"area",
+												"{{ospf_area_id}}",
+												"interfaces"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete ospf configuration 2",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf2}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-network-instance:network-instances",
+												"network-instance",
+												"{{ospf_ni-name}}",
+												"protocols",
+												"protocol",
+												"frinx-openconfig-policy-types:OSPF",
+												"{{ospf2}}"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			]
+		},
+		{
+			"name": "XR ospf",
+			"description": null,
+			"item": [
+				{
+					"name": "XR ospf READERS",
+					"description": null,
+					"item": [
+						{
+							"name": "Configure ospf NATIVE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nrouter ospf {{ospf}}\nrouter-id {{router2}}\naddress-family ipv4\narea {{area}}\ninterface {{test_interface}}\ncommit\nexit\nexit\nexit\nend\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show router ospf type, ID, interfaces",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate name\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"ospf\"));",
+											"});",
+											"pm.test(\"Validate name\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"state\"][\"name\"]).to.eql(pm.environment.get(\"ospf\"));",
+											"});",
+											"pm.test(\"Validate name\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"ospf\"));",
+											"});",
+											"",
+											"// THIS ONE (state/router-id) DOES NOT WORK AT XR6",
+											"pm.test(\"Validate router-id\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"global\"][\"state\"][\"router-id\"]).to.eql(pm.environment.get(\"router2\"));",
+											"});",
+											"pm.test(\"Validate router-id\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"global\"][\"config\"][\"router-id\"]).to.eql(pm.environment.get(\"router2\"));",
+											"});",
+											"",
+											"pm.test(\"Validate id\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"id\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"",
+											"pm.test(\"Validate identifier\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"identifier\"]).to.eql(pm.environment.get(\"area\"));",
+											"});",
+											"pm.test(\"Validate identifier\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"area\"));",
+											"});",
+											"pm.test(\"Validate identifier\", function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"state\"][\"identifier\"]).to.eql(pm.environment.get(\"area\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"default",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:OSPF",
+										"{{ospf}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show nonexisting router ospf type, ID, interfaces",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody);",
+											"",
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:OSPF/666",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"default",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:OSPF",
+										"666"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete ospf NATIVE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno router ospf {{ospf}}\nno interface {{test_interface}}\ncommit\nend\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			]
+		},
+		{
+			"name": "XR5 OSPF CRUD cisco",
+			"description": null,
+			"item": [
+				{
+					"name": "XR5 OSPF CRUD cisco READERS",
+					"description": null,
+					"item": [
+						{
+							"name": "Delete previouse ospf",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     no router ospf {{ospf}}\n     commit\n     end\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show nonexisting ospf process",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody);",
+											"",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"{{ospf_ni-name}}",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:OSPF",
+										"{{ospf}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Configure ospf process",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nrouter ospf {{ospf}}\nmax-metric router-lsa on-startup {{ospf_timeout}} include-stub summary-lsa external-lsa\narea {{ospf_area_id}}\ninterface {{test_interface}}\ncost {{ospf_cost}}\ncommit\nexit\nexit\nexit\nend\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show configured ospf process",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"//interface",
+											"pm.test(\"Validate interface = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"id\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"//metric",
+											"pm.test(\"Validate metric = \" + pm.environment.get(\"ospf_cost\"), function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"config\"][\"metric\"]).to.eql(JSON.parse(pm.environment.get(\"ospf_cost\")));",
+											"});",
+											"//id",
+											"pm.test(\"Validate id = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"id\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"//timeout",
+											"pm.test(\"Validate timeout = \" + pm.environment.get(\"ospf_timeout\"), function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"global\"][\"timers\"][\"frinx-cisco-ospf-extension:max-metric-timers\"][\"max-metric-timer\"][0][\"config\"][\"timeout\"]).to.eql(JSON.parse(pm.environment.get(\"ospf_timeout\")));",
+											"});",
+											"//identifier",
+											"pm.test(\"Validate identifier = \" + pm.environment.get(\"ospf_area_id\"), function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"identifier\"]).to.eql(JSON.parse(pm.environment.get(\"ospf_area_id\")));",
+											"});",
+											"//identifier",
+											"pm.test(\"Validate config identifier = \" + pm.environment.get(\"ospf_area_id\"), function() {",
+											"  pm.expect(pm.response.json()[\"protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"config\"][\"identifier\"]).to.eql(JSON.parse(pm.environment.get(\"ospf_area_id\")));",
+											"});",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"{{ospf_ni-name}}",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:OSPF",
+										"{{ospf}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete ospf",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     no router ospf {{ospf}}\n     commit\n     end\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reconcile",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "XR5 OSPF CRUD cisco Setup",
+					"description": null,
+					"item": [
+						{
+							"name": "Delete previouse ospf configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200,404]);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"{{ospf_ni-name}}",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:OSPF",
+										"{{ospf}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted ospf",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody);",
+											"",
+											"pm.test(\"Success\", function () {",
+											"     pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"{{ospf_ni-name}}",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:OSPF",
+										"{{ospf}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			]
+		},
+		{
+			"name": "Classic ospf-vrf",
+			"description": null,
+			"item": [
+				{
+					"name": "Classic ospf-vrf READERS",
+					"description": null,
+					"item": [
+						{
+							"name": "Configure ip ospf and vrf NATIVE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nrouter ospf {{ospf}}\nrouter-id {{router}}\nnetwork {{net}} area {{area}}\ndefault-information originate always\nexit\nrouter ospf {{ospf2}}\nnetwork {{ip41}} {{net2}} area {{area2}}\nexit\ninterface {{test_interface}}\nip address {{ip41}} {{netmask}}\nip ospf {{ospf2}} area {{area2}}\nno shutdown\nexit\nip vrf {{vrf}}\nexit\nexit\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show ip ospf and vrf",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"console.warn(\"// FIXME after fix MU-159 needs be uncommented\")",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"tests[\"01. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"ospf\")));",
+											"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"router\")));",
+											"tests[\"03. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"area\")));",
+											"//tests[\"04. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"ip41\")));",
+											"tests[\"05. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"ospf2\")));",
+											"tests[\"06. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"area2\")));",
+											"tests[\"07. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"vrf\")));",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show ip ospf interface brief",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//id",
+											"pm.test(\"Validate id = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"interfaces\"][\"interface\"][0][\"config\"][\"id\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											"//id",
+											"pm.test(\"Validate id = \" + pm.environment.get(\"test_interface\"), function() {",
+											"  pm.expect(pm.response.json()[\"interfaces\"][\"interface\"][0][\"id\"]).to.eql(pm.environment.get(\"test_interface\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf2}}/ospfv2/areas/area/{{area2}}/interfaces",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"default",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:OSPF",
+										"{{ospf2}}",
+										"ospfv2",
+										"areas",
+										"area",
+										"{{area2}}",
+										"interfaces"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show nonexisting ospf",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody);",
+											"",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:OSPF/666",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"default",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:OSPF",
+										"666"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete ospf and vrf NATIVE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno router ospf {{ospf}}\nno router ospf {{ospf2}}\nno interface {{test_interface}}\nno ip vrf {{vrf}}\nexit\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			]
+		}
+	]
+}

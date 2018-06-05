@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f76c005e-e440-4aaa-ab4b-a60c155d4d31",
+		"_postman_id": "19af9179-160d-49f8-9052-7d8d88281067",
 		"name": "pc_uniconfig_bgp",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -3585,7 +3585,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "cfb4d314-ee6f-417e-92b1-da303bf15c98",
+										"id": "fe22c229-f6ab-4081-a6aa-fc0c8308a94a",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -3613,7 +3613,9 @@
 											"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_process-name\"), function() {",
 											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_process-name\"));",
 											"});",
-											""
+											"pm.test(\"not have = peer-groups\" + pm.environment.get(\"bgp_process-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"]).to.not.have.property(\"peer-groups\");",
+											"});"
 										]
 									}
 								}
@@ -3879,7 +3881,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "deffbacb-dc8f-4556-9712-0226eeb4f916",
+										"id": "f8630642-894d-43b1-932d-71534dd7208c",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -3907,7 +3909,9 @@
 											"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_process-name\"), function() {",
 											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_process-name\"));",
 											"});",
-											""
+											"pm.test(\"not have = peer-groups\" + pm.environment.get(\"bgp_process-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"]).to.not.have.property(\"peer-groups\");",
+											"});"
 										]
 									}
 								}
@@ -4097,6 +4101,634 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Configure bgp vrf definition",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nvrf definition Mgmt-intf\naddress-family ipv4\nexit-address-family\naddress-family ipv6\nexit-address-family\nrouter bgp 17676\nbgp log-neighbor-changes\ncommit\nend\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  }",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Replace-config-with-operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Configure bgp",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ab1ee2e8-344e-4190-8b76-ab2de2fedc0a",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 201\", function () {",
+											"  pm.response.to.have.status(201);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"frinx-openconfig-network-instance:config\":{\"peer-group-name\":\"GT-GROUP\",\"peer-as\":17676}}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:BGP/default/bgp/frinx-openconfig-network-instance:peer-groups/peer-group/GT-GROUP/config",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"default",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:BGP",
+										"default",
+										"bgp",
+										"frinx-openconfig-network-instance:peer-groups",
+										"peer-group",
+										"GT-GROUP",
+										"config"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Configure nonexisting peer group",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d575a793-dc5f-4f39-b5f9-f07ce05a8d1e",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 201\", function () {",
+											"  pm.response.to.have.status(201);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"frinx-openconfig-network-instance:neighbor\":[{\"neighbor-address\":\"1.1.1.1\",\"config\":{\"peer-group\":\"GT-GROUP-9999\",\"neighbor-address\":\"1.1.1.1\"},\"transport\":{\"config\":{\"passive-mode\":false}}}]}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:BGP/default/bgp/frinx-openconfig-network-instance:neighbors/neighbor/1.1.1.1",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"default",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:BGP",
+										"default",
+										"bgp",
+										"frinx-openconfig-network-instance:neighbors",
+										"neighbor",
+										"1.1.1.1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Configure commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "0ad09deb-5c75-4a35-9f83-34b216dfadb8",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"commit - overall-configuration-status fail\", function() {",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
+											"});",
+											"pm.test(\"commit - rollback-status\", function() {",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"rollback-status\"]).to.eql(\"complete\");",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Show configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "21b3cf47-1b75-4db5-be9a-ef3571796d07",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//as",
+											"pm.test(\"Validate as = \" + pm.environment.get(\"bgp_peer-as4\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"][\"config\"][\"as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+											"});",
+											"//identifier",
+											"pm.test(\"Validate identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//identifier",
+											"pm.test(\"Validate config identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate config name = \" + pm.environment.get(\"bgp_process-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_process-name\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_process-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_process-name\"));",
+											"});",
+											"pm.test(\"not have = peer-groups\" + pm.environment.get(\"bgp_process-name\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"]).to.not.have.property(\"peer-groups\");",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}/",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"{{bgp_ni-name}}",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:BGP",
+										"{{bgp_process-name}}",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete bgp configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}/",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-network-instance:network-instances",
+										"network-instance",
+										"{{bgp_ni-name}}",
+										"protocols",
+										"protocol",
+										"frinx-openconfig-policy-types:BGP",
+										"{{bgp_process-name}}",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Configure commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "b22ed2e8-df3f-41b1-8c2a-7037c3ceb4dd",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"_postman_isSubFolder": true
@@ -4161,73 +4793,6 @@
 										"protocol",
 										"frinx-openconfig-policy-types:BGP",
 										"{{bgp_process-name}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "configure dry-run commit",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") ){",
-											"    pm.test(\"Status code is 200\", function () {",
-											"        pm.response.to.have.status(200);",
-											"    });",
-											"",
-											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"    });",
-											"    ",
-											"    pm.test(\"dryrun - nodeId\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    });",
-											"    ",
-											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
-											"    });",
-											"}"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"dryrun-manager:dryrun-commit"
 									]
 								}
 							},
@@ -4457,98 +5022,6 @@
 							"response": []
 						},
 						{
-							"name": "update dry-run commit",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") ){",
-											"    pm.test(\"Status code is 200\", function () {",
-											"        pm.response.to.have.status(200);",
-											"    });",
-											"",
-											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"    });",
-											"",
-											"    pm.test(\"dryrun - nodeId\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    });",
-											"    ",
-											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
-											"    });",
-											"",
-											"        pm.test('dryrun - contains router bgp 666 ', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"router bgp 666 \");",
-											"    });",
-											"    pm.test('dryrun - contains no neighbor 8.8.8.8', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no neighbor 8.8.8.8\");",
-											"    });",
-											"    pm.test('dryrun - contains neighbor 66.66.66.66', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"neighbor 66.66.66.66\");",
-											"    });",
-											"    pm.test('dryrun - contains no router bgp 1 ', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no router bgp 1 \");",
-											"    });",
-											"    pm.test('dryrun - contains router bgp 1 ', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"router bgp 1 \");",
-											"    });",
-											"    pm.test('dryrun - contains use neighbor-group nbrgroup2', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"use neighbor-group nbrgroup2\");",
-											"    });",
-											"    pm.test('dryrun - contains no shutdown', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no shutdown\");",
-											"    });",
-											"    pm.test('dryrun - contains remote-as 56000', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"remote-as 56000\");",
-											"    });",
-											"}"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"dryrun-manager:dryrun-commit"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "update commit",
 							"event": [
 								{
@@ -4766,82 +5239,6 @@
 										"protocol",
 										"frinx-openconfig-policy-types:BGP",
 										"{{bgp_process-name}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "delete dry-run commit",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") ){",
-											"    pm.test(\"Status code is 200\", function () {",
-											"        pm.response.to.have.status(200);",
-											"    });",
-											"",
-											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"    });",
-											"    pm.test(\"dryrun - nodeId\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    });",
-											"",
-											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
-											"    });",
-											"",
-											"    pm.test('dryrun - contains no router bgp 666 ', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no router bgp 666 \");",
-											"    });",
-											"    pm.test('dryrun - contains no neighbor 66.66.66.66', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no neighbor 66.66.66.66\");",
-											"    });",
-											"    pm.test('dryrun - contains router bgp 666 ', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"router bgp 666 \");",
-											"    });",
-											"}"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"dryrun-manager:dryrun-commit"
 									]
 								}
 							},
@@ -7090,7 +7487,7 @@
 					"description": null,
 					"item": [
 						{
-							"name": "deconfigurate interafces",
+							"name": "deconfigurate prerequisites",
 							"event": [
 								{
 									"listen": "test",
@@ -7120,7 +7517,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     no interface {{test_interface}}\n     no interface {{test_interface_upd}}\n     end\"\n  }\n}\n"
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     no interface {{test_interface}}\n     no interface {{test_interface_upd}}\n     no vrf definition Mgmt-intf\n     end\"\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",

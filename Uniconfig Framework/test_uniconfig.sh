@@ -17,7 +17,7 @@ XE_folders=()
 XR_devices=()
 #XR5_folders=("OSPF CRUD" "BGP CRUD" "LACP CRUD" "MPLS-TUNNEL-FULL CRUD" "MPLS-TUNNEL CRUD Config" "MPLS-TUNNEL CRUD Destination" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD IPv6" "LAG CRUD Damping" "LAG CRUD Statistics" "LAG CRUD AggegationNoBfd" "LAG-FULL CRUD" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "IFC-ACL CRUD Acl-sets" "IFC-ACL CRUD Sync-Set" "RSVP CRUD" "PF-IFC CRUD CiscoExt" "SNMP Gig" "SNMP Lag" "SNMP Non" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface-IPv4" "IFC CRUD Subinterface-IPv6" "IFC CRUD Damping" "IFC CRUD Ethernet" "IFC CRUD Statistics" "IFC CRUD Rpf" "IFC-FULL CRUD" "SYSLOG CRUD" "RP CRUD" "SNAPSHOT" "QOS CRUD basic" "QOS CRUD sync-set")
 XR5_folders=()
-#JUNOS_folders=("MPLS-TUNNEL-FULL CRUD" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD AggegationBfdLinkSpeed" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD JunosExt" "SNMP Gig" "IFC-FULL CRUD" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface-IPv4" "IFC CRUD Damping" "IFC CRUD Ethernet" "BGP-JunosExt CRUD")
+#JUNOS_folders=("LACP CRUD" "MPLS-TUNNEL-FULL CRUD" "MPLS-TE CRUD" "LAG CRUD Config" "LAG CRUD Subinterface" "LAG CRUD AggegationBfdLinkSpeed" "IFC-ACL CRUD Full" "IFC-ACL CRUD Parts" "RSVP CRUD" "PF-IFC CRUD JunosExt" "SNMP Gig" "IFC-FULL CRUD" "IFC CRUD Config" "IFC CRUD HoldTime" "IFC CRUD Subinterface-IPv4" "IFC CRUD Damping" "IFC CRUD Ethernet" "BGP-JunosExt CRUD")
 JUNOS_folders=()
 
 ### Special case - some test written for XR5 do not run on virtual devices - we test them on ASR XR6 device

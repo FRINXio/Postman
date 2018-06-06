@@ -7,13 +7,19 @@
 #  "another file": ["another","list of","tests"]
 # }
 # 2) to run it do:
-# ./test_script env_file json_input_file
+# ./test_script env_file json_input_file layer
+# where layer = uniconfig | unified
 
 #set -exu
 set +x
 
 env_file=$1
 tests_input_file=$2
+layer="uniconfig"
+if [ "$3" == "unified" ]; then
+    layer="unified"
+fi
+
 mount_collection=pc_mount_unmount.json
 if [ "$env_file" == "xrv_env.json" ] ; then
   dev_pref="XR"
@@ -35,7 +41,7 @@ fi
 echo "Going to test with env_file $env_file. Assigned prefix is: \"$dev_pref\"."
 mkdir -p junit_results
 
-folder="$dev_pref Mount"
+folder="$dev_pref Mount $layer"
 echo "Performing $folder"
 unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/mount.xml"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
 
@@ -71,7 +77,7 @@ do
   done
 done
 
-folder="$dev_pref Unmount"
+folder="$dev_pref Unmount $layer"
 echo "Performing $folder"
 unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/unmount.xml"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
 

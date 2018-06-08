@@ -1,13 +1,13 @@
 {
 	"info": {
-		"_postman_id": "503e74df-70d5-4d53-bd3b-cee5e2c58449",
+		"_postman_id": "5aba09c5-43fc-4de9-834a-07f83e85bacc",
 		"name": "pc_unified_unsorted",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "Tests",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "General information",
@@ -146,12 +146,12 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "014be621-7709-4fec-8d7f-d35e793cd4b6",
+										"id": "8ed3698b-7ee6-4f6e-a283-8c3a8c1c22f3",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
 											"});"
 										]
 									}
@@ -331,12 +331,13 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "4507c12a-b2ef-47c1-9bf4-94495458f527",
+										"id": "b0fd5cf5-9aab-4283-bc1c-61252c9ab5ed",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"",
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
 											"});"
 										]
 									}
@@ -527,9 +528,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "813cdf96-a95a-43b9-8fd0-b68541e4fdcd",
 												"type": "text/javascript",
 												"exec": [
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
+													"console.log(\"Response: \" + responseBody)",
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
 													"",
 													"tests[\"01. Body matches string\"] = responseBody.has(\"LINECARD\");",
 													""
@@ -592,10 +597,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "11eb9807-481b-414d-ad37-191105da7f9c",
 												"type": "text/javascript",
 												"exec": [
-													"tests[\"Status code is 200\"] = responseCode.code === 200;",
-													"",
+													"console.log(\"Response: \" + responseBody)",
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
 													"tests[\"01. Body matches string\"] = responseBody.has(\"LINECARD\");",
 													""
 												]
@@ -2166,9 +2174,12 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "19c8a05b-5300-4bdc-85a5-dc3ca84c7bbf",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
+													"console.log(\"Response: \" + responseBody)",
+													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
@@ -2195,7 +2206,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nrouter static\naddress-family ipv4 unicast\n{{ip-route}} {{ip-route2}}\n{{ip-route}} {{static_route_test_interface}} {{ip-route3}} metric 2\nexit\naddress-family ipv6 unicast\n{{ip61}} {{static_route_test_interface}} {{ip62}}\ncommit\nexit\nexit\nend\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nrouter static\naddress-family ipv4 unicast\n{{ip-route}} {{ip-route2}}\n{{ip-route}} {{static_route_test_interface}} {{ip-route3}} metric 2\nexit\naddress-family ipv6 unicast\n{{ip61}} {{static_route_test_interface}} {{ip62}}\ncommit\nend\"\n  }\n}"
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -2225,6 +2236,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "12c3ec2c-0f61-41f9-bc28-ae63798f93bb",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2236,7 +2248,6 @@
 													"pm.test(\"Validate interface\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][1][\"interface-ref\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"static_route_test_interface\"));",
 													"});",
-													"",
 													"pm.test(\"Validate prefix\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"prefix\"]).to.eql(pm.environment.get(\"ip-route\"));",
 													"});",
@@ -2246,27 +2257,21 @@
 													"pm.test(\"Validate prefix\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"state\"][\"prefix\"]).to.eql(pm.environment.get(\"ip-route\"));",
 													"});",
-													"",
-													"",
 													"pm.test(\"Validate next-hop\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][0][\"state\"][\"next-hop\"]).to.eql(pm.environment.get(\"ip-route2\"));",
 													"});",
 													"pm.test(\"Validate next-hop\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][0][\"config\"][\"next-hop\"]).to.eql(pm.environment.get(\"ip-route2\"));",
 													"});",
-													"",
 													"pm.test(\"Validate next-hop\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][1][\"state\"][\"next-hop\"]).to.eql(pm.environment.get(\"ip-route3\"));",
 													"});",
 													"pm.test(\"Validate next-hop\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][1][\"config\"][\"next-hop\"]).to.eql(pm.environment.get(\"ip-route3\"));",
 													"});",
-													"",
-													"",
 													"pm.test(\"Validate interface\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"next-hops\"][\"next-hop\"][0][\"interface-ref\"][\"config\"][\"interface\"]).to.eql(pm.environment.get(\"static_route_test_interface\"));",
 													"});",
-													"",
 													"pm.test(\"Validate prefix\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"prefix\"]).to.eql(pm.environment.get(\"ip61\"));",
 													"});",
@@ -2276,8 +2281,6 @@
 													"pm.test(\"Validate prefix\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"state\"][\"prefix\"]).to.eql(pm.environment.get(\"ip61\"));",
 													"});",
-													"",
-													"",
 													"pm.test(\"Validate next-hop\", function() {",
 													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"next-hops\"][\"next-hop\"][0][\"state\"][\"next-hop\"]).to.eql(pm.environment.get(\"ip62\"));",
 													"});",
@@ -2407,10 +2410,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "f74c3dfd-2efa-47aa-b318-f378d8bdb457",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
-													"pm.test(\"Success\", function () {",
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
 												]
@@ -2480,9 +2486,12 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "c9cb1a38-9e4a-41ed-b471-64ee778926ea",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
+													"console.log(\"Response: \" + responseBody)",
+													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
@@ -2508,7 +2517,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n cdp\n interface {{cdp_lldp_test_interface}}\n cdp\n commit\n exit\n end\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n cdp\n interface {{cdp_lldp_test_interface}}\n cdp\n commit\n end\"\n  }\n}"
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -2538,6 +2547,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "b89bfdbd-06a7-41d3-b65d-7ec88b033ad7",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2551,8 +2561,7 @@
 													"});",
 													"pm.test(\"Validate name\", function() {",
 													"  pm.expect(pm.response.json()[\"cdp\"][\"interfaces\"][\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface\"));",
-													"});",
-													""
+													"});"
 												]
 											}
 										}
@@ -2605,10 +2614,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "bc14c33c-ec5f-4579-bd10-89823725e957",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
-													"pm.test(\"Success\", function () {",
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
 												]
@@ -2633,7 +2645,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n interface {{cdp_lldp_test_interface}}\n no cdp\n exit\n commit\n end\"\n  }\n}"
+											"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n interface {{cdp_lldp_test_interface}}\n no cdp\n commit\n end\"\n  }\n}"
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -2735,9 +2747,12 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "3dfc8828-1ced-423e-8d00-360b471c0535",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
+													"console.log(\"Response: \" + responseBody)",
+													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
@@ -2874,9 +2889,12 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "4c7c80a9-1c81-4cdb-a613-364510ae4b9a",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
+													"console.log(\"Response: \" + responseBody)",
+													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
@@ -3898,14 +3916,17 @@
 							"description": null,
 							"item": [
 								{
-									"name": "Configure static route NATIVE",
+									"name": "configure static route NATIVE",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "1be2b5b7-3772-401e-aaec-d31911137ffa",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
+													"console.log(\"Response: \" + responseBody)",
+													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
@@ -3961,18 +3982,98 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "924f590f-8beb-49c0-b1db-315afc869ab0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
 													"",
 													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
+													"  pm.response.to.have.status(200);",
 													"});",
-													"tests[\"01. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"ip-route1\")));",
-													"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"ip-route2\")));",
-													"tests[\"03. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"ip2-route1\")));",
-													"tests[\"04. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"ip2-route2\")));",
-													"tests[\"05. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"ip3-route1\")));"
+													"//index",
+													"pm.test(\"Validate index = \" + pm.environment.get(\"ip2-route1\"), function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][0][\"index\"]).to.eql(pm.environment.get(\"ip2-route1\"));",
+													"});",
+													"//index",
+													"pm.test(\"Validate index = \" + pm.environment.get(\"ip2-route1\"), function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][0][\"state\"][\"index\"]).to.eql(pm.environment.get(\"ip2-route1\"));",
+													"});",
+													"//metric",
+													"pm.test(\"Validate metric = \" + pm.environment.get(\"ip3-route1\"), function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][0][\"state\"][\"metric\"]).to.eql(JSON.parse(pm.environment.get(\"ip3-route1\")));",
+													"});",
+													"//index",
+													"pm.test(\"Validate index = \" + pm.environment.get(\"ip2-route1\"), function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][0][\"config\"][\"index\"]).to.eql(pm.environment.get(\"ip2-route1\"));",
+													"});",
+													"//metric",
+													"pm.test(\"Validate metric = \" + pm.environment.get(\"ip3-route1\"), function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"next-hops\"][\"next-hop\"][0][\"config\"][\"metric\"]).to.eql(JSON.parse(pm.environment.get(\"ip3-route1\")));",
+													"});",
+													"//prefix",
+													"pm.test(\"Validate prefix = 10.40.6.0/24\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"prefix\"]).to.eql(pm.environment.get(\"ip-route1\") + '/24');",
+													"});",
+													"//prefix",
+													"pm.test(\"Validate prefix = 10.40.6.0/24\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"config\"][\"prefix\"]).to.eql(pm.environment.get(\"ip-route1\") + '/24');",
+													"});",
+													"//prefix",
+													"pm.test(\"Validate prefix = 10.40.6.0/24\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][0][\"state\"][\"prefix\"]).to.eql(pm.environment.get(\"ip-route1\") + '/24');",
+													"});",
+													"//index",
+													"pm.test(\"Validate index = \" + pm.environment.get(\"ip2-route2\"), function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"next-hops\"][\"next-hop\"][0][\"index\"]).to.eql(pm.environment.get(\"ip2-route2\"));",
+													"});",
+													"//index",
+													"pm.test(\"Validate index = \" + pm.environment.get(\"ip2-route2\"), function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"next-hops\"][\"next-hop\"][0][\"state\"][\"index\"]).to.eql(pm.environment.get(\"ip2-route2\"));",
+													"});",
+													"//metric",
+													"pm.test(\"Validate metric = 1\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"next-hops\"][\"next-hop\"][0][\"state\"][\"metric\"]).to.eql(1);",
+													"});",
+													"//index",
+													"pm.test(\"Validate index = \" + pm.environment.get(\"ip2-route2\"), function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"next-hops\"][\"next-hop\"][0][\"config\"][\"index\"]).to.eql(pm.environment.get(\"ip2-route2\"));",
+													"});",
+													"//prefix",
+													"pm.test(\"Validate prefix = 10.255.1.0/24\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"prefix\"]).to.eql(pm.environment.get(\"ip-route2\") + '/24');",
+													"});",
+													"//prefix",
+													"pm.test(\"Validate prefix = 10.255.1.0/24\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"config\"][\"prefix\"]).to.eql(pm.environment.get(\"ip-route2\") + '/24');",
+													"});",
+													"//prefix",
+													"pm.test(\"Validate prefix = 10.255.1.0/24\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"static-routes\"][\"static\"][1][\"state\"][\"prefix\"]).to.eql(pm.environment.get(\"ip-route2\") + '/24');",
+													"});",
+													"//identifier",
+													"pm.test(\"Validate identifier = frinx-openconfig-policy-types:STATIC\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"state\"][\"identifier\"]).to.eql(\"frinx-openconfig-policy-types:STATIC\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = default\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"state\"][\"name\"]).to.eql(\"default\");",
+													"});",
+													"//identifier",
+													"pm.test(\"Validate identifier = frinx-openconfig-policy-types:STATIC\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"identifier\"]).to.eql(\"frinx-openconfig-policy-types:STATIC\");",
+													"});",
+													"//identifier",
+													"pm.test(\"Validate identifier = frinx-openconfig-policy-types:STATIC\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"config\"][\"identifier\"]).to.eql(\"frinx-openconfig-policy-types:STATIC\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = default\", function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"config\"][\"name\"]).to.eql(\"default\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = default\" , function() {",
+													"  pm.expect(pm.response.json()[\"protocol\"][0][\"name\"]).to.eql(\"default\");",
+													"});"
 												]
 											}
 										}
@@ -4091,15 +4192,18 @@
 									"response": []
 								},
 								{
-									"name": "Delete configuration of static route NATIVE",
+									"name": "delete configuration of static route NATIVE",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "938dbc89-c564-4758-928e-8a849fe95439",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
-													"pm.test(\"Success\", function () {",
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
 												]
@@ -4168,10 +4272,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "b57b46b8-9cd2-4437-acba-e80a8dbc268c",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
-													"pm.test(\"Success\", function () {",
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
 												]
@@ -4226,15 +4333,23 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "55b9a7d9-6dc9-41d1-be6f-8de8ac7e512d",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
 													"",
 													"pm.test(\"Status code is 200\", function () {",
-													"    pm.response.to.have.status(200);",
+													"  pm.response.to.have.status(200);",
 													"});",
-													"tests[\"01. Body matches string\"] = responseBody.has(\"cdp\");",
-													"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"cdp_lldp_test_interface\")));"
+													"",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"cdp_lldp_test_interface\"), function() {",
+													"  pm.expect(pm.response.json()[\"cdp\"][\"interfaces\"][\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"cdp_lldp_test_interface\"), function() {",
+													"  pm.expect(pm.response.json()[\"cdp\"][\"interfaces\"][\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface\"));",
+													"});"
 												]
 											}
 										}
@@ -4287,10 +4402,13 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "2dfc5c2a-66af-4706-bddc-9ab1ead9ce1a",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
-													"pm.test(\"Success\", function () {",
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
 												]
@@ -4345,12 +4463,13 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "e23d85a1-619f-4fc9-8e6c-ddefa87860fa",
+												"id": "6e6deb95-7a0d-4bf7-a954-6ecf1b9dff45",
 												"type": "text/javascript",
 												"exec": [
-													"console.log(\"Request data: \" + request.data.toString());",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,404]);",
+													"console.log(\"Response: \" + responseBody);",
+													"",
+													"pm.test(\"Status code is 404\", function () {",
+													"    pm.response.to.have.status(404);",
 													"});"
 												]
 											}
@@ -4418,9 +4537,12 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "fae98bfd-9484-4087-b352-07a6fb15bc2a",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
+													"console.log(\"Response: \" + responseBody)",
+													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"
@@ -4476,6 +4598,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "ffc6ab01-1320-41c6-92e8-136548f25841",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -4484,9 +4607,7 @@
 													"    pm.response.to.have.status(200);",
 													"});",
 													"tests[\"01. Body matches string\"] = responseBody.has(\"lldp\");",
-													"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"cdp_lldp_test_interface\")));",
-													"",
-													"//tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"cdp_lldp_test_interface\"))) || responseBody.has(String(postman.getEnvironmentVariable(\"cdp_lldp_test_interface2\"))) || responseBody.has(String(postman.getEnvironmentVariable(\"cdp_lldp_test_interface3\")));"
+													"tests[\"02. Body matches string\"] = responseBody.has(String(postman.getEnvironmentVariable(\"cdp_lldp_test_interface\")));"
 												]
 											}
 										}
@@ -4539,9 +4660,12 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "619509f4-e21a-4a28-be94-58d43878685f",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
+													"console.log(\"Response: \" + responseBody)",
+													"",
 													"pm.test(\"Status code is 200\", function () {",
 													"    pm.response.to.have.status(200);",
 													"});"

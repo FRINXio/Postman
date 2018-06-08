@@ -1,35 +1,38 @@
 {
 	"info": {
-		"_postman_id": "cdd2815f-6ad8-4eee-a0e7-f9604f7015fd",
+		"_postman_id": "0aaa9936-9dde-49bf-8391-4fb8498cad06",
 		"name": "pc_unified_ifc_acl",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "Tests",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "IFC ACL CRUD",
 					"description": null,
 					"item": [
 						{
-							"name": "IFC ACL CRUD basic",
+							"name": "IFC ACL CRUD Full",
 							"description": null,
 							"item": [
 								{
-									"name": "Create acl",
+									"name": "create acl",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "b7bf325b-cf31-439a-81e4-5c85a663202e",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-													"});"
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
+													"});",
+													""
 												]
 											}
 										}
@@ -48,7 +51,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"interface\": [\n        {\n            \"id\": \"{{iacl_intf-id}}\",\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name1}}\",\n                        \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name1}}\",\n                            \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                        }\n                    }\n                ]\n            },\n            \"egress-acl-sets\": {\n                \"egress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_out-acl-name1}}\",\n                        \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_out-acl-name1}}\",\n                            \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+											"raw": "{\n    \"interface\": [\n        {\n            \"id\": \"{{iacl_intf-id}}\",\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name1}}\",\n                        \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name1}}\",\n                            \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                        }\n                    }\n                ]\n            },\n            \"egress-acl-sets\": {\n                \"egress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_out-acl-name1}}\",\n                        \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_out-acl-name1}}\",\n                            \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/interfaces/interface/{{iacl_url_intf-id}}",
@@ -81,48 +84,42 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "b08bb1cb-d517-4901-9446-48ea726bc998",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
 													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show created acl');",
-													"    }",
-													"}"
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"ingress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate id\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"id\"]).to.eql(postman.getEnvironmentVariable(\"iacl_intf-id\"));",
+													"});",
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"egress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate egress acl type = frinx-openconfig-acl:ACL_IPV6 \", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"pm.test(\"Validate ingress acl type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});"
 												]
 											}
 										}
@@ -169,17 +166,19 @@
 									"response": []
 								},
 								{
-									"name": "Update acl",
+									"name": "update acl",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "30b97958-3d73-42a5-aea0-ca0654171ef4",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -199,7 +198,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"interface\": [\n        {\n            \"id\": \"{{iacl_intf-id}}\",\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name2}}\",\n                        \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name2}}\",\n                            \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                        }\n                    }\n                ]\n            },\n            \"egress-acl-sets\": {\n                \"egress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_out-acl-name2}}\",\n                        \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_out-acl-name2}}\",\n                            \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+											"raw": "{\n    \"interface\": [\n        {\n            \"id\": \"{{iacl_intf-id}}\",\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name2}}\",\n                        \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name2}}\",\n                            \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n                        }\n                    }\n                ]\n            },\n            \"egress-acl-sets\": {\n                \"egress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_out-acl-name2}}\",\n                        \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_out-acl-name2}}\",\n                            \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/interfaces/interface/{{iacl_url_intf-id}}",
@@ -232,48 +231,38 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "1d3149ad-8427-4e20-83fc-56d86e79029b",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
 													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"ingress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name2\"));",
+													"});",
+													"pm.test(\"Validate ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name2\"));",
+													"});",
+													"pm.test(\"Validate id\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"id\"]).to.eql(postman.getEnvironmentVariable(\"iacl_intf-id\"));",
+													"});",
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"egress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name2\"));",
+													"});",
+													"pm.test(\"Validate egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name2\"));",
+													"});",
 													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
-													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show updated acl');",
-													"    }",
-													"}"
+													""
 												]
 											}
 										}
@@ -320,16 +309,18 @@
 									"response": []
 								},
 								{
-									"name": "Delete acl",
+									"name": "delete acl",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "e0cdbf92-4fce-4a06-9f2c-534a824bad02",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -382,43 +373,14 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "141d83e6-208d-4548-98fe-6e2fc0c506e9",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
-													"});",
 													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"interface\"][0] === false",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"interface\"][0] === false",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show updated acl');",
-													"    }",
-													"}"
+													"pm.test(\"Status code is 404\", function () {",
+													"  pm.response.to.have.status(404);",
+													"});"
 												]
 											}
 										}
@@ -468,21 +430,23 @@
 							"_postman_isSubFolder": true
 						},
 						{
-							"name": "IFC ACL CRUD containers",
+							"name": "IFC ACL CRUD Parts",
 							"description": null,
 							"item": [
 								{
-									"name": "Create acl ingress egress",
+									"name": "create acl ingress egress",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "60e9a22d-3a92-4f70-9913-de32af183d8a",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
 													"});"
 												]
 											}
@@ -502,7 +466,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"interface\": [\n        {\n            \"id\": \"{{iacl_intf-id}}\",\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name1}}\",\n                        \"type\": \"ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name1}}\",\n                            \"type\": \"ACL_IPV4\"\n                        }\n                    }\n                ]\n            },\n            \"egress-acl-sets\": {\n                \"egress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_out-acl-name1}}\",\n                        \"type\": \"ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_out-acl-name1}}\",\n                            \"type\": \"ACL_IPV4\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+											"raw": "{\n    \"interface\": [\n        {\n            \"id\": \"{{iacl_intf-id}}\",\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name1}}\",\n                        \"type\": \"ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name1}}\",\n                            \"type\": \"ACL_IPV4\"\n                        }\n                    }\n                ]\n            },\n            \"egress-acl-sets\": {\n                \"egress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_out-acl-name1}}\",\n                        \"type\": \"ACL_IPV6\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_out-acl-name1}}\",\n                            \"type\": \"ACL_IPV6\"\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/interfaces/interface/{{iacl_url_intf-id}}",
@@ -535,48 +499,36 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "ffd7000c-8a32-46fa-8505-15be3e17f7bb",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
 													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name1\")",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show created acl');",
-													"    }",
-													"}"
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"ingress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate id\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"id\"]).to.eql(postman.getEnvironmentVariable(\"iacl_intf-id\"));",
+													"});",
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"egress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name1\"));",
+													"});"
 												]
 											}
 										}
@@ -623,17 +575,19 @@
 									"response": []
 								},
 								{
-									"name": "Update acl egress",
+									"name": "update acl egress",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "712e6122-e9a0-4d8a-a253-b92e7d482d3d",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -687,48 +641,36 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "b5042d95-cea9-4807-a9a2-29ea4ba0112f",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
 													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name1\")",
-													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show updated egress');",
-													"    }",
-													"}"
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"ingress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name1\"));",
+													"});",
+													"pm.test(\"Validate id\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"id\"]).to.eql(postman.getEnvironmentVariable(\"iacl_intf-id\"));",
+													"});",
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"egress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name2\"));",
+													"});",
+													"pm.test(\"Validate egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name2\"));",
+													"});"
 												]
 											}
 										}
@@ -775,17 +717,19 @@
 									"response": []
 								},
 								{
-									"name": "Update acl ingress",
+									"name": "update acl ingress",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "69e90b0f-a7c1-4a0c-badd-2698cad5e3a7",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -805,7 +749,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name2}}\",\n                        \"type\": \"ACL_IPV4\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name2}}\",\n                            \"type\": \"ACL_IPV4\"\n                        }\n                    }\n                ]\n            }\n}"
+											"raw": "{\n            \"ingress-acl-sets\": {\n                \"ingress-acl-set\": [\n                    {\n                        \"set-name\": \"{{iacl_in-acl-name2}}\",\n                        \"type\": \"ACL_IPV6\",\n                        \"config\": {\n                            \"set-name\": \"{{iacl_in-acl-name2}}\",\n                            \"type\": \"ACL_IPV6\"\n                        }\n                    }\n                ]\n            }\n}"
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/interfaces/interface/{{iacl_url_intf-id}}/ingress-acl-sets",
@@ -839,48 +783,36 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "cba38933-0ad0-4967-b679-36dfff9daa60",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
 													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
-													"    tests[\"Ifc acl - ingress acl name\"] = jsonData[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_in-acl-name2\")",
-													"",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"interface\"][0]",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"    tests[\"Ifc acl - egress acl name\"] = jsonData[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"] === postman.getEnvironmentVariable(\"iacl_out-acl-name2\")",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show updated ingress');",
-													"    }",
-													"}"
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"ingress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name2\"));",
+													"});",
+													"pm.test(\"Validate ingress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_in-acl-name2\"));",
+													"});",
+													"pm.test(\"Validate id\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"id\"]).to.eql(postman.getEnvironmentVariable(\"iacl_intf-id\"));",
+													"});",
+													"pm.test(\"Validate egress presence\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0]).to.have.property(\"egress-acl-sets\")",
+													"});",
+													"pm.test(\"Validate config egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name2\"));",
+													"});",
+													"pm.test(\"Validate egress acl\", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"]).to.eql(postman.getEnvironmentVariable(\"iacl_out-acl-name2\"));",
+													"});"
 												]
 											}
 										}
@@ -927,16 +859,18 @@
 									"response": []
 								},
 								{
-									"name": "Delete acl",
+									"name": "delete acl",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "42e83f34-622a-4866-a528-62c5d7b14e70",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -989,43 +923,14 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "697d05bc-503d-49d8-b860-569af394c1d0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
-													"});",
 													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Ifc acl - interface\"] = jsonData[\"interface\"].length === 1",
-													"    tests[\"Ifc acl - interface name1\"] = jsonData[\"interface\"][0][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"    tests[\"Ifc acl - interface name2\"] = jsonData[\"interface\"][0][\"config\"][\"id\"] === postman.getEnvironmentVariable(\"iacl_intf-id\")",
-													"",
-													"    tests[\"Ifc acl - ingress acl presence\"] = \"ingress-acl-sets\" in jsonData[\"interface\"][0] === false",
-													"    tests[\"Ifc acl - egress acl presence\"] = \"egress-acl-sets\" in jsonData[\"interface\"][0] === false",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Ifc acl not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest('show updated acl');",
-													"    }",
-													"}"
+													"pm.test(\"Status code is 404\", function () {",
+													"  pm.response.to.have.status(404);",
+													"});"
 												]
 											}
 										}
@@ -1073,6 +978,1870 @@
 								}
 							],
 							"_postman_isSubFolder": true
+						},
+						{
+							"name": "IFC ACL CRUD Acl-sets",
+							"description": null,
+							"item": [
+								{
+									"name": "create acl TEST1 ip protocol",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c89e375c-a7d5-4801-8316-c7cd3f9c2275",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_in-acl-name3}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n            \"config\": {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 6,\n                        \"ipv4\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_PROTOCOL\",\n                                \"destination-address\": \"2.2.2.2/32\",\n                                \"source-address\": \"1.1.1.1/32\"\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 6\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show created acl ip protocol",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "202538ee-7516-4c0f-85b3-2e3170ec850c",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id config",
+													"pm.test(\"Validate config sequence-id = 6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(6);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(6);",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = 2.2.2.2/32\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"destination-address\"]).to.eql(\"2.2.2.2/32\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_PROTOCOL\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_PROTOCOL\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = 1.1.1.1/32\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"source-address\"]).to.eql(\"1.1.1.1/32\");",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action =frinx-openconfig-acl:DROP \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:DROP\");",
+													"});",
+													"//type config",
+													"pm.test(\"Validate config type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name config",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "update acl TEST1 icmp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "1c1d9fd7-647e-496e-9615-8aa01f210fed",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_in-acl-name3}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n            \"config\": {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 5,\n                        \"ipv4\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_ICMP\",\n                                \"destination-address\": \"2.2.2.2/32\",\n                                \"source-address\": \"1.1.1.1/32\"\n                            }\n                        },\n                        \"frinx-acl-extension:icmp\": {\n                            \"config\": {\n                                \"msg-type\": 8\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 5\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show updated acl icmp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c30c3898-d0c2-4616-b097-c7b417a18fc1",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id config",
+													"pm.test(\"Validate config sequence-id = 5\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(5);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 5\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(5);",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = 2.2.2.2/32\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"destination-address\"]).to.eql(\"2.2.2.2/32\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_ICMP\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_ICMP\");",
+													"});",
+													"//msg-type",
+													"pm.test(\"Validate msg-type = 8\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"frinx-acl-extension:icmp\"][\"config\"][\"msg-type\"]).to.eql(8);",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = 1.1.1.1/32\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"source-address\"]).to.eql(\"1.1.1.1/32\");",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action =frinx-openconfig-acl:DROP \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:DROP\");",
+													"});",
+													"//type config",
+													"pm.test(\"Validate config type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name config",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "update acl TEST1 icmp type",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_in-acl-name3}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n            \"config\": {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 10,\n                        \"ipv4\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_ICMP\",\n                                \"destination-address\": \"1.1.1.1/32\",\n                                \"source-address\": \"2.2.2.2/32\",\n                                \"frinx-acl-extension:hop-range\": \"3..6\"\n                            }\n                        },\n                        \"frinx-acl-extension:icmp\": {\n                            \"config\": {\n                                \"msg-type\": 123\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 10\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:ACCEPT\"\n                            }\n                        }\n\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show updated TEST1 icmp type",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "82e0e553-fed7-463e-aac0-6d15f5e9d44f",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id config",
+													"pm.test(\"Validate config sequence-id = 10\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(10);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 10\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(10);",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = 1.1.1.1/32\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"destination-address\"]).to.eql(\"1.1.1.1/32\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_ICMP\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_ICMP\");",
+													"});",
+													"//msg-type",
+													"pm.test(\"Validate msg-type = 123\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"frinx-acl-extension:icmp\"][\"config\"][\"msg-type\"]).to.eql(123);",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = 2.2.2.2/32\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"source-address\"]).to.eql(\"2.2.2.2/32\");",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action =frinx-openconfig-acl:ACCEPT \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:ACCEPT\");",
+													"});",
+													"//type config",
+													"pm.test(\"Validate config type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name config",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//frinx-acl-extension:hop-range",
+													"pm.test(\"Validate frinx-acl-extension:hop-range = 3..6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:hop-range\"]).to.eql(\"3..6\");",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "update acl TEST1 to ipv6 udp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "d9554df0-aa4a-4697-a308-7d9130092ee1",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_in-acl-name3}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n            \"config\": {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 10,\n                        \"ipv6\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_UDP\",\n                                \"destination-address\": \"10:11:12::2/128\",\n                                \"source-address\": \"100:1:1:2:3::1/128\"\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 10\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:ACCEPT\"\n                            }\n                        },\n                         \"transport\": {\n                            \"config\": {\n                                \"source-port\": \"1024\",\n                                \"destination-port\": \"0\"\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV6",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV6"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show updated TEST1 ipv6 udp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "cc6a06f1-ff4d-4f24-a825-79351b5cd0a1",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id config",
+													"pm.test(\"Validate config sequence-id = 10\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(10);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 10\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(10);",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"destination-address\"]).to.eql(\"10:11:12::2/128\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_UDP\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_UDP\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = 100:1:1:2:3::1/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"source-address\"]).to.eql(\"100:1:1:2:3::1/128\");",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action =frinx-openconfig-acl:ACCEPT \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:ACCEPT\");",
+													"});",
+													"//type config",
+													"pm.test(\"Validate config type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"//name config",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//destination-port",
+													"pm.test(\"Validate destination-port =0 \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"destination-port\"]).to.eql(0);",
+													"});",
+													"//source-port",
+													"pm.test(\"Validate source-port = 1024\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"source-port\"]).to.eql(1024);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV6",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV6"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "update acl TEST1 to ipv6 tcp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_in-acl-name3}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n            \"config\": {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 33,\n                        \"ipv6\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_TCP\",\n                                \"destination-address\": \"100:1:1:2:3::1/128\",\n                                \"source-address\": \"10:11:12::2/128\"\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 33\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                            }\n                        },\n                        \"transport\": {\n                            \"config\": {\n                                \"source-port\": \"1024..6553\",\n                                \"destination-port\": \"ANY\"\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV6",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV6"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show updated TEST1 ipv6 tcp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "678fb2e8-9f53-44ab-96aa-9bfdf3c69e39",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id config",
+													"pm.test(\"Validate config sequence-id = 33\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(33);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 33\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(33);",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = 100:1:1:2:3::1/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"destination-address\"]).to.eql(\"100:1:1:2:3::1/128\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_TCP\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_TCP\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"source-address\"]).to.eql(\"10:11:12::2/128\");",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action =frinx-openconfig-acl:DROP \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:DROP\");",
+													"});",
+													"//type config",
+													"pm.test(\"Validate config type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"//name config",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//destination-port",
+													"pm.test(\"Validate destination-port =ANY \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"destination-port\"]).to.eql(\"ANY\");",
+													"});",
+													"//source-port",
+													"pm.test(\"Validate source-port = 1024..6553\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"source-port\"]).to.eql(\"1024..6553\");",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV6",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV6"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "update acl TEST1 to ipv6 tcp transport",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_in-acl-name3}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n            \"config\": {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 33,\n                        \"ipv6\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_TCP\",\n                                \"destination-address\": \"100:1:1:2:3::1/128\",\n                                \"source-address\": \"10:11:12::2/128\"\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 33\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                            }\n                        },\n                        \"transport\": {\n                            \"config\": {\n                                \"source-port\": \"1024..6553\",\n                                \"destination-port\": \"4..1023\"\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV6",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV6"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show updated TEST1 ipv6 tcp transport",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "56491561-f8e0-4c7a-a636-2e81deb0f117",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id config",
+													"pm.test(\"Validate config sequence-id = 33\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(33);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 33\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(33);",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = 100:1:1:2:3::1/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"destination-address\"]).to.eql(\"100:1:1:2:3::1/128\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_TCP\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_TCP\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"source-address\"]).to.eql(\"10:11:12::2/128\");",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action =frinx-openconfig-acl:DROP \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:DROP\");",
+													"});",
+													"//type config",
+													"pm.test(\"Validate config type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"//name config",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//destination-port",
+													"pm.test(\"Validate destination-port =4..1023 \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"destination-port\"]).to.eql(\"4..1023\");",
+													"});",
+													"//source-port",
+													"pm.test(\"Validate source-port = 1024..6553\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"source-port\"]).to.eql(\"1024..6553\");",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV6",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV6"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "update acl TEST1 to ipv4 udp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"acl-set\": [\n        {\n            \"name\": \"{{iacl_in-acl-name3}}\",\n            \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n            \"config\": {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n            },\n            \"acl-entries\": {\n                \"acl-entry\": [\n                    {\n                        \"sequence-id\": 4,\n                        \"ipv4\": {\n                            \"config\": {\n                                \"protocol\": \"frinx-openconfig-packet-match-types:IP_UDP\",\n                                \"frinx-acl-extension:source-address-wildcarded\": {\n                                    \"wildcard-mask\": \"0.255.255.255\",\n                                    \"address\": \"0.0.0.0\"\n                                },\n                                \"frinx-acl-extension:destination-address-wildcarded\": {\n                                    \"wildcard-mask\": \"0.255.255.255\",\n                                    \"address\": \"0.0.0.0\"\n                                }\n                            }\n                        },\n                        \"config\": {\n                            \"sequence-id\": 4\n                        },\n                        \"transport\": {\n                            \"config\": {\n                                \"source-port\": 10,\n                                \"destination-port\": \"10..65535\"\n                            }\n                        },\n                        \"actions\": {\n                            \"config\": {\n                                \"forwarding-action\": \"frinx-openconfig-acl:ACCEPT\"\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show updated TEST1 ipv4 udp",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "8fdec6b0-3230-4729-bc8e-0d35751b38d0",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id config",
+													"pm.test(\"Validate config sequence-id = 33\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(4);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 33\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(4);",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:destination-address-wildcarded\"][\"wildcard-mask\"]).to.eql(\"0.255.255.255\");",
+													"});",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:destination-address-wildcarded\"][\"wildcard-mask\"]).to.eql(\"0.255.255.255\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_TCP\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_UDP\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:source-address-wildcarded\"][\"wildcard-mask\"]).to.eql(\"0.255.255.255\");",
+													"});",
+													"",
+													"pm.test(\"Validate source-address = 10:11:12::2/128\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:source-address-wildcarded\"][\"address\"]).to.eql(\"0.0.0.0\");",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action =frinx-openconfig-acl:DROP \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:ACCEPT\");",
+													"});",
+													"//type config",
+													"pm.test(\"Validate config type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name config",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//destination-port",
+													"pm.test(\"Validate destination-port =4..1023 \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"destination-port\"]).to.eql(\"10..65535\");",
+													"});",
+													"//source-port",
+													"pm.test(\"Validate source-port = 1024..6553\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"source-port\"]).to.eql(10);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "delete TEST1 ipv4",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted acl TEST1 ipv4",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 404\", function () {",
+													"  pm.response.to.have.status(404);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "delete TEST1 ipv6",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV6",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV6"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show deleted acl TEST1 ipv6",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 404\", function () {",
+													"  pm.response.to.have.status(404);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV6",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV6"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "create acl TEST1 ipv6 icmp 133",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"frinx-openconfig-acl:acl-sets\": {\n        \"acl-set\": [\n            {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n                \"config\": {\n                    \"name\": \"{{iacl_in-acl-name3}}\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 40,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"source-address\": \"::/8\",\n                                    \"destination-address\": \"::/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 40\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        },\n                        {\n                            \"sequence-id\": 10,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_ICMP\",\n                                    \"destination-address\": \"::/0\",\n                                    \"source-address\": \"::/0\",\n                                    \"frinx-acl-extension:hop-range\": \"0..254\"\n                                }\n                            },\n                            \"frinx-acl-extension:icmp\": {\n                                \"config\": {\n                                    \"msg-type\": 133\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 10\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        },\n                        {\n                            \"sequence-id\": 50,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"source-address\": \"::/0\",\n                                    \"destination-address\": \"::/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 50\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:ACCEPT\"\n                                }\n                            }\n                        },\n                        {\n                            \"sequence-id\": 20,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"source-address\": \"::/0\",\n                                    \"destination-address\": \"2400:2000:3::/48\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 20\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        },\n                        {\n                            \"sequence-id\": 30,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"source-address\": \"::/0\",\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_ICMP\",\n                                    \"destination-address\": \"::/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 30\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:ACCEPT\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            {\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n                \"name\": \"inacl2\",\n                \"config\": {\n                    \"name\": \"inacl2\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 2,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_UDP\",\n                                    \"source-address\": \"10:11:12::2/128\",\n                                    \"destination-address\": \"::/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 2\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            {\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                \"name\": \"outacl2\",\n                \"config\": {\n                    \"name\": \"outacl2\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 3,\n                            \"ipv4\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_TCP\",\n                                    \"source-address\": \"1.1.1.1/32\",\n                                    \"destination-address\": \"2.2.2.2/32\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 3\n                            },\n                            \"transport\": {\n                                \"config\": {\n                                    \"source-port\": 1024,\n                                    \"destination-port\": 0\n                                }\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:ACCEPT\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            {\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n                \"name\": \"outacl1\",\n                \"config\": {\n                    \"name\": \"outacl1\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 5,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_PROTOCOL\",\n                                    \"source-address\": \"10:11:12::2/128\",\n                                    \"destination-address\": \"::/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 5\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            {\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                \"name\": \"inacl1\",\n                \"config\": {\n                    \"name\": \"inacl1\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 10,\n                            \"ipv4\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_PROTOCOL\",\n                                    \"source-address\": \"0.0.0.0/0\",\n                                    \"destination-address\": \"0.0.0.0/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 10\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            }\n        ]\n    }\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show created acl TEST1 ipv6 icmp 133",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "d86354f6-d0e6-41d8-95da-b2cf853ad2b2",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(40);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(40);",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:DROP\");",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"destination-address\"]).to.eql(\"::/0\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv6\"][\"config\"][\"source-address\"]).to.eql(\"::/8\");",
+													"});",
+													"//msg-type",
+													"pm.test(\"Validate msg-type = 133\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][1][\"frinx-acl-extension:icmp\"][\"config\"][\"msg-type\"]).to.eql(133);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][1][\"config\"][\"sequence-id\"]).to.eql(10);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][1][\"sequence-id\"]).to.eql(10);",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][1][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:DROP\");",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][1][\"ipv6\"][\"config\"][\"destination-address\"]).to.eql(\"::/0\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][1][\"ipv6\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_ICMP\");",
+													"});",
+													"//frinx-acl-extension:hop-range",
+													"pm.test(\"Validate frinx-acl-extension:hop-range = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][1][\"ipv6\"][\"config\"][\"frinx-acl-extension:hop-range\"]).to.eql(\"0..254\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][1][\"ipv6\"][\"config\"][\"source-address\"]).to.eql(\"::/0\");",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][2][\"config\"][\"sequence-id\"]).to.eql(50);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][2][\"sequence-id\"]).to.eql(50);",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][2][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:ACCEPT\");",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][2][\"ipv6\"][\"config\"][\"destination-address\"]).to.eql(\"::/0\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][2][\"ipv6\"][\"config\"][\"source-address\"]).to.eql(\"::/0\");",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][3][\"config\"][\"sequence-id\"]).to.eql(20);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][3][\"sequence-id\"]).to.eql(20);",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][3][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:DROP\");",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][3][\"ipv6\"][\"config\"][\"destination-address\"]).to.eql(\"2400:2000:3::/48\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = ::/0\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][3][\"ipv6\"][\"config\"][\"source-address\"]).to.eql(\"::/0\");",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = \", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][4][\"config\"][\"sequence-id\"]).to.eql(30);",
+													"});",
+													"//sequence-id",
+													"pm.test(\"Validate sequence-id = 30\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][4][\"sequence-id\"]).to.eql(30);",
+													"});",
+													"//forwarding-action",
+													"pm.test(\"Validate forwarding-action = frinx-openconfig-acl:ACCEPT\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][4][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:ACCEPT\");",
+													"});",
+													"//destination-address",
+													"pm.test(\"Validate destination-address = ::/0\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][4][\"ipv6\"][\"config\"][\"destination-address\"]).to.eql(\"::/0\");",
+													"});",
+													"//protocol",
+													"pm.test(\"Validate protocol = frinx-openconfig-packet-match-types:IP_ICMP\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][4][\"ipv6\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_ICMP\");",
+													"});",
+													"//source-address",
+													"pm.test(\"Validate source-address = ::/0\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][4][\"ipv6\"][\"config\"][\"source-address\"]).to.eql(\"::/0\");",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV6\", function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV6\");",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"iacl_in-acl-name3\"), function() {",
+													"  pm.expect(pm.response.json()[\"acl-sets\"][\"acl-set\"][0][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "create acl TEST1 ipv4 icmp 10",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"frinx-openconfig-acl:acl-sets\": {\n        \"acl-set\": [\n            {\n                \"name\": \"{{iacl_in-acl-name3}}\",\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                \"config\": {\n                    \"name\": \"{{iacl_in-acl-name3}}\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 10,\n                            \"ipv4\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_ICMP\",\n                                    \"destination-address\": \"0.0.0.0/0\",\n                                    \"source-address\": \"0.0.0.0/0\",\n                                    \"frinx-acl-extension:hop-range\": \"0..254\"\n                                }\n                            },\n                            \"frinx-acl-extension:icmp\": {\n                                \"config\": {\n                                    \"msg-type\": 10\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 10\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            {\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n                \"name\": \"inacl2\",\n                \"config\": {\n                    \"name\": \"inacl2\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 2,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_UDP\",\n                                    \"source-address\": \"10:11:12::2/128\",\n                                    \"destination-address\": \"::/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 2\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            {\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                \"name\": \"outacl2\",\n                \"config\": {\n                    \"name\": \"outacl2\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 3,\n                            \"ipv4\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_TCP\",\n                                    \"source-address\": \"1.1.1.1/32\",\n                                    \"destination-address\": \"2.2.2.2/32\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 3\n                            },\n                            \"transport\": {\n                                \"config\": {\n                                    \"source-port\": 1024,\n                                    \"destination-port\": 0\n                                }\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:ACCEPT\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            {\n                \"type\": \"frinx-openconfig-acl:ACL_IPV6\",\n                \"name\": \"outacl1\",\n                \"config\": {\n                    \"name\": \"outacl1\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV6\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 5,\n                            \"ipv6\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_PROTOCOL\",\n                                    \"source-address\": \"10:11:12::2/128\",\n                                    \"destination-address\": \"::/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 5\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            },\n            {\n                \"type\": \"frinx-openconfig-acl:ACL_IPV4\",\n                \"name\": \"inacl1\",\n                \"config\": {\n                    \"name\": \"inacl1\",\n                    \"type\": \"frinx-openconfig-acl:ACL_IPV4\"\n                },\n                \"acl-entries\": {\n                    \"acl-entry\": [\n                        {\n                            \"sequence-id\": 10,\n                            \"ipv4\": {\n                                \"config\": {\n                                    \"protocol\": \"frinx-openconfig-packet-match-types:IP_PROTOCOL\",\n                                    \"source-address\": \"0.0.0.0/0\",\n                                    \"destination-address\": \"0.0.0.0/0\"\n                                }\n                            },\n                            \"config\": {\n                                \"sequence-id\": 10\n                            },\n                            \"actions\": {\n                                \"config\": {\n                                    \"forwarding-action\": \"frinx-openconfig-acl:DROP\"\n                                }\n                            }\n                        }\n                    ]\n                }\n            }\n        ]\n    }\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show created acl TEST1 ipv4 icmp 10",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "45426203-fc4b-41e6-805a-69b405bded36",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate name = TEST1a\", function() {",
+													"  var json_string = pm.response.json()[\"acl-sets\"][\"acl-set\"];",
+													"  for (var i = 0; i < json_string.length; i++) {",
+													"    if (json_string[i][\"name\"] == \"TEST1\") {",
+													"      pm.expect(json_string[i][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");       ",
+													"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(pm.environment.get(\"iacl_in-acl-name3\"));   ",
+													"      pm.expect(json_string[i][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:DROP\");",
+													"      pm.expect(json_string[i][\"acl-entries\"][\"acl-entry\"][0][\"frinx-acl-extension:icmp\"][\"config\"][\"msg-type\"]).to.eql(10);",
+													"      pm.expect(json_string[i][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(10);",
+													"      pm.expect(json_string[i][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"destination-address\"]).to.eql(\"0.0.0.0/0\");",
+													"      pm.expect(json_string[i][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"protocol\"]).to.eql(\"frinx-openconfig-packet-match-types:IP_ICMP\");",
+													"      pm.expect(json_string[i][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"frinx-acl-extension:hop-range\"]).to.eql(\"0..254\");",
+													"      pm.expect(json_string[i][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"source-address\"]).to.eql(\"0.0.0.0/0\");",
+													"    }",
+													"  }",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												""
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "delete TEST1 ipv4",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c0c4ba42-a484-4748-8910-e47e0e4c5e5f",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-acl:acl/acl-sets/acl-set/{{iacl_in-acl-name3}}/frinx-openconfig-acl:ACL_IPV4",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"{{topology_id}}",
+												"node",
+												"{{node_id}}",
+												"yang-ext:mount",
+												"frinx-openconfig-acl:acl",
+												"acl-sets",
+												"acl-set",
+												"{{iacl_in-acl-name3}}",
+												"frinx-openconfig-acl:ACL_IPV4"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"_postman_isSubFolder": true
 						}
 					],
 					"_postman_isSubFolder": true
@@ -1088,17 +2857,18 @@
 					"description": null,
 					"item": [
 						{
-							"name": "Create ifc acls",
+							"name": "create ifc acls",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"id": "bd452c8f-7ab2-4cb0-bd8e-56135381fd0b",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
 											"console.log(\"Response: \" + responseBody)",
 											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"    pm.response.to.have.status(200);",
 											"});"
 										]
 									}
@@ -1122,7 +2892,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nipv4 access-list {{iacl_in-acl-name1}} 10 deny ipv4 any any\nipv4 access-list {{iacl_in-acl-name2}} 10 deny ipv4 any any\nipv4 access-list {{iacl_out-acl-name1}} 10 deny ipv4 any any\nipv4 access-list {{iacl_out-acl-name2}} 10 deny ipv4 any any\ncommit\nend\"\n  }\n}"
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nipv4 access-list {{iacl_in-acl-name1}} 10 deny ipv4 any any\nipv6 access-list {{iacl_in-acl-name2}} 2 deny udp host 10:11:12::2 any\nipv6 access-list {{iacl_out-acl-name1}} 5 deny ipv6 host 10:11:12::2 any\nipv4 access-list {{iacl_out-acl-name2}} 3 permit tcp host 1.1.1.1 eq 1024 host 2.2.2.2 eq 0\ncommit\nend\"\n  }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -1147,15 +2917,16 @@
 							"response": []
 						},
 						{
-							"name": "Reconcile",
+							"name": "reconcile",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"id": "f6fed257-3618-4af0-9878-be329404abbb",
 										"type": "text/javascript",
 										"exec": [
 											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"    pm.response.to.have.status(200);",
 											"});"
 										]
 									}
@@ -1200,7 +2971,7 @@
 							"response": []
 						},
 						{
-							"name": "Delete previous acl",
+							"name": "delete previous acl",
 							"event": [
 								{
 									"listen": "test",
@@ -1265,18 +3036,18 @@
 					"description": null,
 					"item": [
 						{
-							"name": "Delete ifc acls",
+							"name": "delete ifc acls",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"id": "28908e9e-4752-4de2-a606-74788a56d127",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
 											"console.log(\"Response: \" + responseBody)",
-											"",
 											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"    pm.response.to.have.status(200);",
 											"});"
 										]
 									}
@@ -1300,7 +3071,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno ipv4 access-list {{iacl_in-acl-name1}}\nno ipv4 access-list {{iacl_in-acl-name2}}\nno ipv4 access-list {{iacl_out-acl-name1}}\nno ipv4 access-list {{iacl_out-acl-name2}}\ncommit\nend\"\n  }\n}"
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno ipv4 access-list {{iacl_in-acl-name1}}\nno ipv6 access-list {{iacl_in-acl-name2}}\nno ipv6 access-list {{iacl_out-acl-name1}}\nno ipv4 access-list {{iacl_out-acl-name2}}\ncommit\nend\"\n  }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",

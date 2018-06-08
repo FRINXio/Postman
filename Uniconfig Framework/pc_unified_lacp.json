@@ -1,13 +1,13 @@
 {
 	"info": {
-		"_postman_id": "396b5bdf-1243-4da8-a1dc-d08bd5ab983a",
+		"_postman_id": "aaca88d2-7391-4dfa-b34d-45f6a62a2e03",
 		"name": "pc_unified_lacp",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "Tests",
-			"description": "",
+			"description": null,
 			"item": [
 				{
 					"name": "LACP IFC CRUD",
@@ -18,16 +18,19 @@
 							"description": null,
 							"item": [
 								{
-									"name": "Create passive mode",
+									"name": "create passive mode",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "b8817843-6cd6-43fb-a3ef-4b6138b5303b",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"Success\"] = responseCode.code === 200 || responseCode.code === 201;"
+													"pm.test(\"Success\", function () {",
+													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});"
 												]
 											}
 										}
@@ -78,44 +81,38 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "c5bd9667-ce62-459b-afca-e10a1d840978",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"tests[\"GET - show created interface request\"] = responseCode.code === 200",
 													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
-													"",
-													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === true",
-													"",
-													"    tests[\"Lacp - aggregate id\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-													"    tests[\"Lacp - interval\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_slow\");",
-													"    tests[\"Lacp - mode\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_passive\");",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Interface not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest(\"show created passive mode\");",
-													"    }",
-													"}"
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"//frinx-lacp-lag-member:interval",
+													"pm.test(\"Validate frinx-lacp-lag-member:interval = \" + pm.environment.get(\"lacp_interval_slow\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(pm.environment.get(\"lacp_interval_slow\"));",
+													"});",
+													"//frinx-openconfig-if-aggregate:aggregate-id",
+													"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+													"});",
+													"//frinx-lacp-lag-member:lacp-mode",
+													"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_passive\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_passive\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = \", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+													"});",
+													"//config name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});"
 												]
 											}
 										}
@@ -165,17 +162,18 @@
 									"response": []
 								},
 								{
-									"name": "Update active mode",
+									"name": "update active mode",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "b242c6a4-74d1-40e3-86d7-167bc61b436d",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -227,46 +225,39 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "7ee6abe6-ae13-4b77-bcaa-69e80a6eee06",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
-													"",
-													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === true",
-													"",
-													"    tests[\"Lacp - aggregate id\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-													"    tests[\"Lacp - interval\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_slow\");",
-													"    tests[\"Lacp - mode\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_active\");",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Interface not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest(\"show updated active mode\");",
-													"    }",
-													"}"
+													"//frinx-lacp-lag-member:interval",
+													"pm.test(\"Validate frinx-lacp-lag-member:interval = \" + pm.environment.get(\"lacp_interval_slow\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(pm.environment.get(\"lacp_interval_slow\"));",
+													"});",
+													"//frinx-openconfig-if-aggregate:aggregate-id",
+													"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+													"});",
+													"//frinx-lacp-lag-member:lacp-mode",
+													"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_active\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_active\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = \", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+													"});",
+													"//config name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													""
 												]
 											}
 										}
@@ -316,17 +307,18 @@
 									"response": []
 								},
 								{
-									"name": "Update period fast",
+									"name": "update period fast",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "1a80c660-44a0-48f3-a832-719023cbcba2",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -378,46 +370,39 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "4522b1ad-7d17-462d-85eb-a51f03e7aa72",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
-													"",
-													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === true",
-													"",
-													"    tests[\"Lacp - aggregate id\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-													"    tests[\"Lacp - interval\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_fast\");",
-													"    tests[\"Lacp - mode\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_active\");",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Interface not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest(\"show updated period fast\");",
-													"    }",
-													"}"
+													"//frinx-lacp-lag-member:interval",
+													"pm.test(\"Validate frinx-lacp-lag-member:interval = \" + pm.environment.get(\"lacp_interval_fast\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(pm.environment.get(\"lacp_interval_fast\"));",
+													"});",
+													"//frinx-openconfig-if-aggregate:aggregate-id",
+													"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+													"});",
+													"//frinx-lacp-lag-member:lacp-mode",
+													"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_active\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_active\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = \", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+													"});",
+													"//config name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													""
 												]
 											}
 										}
@@ -474,7 +459,7 @@
 							"description": null,
 							"item": [
 								{
-									"name": "Create passive mode",
+									"name": "create passive mode",
 									"event": [
 										{
 											"listen": "test",
@@ -537,46 +522,39 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "5f470290-fe5a-4645-8a5c-4af4dfd85c79",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
-													"",
-													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === true",
-													"",
-													"    tests[\"Lacp - aggregate id\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-													"    tests[\"Lacp - interval\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_slow\");",
-													"    tests[\"Lacp - mode\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_passive\");",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Interface not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest(\"show created passive mode\");",
-													"    }",
-													"}"
+													"//frinx-lacp-lag-member:interval",
+													"pm.test(\"Validate frinx-lacp-lag-member:interval = \" + pm.environment.get(\"lacp_interval_slow\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(pm.environment.get(\"lacp_interval_slow\"));",
+													"});",
+													"//frinx-openconfig-if-aggregate:aggregate-id",
+													"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+													"});",
+													"//frinx-lacp-lag-member:lacp-mode",
+													"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_passive\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_passive\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = \", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+													"});",
+													"//config name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													""
 												]
 											}
 										}
@@ -626,17 +604,18 @@
 									"response": []
 								},
 								{
-									"name": "Update active mode",
+									"name": "update active mode",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "f10f012a-dcf4-413b-bef2-cd08c4a9dd1f",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -689,46 +668,39 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "6d4ee55f-aab2-46b6-af59-9505ad731490",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
-													"",
-													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === true",
-													"",
-													"    tests[\"Lacp - aggregate id\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-													"    tests[\"Lacp - interval\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_slow\");",
-													"    tests[\"Lacp - mode\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_active\");",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Interface not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest(\"show updated active mode\");",
-													"    }",
-													"}"
+													"//frinx-lacp-lag-member:interval",
+													"pm.test(\"Validate frinx-lacp-lag-member:interval = \" + pm.environment.get(\"lacp_interval_slow\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(pm.environment.get(\"lacp_interval_slow\"));",
+													"});",
+													"//frinx-openconfig-if-aggregate:aggregate-id",
+													"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+													"});",
+													"//frinx-lacp-lag-member:lacp-mode",
+													"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_active\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_active\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = \", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+													"});",
+													"//config name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													""
 												]
 											}
 										}
@@ -778,17 +750,18 @@
 									"response": []
 								},
 								{
-									"name": "Update period fast",
+									"name": "update period fast",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
+												"id": "e172e7e1-b1ac-4219-bea1-6b4eb6f342db",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Request data: \" + request.data.toString());",
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"Success\", function () {",
-													"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});"
 												]
 											}
@@ -841,46 +814,39 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "275fd0af-575f-4a1d-bee4-c8e6a69cac8e",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
-													"pm.test(\"GET - show created interface request\", function () {",
-													"    pm.response.to.have.status(200);",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
 													"});",
-													"",
-													"// attempts counter",
-													"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-													"",
-													"var jsonData = JSON.parse(responseBody);",
-													"if (responseBody.has(\"interface\")) {",
-													"    // Reset attempt counter",
-													"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"    // asserts",
-													"    tests[\"Lacp - number of tested interfaces\"] = jsonData[\"interface\"].length === 1",
-													"",
-													"    tests[\"Lacp - name\"] = jsonData[\"interface\"][0][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - config name\"] = jsonData[\"interface\"][0][\"config\"][\"name\"] === postman.getEnvironmentVariable(\"lacp_intf-id\");",
-													"    tests[\"Lacp - ethernet presence\"] = \"frinx-openconfig-if-ethernet:ethernet\" in jsonData[\"interface\"][0] === true",
-													"",
-													"    tests[\"Lacp - aggregate id\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"] === postman.getEnvironmentVariable(\"lacp_bundle_id\");",
-													"    tests[\"Lacp - interval\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"] === postman.getEnvironmentVariable(\"lacp_interval_fast\");",
-													"    tests[\"Lacp - mode\"] = jsonData[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"] === postman.getEnvironmentVariable(\"lacp_mode_active\");",
-													"",
-													"} else {",
-													"    // If too many attempts, abort",
-													"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"show_attempts_count\"))) {",
-													"        // Reset attempt counter",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-													"        console.log(\"Expected content not received yet ! Too many attempts !\")",
-													"        tests[\"Interface not created/updated/deleted\"] = false",
-													"    } else {",
-													"        // Schedule next check attempt",
-													"        console.log(\"Data not received yet ! Waiting, attempt : \" + attempt)",
-													"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-													"        postman.setNextRequest(\"how updated period fast\");",
-													"    }",
-													"}"
+													"//frinx-lacp-lag-member:interval",
+													"pm.test(\"Validate frinx-lacp-lag-member:interval = \" + pm.environment.get(\"lacp_interval_fast\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(pm.environment.get(\"lacp_interval_fast\"));",
+													"});",
+													"//frinx-openconfig-if-aggregate:aggregate-id",
+													"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+													"});",
+													"//frinx-lacp-lag-member:lacp-mode",
+													"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_active\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_active\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = \", function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+													"});",
+													"//config name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+													"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+													"});",
+													""
 												]
 											}
 										}
@@ -946,11 +912,12 @@
 					"description": null,
 					"item": [
 						{
-							"name": "Create empty interface",
+							"name": "create empty interface",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"id": "ddf3303a-c95e-4cb6-afdf-be464a6e1a51",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
@@ -1087,16 +1054,17 @@
 					"description": null,
 					"item": [
 						{
-							"name": "Delete bundle",
+							"name": "delete bundle",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"id": "8f015e96-971b-44b6-8126-74450af3463b",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Success\", function() {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
 											"});"
 										]
 									}
@@ -1228,16 +1196,17 @@
 					"description": null,
 					"item": [
 						{
-							"name": "Configure LACP",
+							"name": "configure LACP",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"id": "d42ca83e-b7b3-43ae-ba23-eca84815ec3e",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
 											"});"
 										]
 									}
@@ -1372,16 +1341,17 @@
 							"response": []
 						},
 						{
-							"name": "Delete LACP",
+							"name": "delete LACP",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"id": "2f8c3382-6634-4110-a3f3-daadd46c9218",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
 											"});"
 										]
 									}
@@ -1430,15 +1400,16 @@
 							"response": []
 						},
 						{
-							"name": "Reconcile",
+							"name": "reconcile",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"id": "d435ba12-e93b-420e-8e01-65425865fcc1",
 										"type": "text/javascript",
 										"exec": [
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
 											"});"
 										]
 									}

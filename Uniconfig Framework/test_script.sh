@@ -22,11 +22,13 @@ fi
 
 mount_collection=pc_mount_unmount.json
 if [ "$env_file" == "xrv_env.json" ] ; then
-  dev_pref="XR"
+  dev_pref="XR6"
 elif [ "$env_file" == "xrv5_env.json" ] ; then
   dev_pref="XR5"
 elif [ "$env_file" == "classic_152_env.json" ] ; then
   dev_pref="Classic"
+elif [ "$env_file" == "xe4_env.json" ] ; then
+  dev_pref="XE"
 else
   echo "Unsupported env file: $env_file"
   exit 1

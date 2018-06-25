@@ -27,7 +27,7 @@ elif [ "$env_file" == "xrv5_env.json" ] ; then
   dev_pref="XR5"
 elif [ "$env_file" == "classic_152_env.json" ] ; then
   dev_pref="Classic"
-elif [ "$env_file" == "xe4_env.json" ] ; then
+elif [ "$env_file" == "xe_env.json" ] ; then
   dev_pref="XE"
 else
   echo "Unsupported env file: $env_file"

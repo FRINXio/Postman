@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7a63508b-521e-461f-a72c-11b7a3022bf2",
+		"_postman_id": "f718587e-116f-446d-97a6-390946d81e00",
 		"name": "pc_unified_lacp",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1822,6 +1822,289 @@
 									"listen": "test",
 									"script": {
 										"id": "321f5d28-4182-4868-88d7-0d2593312e3d",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//type",
+											"pm.test(\"Validate type = \" + pm.environment.get(\"type\"), function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"type\"]).to.eql(pm.environment.get(\"type\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+											"});",
+											"//NO ethernet",
+											"pm.test(\"No subinterface\", function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0]).not.to.have.a.property('frinx-openconfig-if-ethernet:ethernet');",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface",
+										"{{lacp_url_intf-id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Junos LACP IFC READERS",
+					"description": null,
+					"item": [
+						{
+							"name": "configure",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\nset interfaces {{lacp_intf-id}} gigether-options 802.3ad {{lacp_bundle_id}}\nset interfaces {{lacp_bundle_id}} aggregated-ether-options lacp active\nset interfaces {{lacp_bundle_id}} aggregated-ether-options lacp periodic fast\ncommit\nexit\"\n     }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show created active mode",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "411348ac-da29-4ebe-b499-7f257141489b",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"//frinx-openconfig-if-aggregate:aggregate-id",
+											"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+											"});",
+											"//frinx-lacp-lag-member:lacp-mode",
+											"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_active\"), function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_active\"));",
+											"});",
+											"//frinx-lacp-lag-member:lacp-interval",
+											"pm.test(\"Validate frinx-lacp-lag-member:interval = \" + pm.environment.get(\"lacp_interval_fast\"), function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(pm.environment.get(\"lacp_interval_fast\"));",
+											"});",
+											"//type",
+											"pm.test(\"Validate type = \", function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+											"});",
+											"//config name",
+											"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+											"  pm.expect(pm.response.json()[\"interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface",
+										"{{lacp_url_intf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete interface active mode",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "46ac9b57-567f-4d47-ba68-408e8d4899bd",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "  {\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\ndelete interfaces {{lacp_bundle_id}} aggregated-ether-options\ndelete interfaces {{lacp_intf-id}} gigether-options\ncommit\nexit\"\n     }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted interface",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "6ad66faf-0f19-4949-aa3f-701ce464412e",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",

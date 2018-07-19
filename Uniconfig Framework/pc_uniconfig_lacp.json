@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "60723e24-d0cc-4ef6-84c5-64965718a151",
+		"_postman_id": "3eac4c6b-9f49-4bd1-bdcc-3ade92de05b1",
 		"name": "pc_uniconfig_lacp",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -153,6 +153,586 @@
 									"listen": "test",
 									"script": {
 										"id": "69783b3a-c69a-46dd-b34e-e8dda9ad09f3",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//type",
+											"pm.test(\"Validate type = \" + pm.environment.get(\"type\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"type\"]).to.eql(pm.environment.get(\"type\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+											"});",
+											"//NO ethernet",
+											"pm.test(\"No subinterface\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0]).not.to.have.a.property('frinx-openconfig-if-ethernet:ethernet');",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface",
+										"{{lacp_url_intf-id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Junos LACP IFC READERS",
+					"description": null,
+					"item": [
+						{
+							"name": "configure lacp active mode and fast period",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "46ac9b57-567f-4d47-ba68-408e8d4899bd",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\nset interfaces {{lacp_intf-id}} gigether-options 802.3ad {{lacp_bundle_id}}\nset interfaces {{lacp_bundle_id}} aggregated-ether-options lacp active\nset interfaces {{lacp_bundle_id}} aggregated-ether-options lacp periodic fast\ncommit\nexit\"\n     }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"",
+											"pm.test(\"No error occured\", function() {",
+											"  pm.expect(pm.response.text()).not.to.include(\"error-type\");",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "replace-config-with-operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"",
+											"pm.test(\"No error occured\", function() {",
+											"  pm.expect(pm.response.text()).not.to.include(\"error-type\");",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show created active mode and fast period",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "63876689-2a04-43e6-86b2-3a549f48ac73",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"//frinx-openconfig-if-aggregate:aggregate-id",
+											"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+											"});",
+											"//frinx-lacp-lag-member:lacp-mode",
+											"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_active\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_active\"));",
+											"});",
+											"//frinx-lacp-lag-member:lacp-interval",
+											"pm.test(\"Validate frinx-lacp-lag-member:interval = \" + pm.environment.get(\"lacp_interval_fast\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(pm.environment.get(\"lacp_interval_fast\"));",
+											"});",
+											"//type",
+											"pm.test(\"Validate type = \", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+											"});",
+											"//config name",
+											"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+											"});",
+											"//name",
+											"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id\"), function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id\"));",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface",
+										"{{lacp_url_intf-id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete lacp active mode and fast period",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "46ac9b57-567f-4d47-ba68-408e8d4899bd",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "  {\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\ndelete interfaces {{lacp_bundle_id}} aggregated-ether-options\ndelete interfaces {{lacp_intf-id}} gigether-options\ncommit\nexit\"\n     }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate nodeId\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"",
+											"pm.test(\"No error occured\", function() {",
+											"  pm.expect(pm.response.text()).not.to.include(\"error-type\");",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "replace-config-with-operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"",
+											"pm.test(\"No error occured\", function() {",
+											"  pm.expect(pm.response.text()).not.to.include(\"error-type\");",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted lacp",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cfb2781c-50f4-48c5-8397-d156d0e79c4e",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",

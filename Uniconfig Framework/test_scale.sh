@@ -8,18 +8,17 @@
 
 set -x
 
-env_template_file="iou_scale_env_tmpl.json"
+env_template_file="mocked_scale_env_tmpl.json"
 router_mount_folder="IOU Mount"
 router_unmount_folder="IOU Unmount"
 collection_file="postman_collection_scale.json"
 
 max_devices_configured=$1
 odl_ip_address=$2
-iou_device_ips=(${@:3})
-collection=postman_collection_scale.json
-env_templ=iou_scale_env_tmpl.json
+mocked_device_ip=$3
+mocked_device_ports=(${@:4})
 node_prefix="tested_node_"
-nr_ious=${#iou_device_ips[@]}
+nr_ious=${#mocked_device_ports[@]}
 
 echo "Input parameters:"
 if [ $max_devices_configured -eq 0 ]; then
@@ -28,7 +27,8 @@ else
   echo "Nodes to be configured: $max_devices_configured"
 fi
 echo "Number of IOUs: $nr_ious"
-echo "IOU device ips: ${iou_device_ips[@]}"
+echo "Mocked IOU device ip: $mocked_device_ip"
+echo "Mocked IOU device ports: ${mocked_device_ports[@]}"
 echo "Controller IP: $odl_ip_address"
 
 sufix_msg_part="(out of $max_devices_configured)"
@@ -43,17 +43,20 @@ for (( ; ; ))
 do
 
    iou_idx_used=$(( $i % $nr_ious ))
-   router_ip=${iou_device_ips[${iou_idx_used}]}
+   router_ip=$mocked_device_ip
+   router_port=${mocked_device_ports[${iou_idx_used}]}
    ((i++))
    node_name=$node_prefix$i
    echo "Configuring router $router_ip as $node_name $sufix_msg_part"
  
    # copy env template file and fill with correct values
-   env_file_name=iou_scale_env_$node_name.json
+   env_file_name=mocked_scale_env_$node_name.json
    cp $env_template_file $env_file_name
    sed -i "s/ODL_IP/$odl_ip_address/g" $env_file_name
    sed -i "s/NODE_NAME/$node_name/g" $env_file_name
    sed -i "s/NODE_IP/$router_ip/g" $env_file_name
+   sed -i "s/TOPOLOGY_PORT/$router_port/g" $env_file_name
+
 
    newman run $collection_file --bail -e $env_file_name -n 1 --folder "$router_mount_folder"
    nrc=$?
@@ -61,7 +64,7 @@ do
 
    rm $env_file_name
 
-   # let's break if miounting a node failed 
+   # let's break if mounting a node failed 
    if [ $nrc -ne 0 ]; then
      break
    fi
@@ -90,7 +93,7 @@ do
    echo "Deconfiguring router $node_name"
 
    # copy env template file and fill with correct values
-   env_file_name=iou_scale_env_$node_name.json
+   env_file_name=mocked_scale_env_$node_name.json
    cp $env_template_file $env_file_name
    sed -i "s/ODL_IP/$odl_ip_address/g" $env_file_name
    sed -i "s/NODE_NAME/$node_name/g" $env_file_name

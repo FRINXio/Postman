@@ -31,6 +31,8 @@ elif [ "$env_file" == "xe_env.json" ] ; then
   dev_pref="XE"
 elif [ "$env_file" == "junos173virt_env.json" ] ; then
   dev_pref="Junos"
+elif [ "$env_file" == "asr_env.json" ] ; then
+  dev_pref="ASR"
 else
   echo "Unsupported env file: $env_file"
   exit 1

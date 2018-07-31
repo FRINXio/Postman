@@ -1,12 +1,12 @@
 {
 	"info": {
-		"_postman_id": "f5ddc5af-bb28-4f4a-b32b-4be2628c811f",
+		"_postman_id": "6af22ab0-b03e-40bc-8c9c-926ee8ea014f",
 		"name": "pc_uniconfig_sync_from_network",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Mount",
+			"name": "Setup",
 			"description": null,
 			"item": [
 				{
@@ -46,7 +46,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"R1\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"R1\",\n      \n      \"cli-topology:host\" : \"192.168.1.215\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
 						},
 						"url": {
 							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
@@ -484,6 +484,248 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "show interface loopback R1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4fe4ad0f-d6b8-4299-a6b3-52eebdda0c00",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate no configuration\", function () {",
+									"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
+									"    ",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface loopback123\n\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R1/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"cli",
+								"node",
+								"R1",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check nonexisting interface on R1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0448734d-e44a-438f-94fa-8c802cffbe99",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 404\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});",
+									"",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"R1",
+								"frinx-uniconfig-topology:configuration",
+								"frinx-openconfig-interfaces:interfaces",
+								"interface",
+								"Loopback123"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show interface loopback R2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2ebbcf0f-eb8d-433c-b054-a74195dd4bcf",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate no configuration\", function () {",
+									"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
+									"    ",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface loopback123\n\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R2/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"cli",
+								"node",
+								"R2",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check nonexisting interface R2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f9f100ec-cb10-4aad-8e99-8b858ea51779",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 404\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});",
+									"",
+									"",
+									"",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"R2",
+								"frinx-uniconfig-topology:configuration",
+								"frinx-openconfig-interfaces:interfaces",
+								"interface",
+								"Loopback123"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -495,248 +737,6 @@
 					"name": "one router",
 					"description": null,
 					"item": [
-						{
-							"name": "show interface loopback R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "4fe4ad0f-d6b8-4299-a6b3-52eebdda0c00",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate no configuration\", function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
-											"    ",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface loopback123\n\"\n  }\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R1/yang-ext:mount/cli-unit-generic:execute-and-read",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"network-topology:network-topology",
-										"topology",
-										"cli",
-										"node",
-										"R1",
-										"yang-ext:mount",
-										"cli-unit-generic:execute-and-read"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "0448734d-e44a-438f-94fa-8c802cffbe99",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "show interface loopback R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "2ebbcf0f-eb8d-433c-b054-a74195dd4bcf",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate no configuration\", function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
-											"    ",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface loopback123\n\"\n  }\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R2/yang-ext:mount/cli-unit-generic:execute-and-read",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"network-topology:network-topology",
-										"topology",
-										"cli",
-										"node",
-										"R2",
-										"yang-ext:mount",
-										"cli-unit-generic:execute-and-read"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f9f100ec-cb10-4aad-8e99-8b858ea51779",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											"",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
 						{
 							"name": "configure loopback on R1",
 							"event": [
@@ -1062,248 +1062,6 @@
 					"name": "all routers",
 					"description": null,
 					"item": [
-						{
-							"name": "show interface loopback R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "cf0516f1-4f57-44e0-9cce-28ff2028a4d3",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate no configuration\", function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
-											"    ",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nsh running-config interface Loopback123\n\"\n  }\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R1/yang-ext:mount/cli-unit-generic:execute-and-read",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"network-topology:network-topology",
-										"topology",
-										"cli",
-										"node",
-										"R1",
-										"yang-ext:mount",
-										"cli-unit-generic:execute-and-read"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "0448734d-e44a-438f-94fa-8c802cffbe99",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "show interface loopback R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "76caaa6d-5e7c-47bf-b12d-b205568751b4",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate no configuration\", function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
-											"    ",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nsh running-config interface Loopback123\n\"\n  }\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R2/yang-ext:mount/cli-unit-generic:execute-and-read",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"network-topology:network-topology",
-										"topology",
-										"cli",
-										"node",
-										"R2",
-										"yang-ext:mount",
-										"cli-unit-generic:execute-and-read"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f9f100ec-cb10-4aad-8e99-8b858ea51779",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											"",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
 						{
 							"name": "configure loopback on R1",
 							"event": [
@@ -1830,31 +1588,32 @@
 								}
 							},
 							"response": []
-						}
-					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "bad input",
-					"description": null,
-					"item": [
+						},
 						{
 							"name": "show interface loopback R1",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "12765cc3-836b-4277-9c11-b7ad70cb1611",
+										"id": "9971cc85-4598-46ec-b82e-1b7ce9d0f620",
 										"type": "text/javascript",
 										"exec": [
-											"console.log(\"Response: \" + responseBody)",
+											"console.log(\"Response: \" + responseBody);",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate no configuration\", function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
-											"    ",
+											"var str =pm.response.json()[\"output\"][\"output\"];",
+											"var jsonparse = str.split(\"\\r\\n \");",
+											"var arraysize = jsonparse.length;",
+											"pm.test(\"Validate no change\", function () {",
+											"",
+											"for(var i= 0; i < arraysize;i++){",
+											"    if(i == arraysize-1 ){",
+											"    pm.expect(jsonparse[i]).to.contain(\"show history\");",
+											"    pm.expect(jsonparse[i-1]).to.contain(\"show configuration commit list | utility egrep \");",
+											"    }",
+											"}",
 											"});"
 										]
 									}
@@ -1878,7 +1637,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface Loopback123\n\"\n  }\n}"
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow history\"\n  \t\n  }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R1/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -1903,78 +1662,33 @@
 							"response": []
 						},
 						{
-							"name": "check nonexisting interface on R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "0448734d-e44a-438f-94fa-8c802cffbe99",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "show interface loopback R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "633517cf-ba3b-4a60-b0fa-4d74c99b866a",
+										"id": "d3ae43fe-ec7d-4fa1-a2a7-748c66995377",
 										"type": "text/javascript",
 										"exec": [
-											"console.log(\"Response: \" + responseBody)",
+											"console.log(\"Response: \" + responseBody);",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate no configuration\", function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
-											"    ",
+											"var str =pm.response.json()[\"output\"][\"output\"];",
+											"var jsonparse = str.split(\"\\r\\n \");",
+											"console.log(\"Parsed objects: \" + jsonparse);",
+											"var arraysize = jsonparse.length;",
+											"",
+											"pm.test(\"Validate no change\", function () {",
+											"",
+											"for(var i= 0; i < arraysize;i++){",
+											"    if(i == arraysize-1 ){",
+											"    pm.expect(jsonparse[i]).to.contain(\"show history\");",
+											"    pm.expect(jsonparse[i-1]).to.contain(\"show configuration commit list | utility egrep \");",
+											"",
+											"    }",
+											"}",
 											"});"
 										]
 									}
@@ -1998,10 +1712,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface Loopback123\n\"\n  }\n}"
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow history\n\"\n  }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R2/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R1/yang-ext:mount/cli-unit-generic:execute-and-read",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -2014,72 +1728,21 @@
 										"topology",
 										"cli",
 										"node",
-										"R2",
+										"R1",
 										"yang-ext:mount",
 										"cli-unit-generic:execute-and-read"
 									]
 								}
 							},
 							"response": []
-						},
-						{
-							"name": "check nonexisting interface R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f9f100ec-cb10-4aad-8e99-8b858ea51779",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											"",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "bad input",
+					"description": null,
+					"item": [
 						{
 							"name": "configure loopback on R1",
 							"event": [
@@ -2411,248 +2074,6 @@
 					"name": "no connection",
 					"description": null,
 					"item": [
-						{
-							"name": "show interaface loopback R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f9bd2ae3-e9fa-4929-81e3-d633552d24bd",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate no configuration\", function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
-											"    ",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface Loopback123\n\"\n  }\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R1/yang-ext:mount/cli-unit-generic:execute-and-read",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"network-topology:network-topology",
-										"topology",
-										"cli",
-										"node",
-										"R1",
-										"yang-ext:mount",
-										"cli-unit-generic:execute-and-read"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "0448734d-e44a-438f-94fa-8c802cffbe99",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "show interface loopback R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "e55ca82a-8799-4699-8a56-60128d628d6e",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate no configuration\", function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
-											"    ",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface Loopback123\n\"\n  }\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R2/yang-ext:mount/cli-unit-generic:execute-and-read",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"network-topology:network-topology",
-										"topology",
-										"cli",
-										"node",
-										"R2",
-										"yang-ext:mount",
-										"cli-unit-generic:execute-and-read"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f9f100ec-cb10-4aad-8e99-8b858ea51779",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											"",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
 						{
 							"name": "mount XR5 cli with wrong password",
 							"event": [
@@ -3041,7 +2462,7 @@
 			]
 		},
 		{
-			"name": "Unmount",
+			"name": "Teardown",
 			"description": null,
 			"item": [
 				{

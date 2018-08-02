@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "e3adfe6f-b68e-4857-a5db-c20e0b8f43f4",
-		"name": "pc_uniconfig_replace_config_with_oper",
+		"_postman_id": "24e657fa-3e60-427f-a693-33b6b3c1b943",
+		"name": "pc_uniconfig_calculate_diff",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -74,7 +74,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d232b42f-2f5e-4041-8fe4-64a2f858f5f3",
+								"id": "03edc63a-086a-4d3a-ba5b-b748277d7052",
 								"type": "text/javascript",
 								"exec": [
 									"console.log(\"Response: \" + responseBody)",
@@ -163,7 +163,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "492cabee-57ac-41f2-9537-8e5a1036d5c4",
+								"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
 								"type": "text/javascript",
 								"exec": [
 									"console.log(\"Response: \" + responseBody)",
@@ -312,7 +312,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "33a93f47-3462-45ae-81ef-91ae37105789",
+								"id": "a8ccc4de-6ebe-46d3-b1b3-828b4c3794a5",
 								"type": "text/javascript",
 								"exec": [
 									"console.log(\"Response: \" + responseBody)",
@@ -401,7 +401,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "06937e9f-f0c5-49be-9e39-89c48c15ba92",
+								"id": "8244745e-748f-4b8e-a8ca-7d92f7fdbb65",
 								"type": "text/javascript",
 								"exec": [
 									"console.log(\"Response: \" + responseBody)",
@@ -486,38 +486,49 @@
 					"response": []
 				},
 				{
-					"name": "configure interface on R1",
+					"name": "show interface loopback R1",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "53bc696c-f1aa-4d2c-8f67-d719ba48d931",
+								"id": "4fe4ad0f-d6b8-4299-a6b3-52eebdda0c00",
 								"type": "text/javascript",
 								"exec": [
 									"console.log(\"Response: \" + responseBody)",
 									"",
-									"pm.test(\"Status code is 201\", function () {",
-									"  pm.response.to.have.status(201);",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
 									"});",
-									""
+									"pm.test(\"Validate no configuration\", function () {",
+									"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
+									"    ",
+									"});"
 								]
 							}
 						}
 					],
 					"request": {
-						"method": "PUT",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
 								"value": "application/json"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n           \"interface\": [\n               {\n                   \"name\": \"loopback123\",\n                   \"config\": {\n                       \"type\": \"iana-if-type:softwareLoopback\",\n                       \"name\": \"loopback123\",\n                       \"description\": \"testing\",\n                       \"enabled\": true\n                   }\n               }\n           ]\n       }"
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface Loopback123\n\"\n  }\n}"
 						},
 						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R1/yang-ext:mount/cli-unit-generic:execute-and-read",
 							"protocol": "http",
 							"host": [
 								"{{odl_ip}}"
@@ -525,225 +536,26 @@
 							"port": "8181",
 							"path": [
 								"restconf",
-								"config",
+								"operations",
 								"network-topology:network-topology",
 								"topology",
-								"uniconfig",
+								"cli",
 								"node",
 								"R1",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces",
-								"interface",
-								"loopback123"
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "check interface exists on config R1",
+					"name": "check nonexisting interface R1",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "3cf7993a-5887-4177-9c3a-49e8a76a0825",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Validate interface name\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(\"loopback123\");",
-									"});",
-									"pm.test(\"Validate interface type\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:softwareLoopback\");",
-									"});",
-									"pm.test(\"Validate interface name\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(\"loopback123\");",
-									"});",
-									"pm.test(\"Validate config enabled\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"enabled\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"eth_enabled_true\")));",
-									"});",
-									"pm.test(\"Validate interface name\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"description\"]).to.eql(\"testing\");",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"R1",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces",
-								"interface",
-								"loopback123"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "configure interface on R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "498176aa-4c79-46f9-aa7c-d0ca94f47b7f",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 201\", function () {",
-									"  pm.response.to.have.status(201);",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n           \"interface\": [\n               {\n                   \"name\": \"loopback123\",\n                   \"config\": {\n                       \"type\": \"iana-if-type:softwareLoopback\",\n                       \"name\": \"loopback123\",\n                       \"description\": \"testing\",\n                       \"enabled\": true\n                   }\n               }\n           ]\n       }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"R2",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces",
-								"interface",
-								"loopback123"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "check interface exists on config R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "44d24dff-3593-481a-a697-37c4d7acb404",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Validate interface name\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(\"loopback123\");",
-									"});",
-									"pm.test(\"Validate interface type\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:softwareLoopback\");",
-									"});",
-									"pm.test(\"Validate interface name\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(\"loopback123\");",
-									"});",
-									"pm.test(\"Validate config enabled\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"enabled\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"eth_enabled_true\")));",
-									"});",
-									"pm.test(\"Validate interface name\", function() {",
-									"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"description\"]).to.eql(\"testing\");",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"R2",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces",
-								"interface",
-								"loopback123"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "check nonexisting interaface on oper R1",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "44fbd012-b57b-4161-b34f-e24e5a904273",
+								"id": "0448734d-e44a-438f-94fa-8c802cffbe99",
 								"type": "text/javascript",
 								"exec": [
 									"console.log(\"Response: \" + responseBody)",
@@ -770,7 +582,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 							"protocol": "http",
 							"host": [
 								"{{odl_ip}}"
@@ -787,19 +599,83 @@
 								"frinx-uniconfig-topology:configuration",
 								"frinx-openconfig-interfaces:interfaces",
 								"interface",
-								"loopback123"
+								"Loopback123"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "check nonexisting interface on oper R2",
+					"name": "show interface loopback R2",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "0244f58c-7f87-478a-9cb6-1c7a09e98a89",
+								"id": "4fe4ad0f-d6b8-4299-a6b3-52eebdda0c00",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate no configuration\", function () {",
+									"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.contain(\"No such configuration item(s)\");",
+									"    ",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"\nshow running-config interface Loopback123\n\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/R2/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"cli",
+								"node",
+								"R2",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check nonexisting interface R2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0448734d-e44a-438f-94fa-8c802cffbe99",
 								"type": "text/javascript",
 								"exec": [
 									"console.log(\"Response: \" + responseBody)",
@@ -826,7 +702,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 							"protocol": "http",
 							"host": [
 								"{{odl_ip}}"
@@ -843,7 +719,7 @@
 								"frinx-uniconfig-topology:configuration",
 								"frinx-openconfig-interfaces:interfaces",
 								"interface",
-								"loopback123"
+								"Loopback123"
 							]
 						}
 					},
@@ -853,28 +729,25 @@
 		},
 		{
 			"name": "Tests",
-			"description": "",
+			"description": null,
 			"item": [
 				{
-					"name": "one router",
+					"name": "calculate diff",
 					"description": null,
 					"item": [
 						{
-							"name": "replace config with operational on R1",
+							"name": "configure interface R1",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "1a9010ba-df62-4e07-bf08-c5755258cb65",
+										"id": "71c3ee7e-5f2a-4035-b977-a4f3dd34d521",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate result\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
+											"pm.test(\"Status code 201\", function () {",
+											"  pm.response.to.have.status(201);",
 											"});",
 											""
 										]
@@ -882,7 +755,7 @@
 								}
 							],
 							"request": {
-								"method": "POST",
+								"method": "PUT",
 								"header": [
 									{
 										"key": "Content-Type",
@@ -891,55 +764,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"R1\"]\n                }\n            }\n        }"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"uniconfig-manager:replace-config-with-operational"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on config R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "0244f58c-7f87-478a-9cb6-1c7a09e98a89",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
+									"raw": "{\n            \"interface\": [\n                {\n                    \"name\": \"loopback123\",\n                    \"config\": {\n                        \"type\": \"iana-if-type:softwareLoopback\",\n                        \"name\": \"loopback123\",\n                        \"description\": \"testing\",\n                        \"enabled\": true\n                    }\n                }\n\t\t\t]\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
@@ -966,34 +791,18 @@
 							"response": []
 						},
 						{
-							"name": "check interface exists on config R2",
+							"name": "configure interface R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "13584cf5-aa3e-4a07-ba49-8309f982764e",
+										"id": "40163e50-997e-4081-9114-d770382cca85",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(\"loopback123\");",
-											"});",
-											"pm.test(\"Validate interface type\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:softwareLoopback\");",
-											"});",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(\"loopback123\");",
-											"});",
-											"pm.test(\"Validate config enabled\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"enabled\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"eth_enabled_true\")));",
-											"});",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"description\"]).to.eql(\"testing\");",
+											"pm.test(\"Status code is 201\", function () {",
+											"  pm.response.to.have.status(201);",
 											"});",
 											""
 										]
@@ -1001,16 +810,16 @@
 								}
 							],
 							"request": {
-								"method": "GET",
+								"method": "PUT",
 								"header": [
 									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
+										"key": "Content-Type",
+										"value": "application/json"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n            \"interface\": [\n                {\n                    \"name\": \"loopback123\",\n                    \"config\": {\n                        \"type\": \"iana-if-type:softwareLoopback\",\n                        \"name\": \"loopback123\",\n                        \"description\": \"testing\",\n                        \"enabled\": true\n                    }\n                }\n\t\t\t]\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
@@ -1037,28 +846,37 @@
 							"response": []
 						},
 						{
-							"name": "check nonexisting interface on oper R1",
+							"name": "calculate diff R1",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "0244f58c-7f87-478a-9cb6-1c7a09e98a89",
+										"id": "f7ea228d-9fa3-4425-80b5-a27e096090a7",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
 											"});",
+											"pm.test(\"Validate data created\", function() {",
 											"",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"node-id\"]).to.eql(\"R1\");",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"created-data\"][0][\"data\"]).to.not.be.empty;",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"created-data\"][0][\"data\"]).to.include(\"loopback123\");",
+											"});",
 											""
 										]
 									}
 								}
 							],
 							"request": {
-								"method": "GET",
+								"method": "POST",
 								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
@@ -1066,10 +884,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"R1\"]\n                }\n            }\n        }"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -1077,44 +895,76 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"loopback123"
+										"operations",
+										"uniconfig-manager:calculate-diff"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "check nonexisting interface on oper R2",
+							"name": "calculate diff R1 and R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "842adc50-1571-4f4e-962f-b09674481ec0",
+										"id": "c5b44065-2839-4ff2-a8b0-6692f9279c96",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"var list = pm.response.json()[\"output\"][\"node-with-diff\"]",
+											"var items=[];",
+											"for(var i = 0;i < list.length;i++){",
+											"    items[i]=list[i][\"node-id\"];",
+											"}",
+											"",
+											"",
+											"pm.test(\"No duplicate nodes\", function() {",
+											"  ",
+											"    pm.expect(items).to.have.members([\"R1\", \"R2\"]);",
+											"    pm.expect(items).to.have.lengthOf.at.most(2);",
+											"",
 											"});",
 											"",
+											"",
+											"pm.test(\"Validate data created R1\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R1\") {",
+											"            pm.expect(list[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(list[i][\"created-data\"][0][\"data\"]).to.not.be.empty;",
+											"            pm.expect(list[i][\"created-data\"][0][\"data\"]).to.include(\"loopback123\");",
+											"            ",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R1\");",
+											"    }",
+											"});",
+											"",
+											"pm.test(\"Validate data created R2\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R2\") {",
+											"                pm.expect(list[i][\"node-id\"]).to.eql(\"R2\");",
+											"                pm.expect(list[i][\"created-data\"][0][\"data\"]).to.not.be.empty;",
+											"                pm.expect(list[i][\"created-data\"][0][\"data\"]).to.include(\"loopback123\");",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R2\");",
+											"    }",
+											"});",
 											""
 										]
 									}
 								}
 							],
 							"request": {
-								"method": "GET",
+								"method": "POST",
 								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
@@ -1122,10 +972,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -1133,16 +983,8 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"loopback123"
+										"operations",
+										"uniconfig-manager:calculate-diff"
 									]
 								}
 							},
@@ -1152,16 +994,16 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "all routers",
+					"name": "no-change",
 					"description": null,
 					"item": [
 						{
-							"name": "replace config with operational on R1 and R2",
+							"name": "calculate diff R1 and R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "1a9010ba-df62-4e07-bf08-c5755258cb65",
+										"id": "b50b7af9-67a7-41c2-b0a6-dae008437ba2",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -1169,9 +1011,42 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
+											"var list = pm.response.json()[\"output\"][\"node-with-diff\"]",
+											"var items=[];",
+											"for(var i = 0;i < list.length;i++){",
+											"    items[i]=list[i][\"node-id\"];",
+											"}",
+											"",
+											"",
+											"pm.test(\"No duplicate nodes\", function() {",
+											"  ",
+											"    pm.expect(items).to.have.members([\"R1\", \"R2\"]);",
+											"    pm.expect(items).to.have.lengthOf.at.most(2);",
+											"",
 											"});",
+											"",
+											"",
+											"pm.test(\"Validate data created R1\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R1\") {",
+											"            pm.expect(list[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(list[i][\"created-data\"][0][\"data\"]).to.not.be.empty;",
+											"            ",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R1\");",
+											"    }",
+											"});",
+											"",
+											"pm.test(\"Validate data created R2\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R2\") {",
+											"                pm.expect(list[i][\"node-id\"]).to.eql(\"R2\");",
+											"                pm.expect(list[i][\"created-data\"][0][\"data\"]).to.not.be.empty;",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R2\");",
+											"    }",
+											"});",
+											"",
 											""
 										]
 									}
@@ -1183,14 +1058,18 @@
 									{
 										"key": "Content-Type",
 										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \n                }\n            }\n        }"
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -1199,231 +1078,7 @@
 									"path": [
 										"restconf",
 										"operations",
-										"uniconfig-manager:replace-config-with-operational"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on config R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "0244f58c-7f87-478a-9cb6-1c7a09e98a89",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on config R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "b8019be1-cf50-46cc-80c2-d1b90294ed14",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on oper R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "0244f58c-7f87-478a-9cb6-1c7a09e98a89",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface on oper R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "842adc50-1571-4f4e-962f-b09674481ec0",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"loopback123"
+										"uniconfig-manager:calculate-diff"
 									]
 								}
 							},
@@ -1437,24 +1092,18 @@
 					"description": null,
 					"item": [
 						{
-							"name": "replace config with operational on R1 and R3",
+							"name": "configure interface R1",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "9ee38437-0e94-4bbf-8ee9-286c4ed983ab",
+										"id": "71c3ee7e-5f2a-4035-b977-a4f3dd34d521",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate result failed\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"fail\");",
-											"});",
-											"pm.test(\"Validate error message\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"error-message\"]).to.eql(\"Uniconfig nodes [Uri [_value=R3]] do not exist in operational.\");",
+											"pm.test(\"Status code 201\", function () {",
+											"  pm.response.to.have.status(201);",
 											"});",
 											""
 										]
@@ -1462,7 +1111,7 @@
 								}
 							],
 							"request": {
-								"method": "POST",
+								"method": "PUT",
 								"header": [
 									{
 										"key": "Content-Type",
@@ -1471,70 +1120,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"R1\",\"R3\"]\n                }\n            }\n        }"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"uniconfig-manager:replace-config-with-operational"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check interface exists on config R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "9c61fe5d-3a35-4688-bdca-4145ffbda451",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(\"loopback123\");",
-											"});",
-											"pm.test(\"Validate interface type\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:softwareLoopback\");",
-											"});",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(\"loopback123\");",
-											"});",
-											"pm.test(\"Validate config enabled\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"enabled\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"eth_enabled_true\")));",
-											"});",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"description\"]).to.eql(\"testing\");",
-											"});",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
+									"raw": "{\n            \"interface\": [\n                {\n                    \"name\": \"loopback123\",\n                    \"config\": {\n                        \"type\": \"iana-if-type:softwareLoopback\",\n                        \"name\": \"loopback123\",\n                        \"description\": \"testing\",\n                        \"enabled\": true\n                    }\n                }\n\t\t\t]\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
@@ -1561,34 +1147,18 @@
 							"response": []
 						},
 						{
-							"name": "check interface exists on config R2",
+							"name": "configure interface R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "c2baa444-f12f-49e3-9d3e-59fc75a14f80",
+										"id": "40163e50-997e-4081-9114-d770382cca85",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(\"loopback123\");",
-											"});",
-											"pm.test(\"Validate interface type\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:softwareLoopback\");",
-											"});",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(\"loopback123\");",
-											"});",
-											"pm.test(\"Validate config enabled\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"enabled\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"eth_enabled_true\")));",
-											"});",
-											"pm.test(\"Validate interface name\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"description\"]).to.eql(\"testing\");",
+											"pm.test(\"Status code is 201\", function () {",
+											"  pm.response.to.have.status(201);",
 											"});",
 											""
 										]
@@ -1596,16 +1166,16 @@
 								}
 							],
 							"request": {
-								"method": "GET",
+								"method": "PUT",
 								"header": [
 									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
+										"key": "Content-Type",
+										"value": "application/json"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n            \"interface\": [\n                {\n                    \"name\": \"loopback123\",\n                    \"config\": {\n                        \"type\": \"iana-if-type:softwareLoopback\",\n                        \"name\": \"loopback123\",\n                        \"description\": \"testing\",\n                        \"enabled\": true\n                    }\n                }\n\t\t\t]\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
@@ -1632,18 +1202,38 @@
 							"response": []
 						},
 						{
-							"name": "check nonexisting interface on oper R1",
+							"name": "calculate diff R1 and R3",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "0244f58c-7f87-478a-9cb6-1c7a09e98a89",
+										"id": "c3ecc34b-65d2-4f92-9679-85991851606e",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"var list = pm.response.json()[\"output\"][\"node-with-diff\"]",
+											"var items=[];",
+											"for(var i = 0;i < list.length;i++){",
+											"    items[i]=list[i][\"node-id\"];",
+											"}",
+											"",
+											"pm.test(\"Validate data created R1\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R1\") {",
+											"            pm.expect(list[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(list[i][\"created-data\"][0][\"data\"]).to.not.be.empty;",
+											"            ",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R1\");",
+											"    }",
+											"});",
+											"",
+											"pm.test(\"Validate failed result \", function() {",
+											"            pm.expect(items).to.not.have.members([\"R2\",\"R3\"]);",
 											"});",
 											"",
 											""
@@ -1652,8 +1242,12 @@
 								}
 							],
 							"request": {
-								"method": "GET",
+								"method": "POST",
 								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
@@ -1661,10 +1255,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\"node\": [\"R1\", \"R3\"]\n\t\t}\n\t}\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -1672,72 +1266,8 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interafce on oper R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "842adc50-1571-4f4e-962f-b09674481ec0",
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});",
-											"",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"loopback123"
+										"operations",
+										"uniconfig-manager:calculate-diff"
 									]
 								}
 							},

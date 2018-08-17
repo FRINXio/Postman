@@ -1,629 +1,984 @@
 {
 	"info": {
-		"_postman_id": "482bb73c-2530-47bc-9fce-cabeb6528601",
+		"_postman_id": "11c225ea-e83d-4929-aff9-679bd95c83bd",
 		"name": "pc_uniconfig_RPC_delete_snapshot",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"_postman_id": "34e9d327-1529-4efa-b2b8-c4f3442059da",
-			"name": "Setup",
+			"name": "XR5 Delete snapshot",
+			"description": "",
 			"item": [
 				{
-					"_postman_id": "cf6f4190-f1a8-406e-ac3b-1cf8d87d554e",
-					"name": "mount XR5 cli R1",
-					"event": [
+					"name": "XR5 Delete snapshot Setup",
+					"description": null,
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code\", function () {",
-									"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-									"});",
-									""
-								]
-							}
+							"name": "mount XR5 cli R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"R1\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"R1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check status connected R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2898c5d5-d107-451b-a8a3-d49f1d30b403",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('check status connected R1');",
+											"    }",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "ad1fdb49-a07e-4d21-ba91-a071a4c8eb43",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"R1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check uniconfig available R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c9c88df9-546a-419c-bfe1-bd584ef3b8ce",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (pm.response.code === 200) {",
+											"    tests[\"Is connected\"] = true;",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('check uniconfig available R1');",
+											"    }",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "153ff007-f9c3-4a4f-ad15-d274741182d9",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"R1",
+										"frinx-uniconfig-topology:configuration"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "mount XR5 cli R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"R2\",\n      \n      \"cli-topology:host\" : \"{{xr2_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"R2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check status connected R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "b113cd75-f4f5-4e63-99a6-182778a11e37",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('check status connected R2');",
+											"    }",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "ad1fdb49-a07e-4d21-ba91-a071a4c8eb43",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"R2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check uniconfig available R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5101257e-f96d-43be-b90d-95c488a870e8",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (pm.response.code === 200) {",
+											"    tests[\"Is connected\"] = true;",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('check uniconfig available R2');",
+											"    }",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "153ff007-f9c3-4a4f-ad15-d274741182d9",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"R2",
+										"frinx-uniconfig-topology:configuration"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create snapshot R1 and R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "840f03e3-92d9-4caa-b7a4-7f9c608b7aa1",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											" pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate result\", function() {",
+											" pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"input\": {\n        \"name\": \"snapshot1\"\n    }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/snapshot-manager:create-snapshot",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"snapshot-manager:create-snapshot"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check topology exists R1 and R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cbb77bc4-fb8b-4e5a-9124-5ef9d766ed77",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											" pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate topology id\", function() {",
+											" pm.expect(pm.response.json()[\"topology\"][0][\"topology-id\"]).to.eql(\"snapshot1\");",
+											"});",
+											"pm.test(\"Validate topology\", function() {",
+											"    var jstring=pm.response.json()[\"topology\"][0][\"node\"];",
+											"        for (var i =0;i<jstring.length;i++){",
+											"            if (jstring[i][\"node-id\"]===\"R1\"){",
+											"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            }",
+											"            if (jstring[i][\"node-id\"]===\"R2\"){",
+											"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"            }",
+											"        }",
+											"});",
+											"",
+											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
+											"",
+											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/snapshot1",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"snapshot1"
+									]
+								}
+							},
+							"response": []
 						}
 					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"R1\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"{{topology_id_cli}}",
-								"node",
-								"R1"
-							]
-						}
-					},
-					"response": []
+					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "40d102cd-d7f6-4679-b0a7-375cd3fb7cf0",
-					"name": "check status connected R1",
-					"event": [
+					"name": "XR5 Delete snapshot Teardown",
+					"description": null,
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"id": "2898c5d5-d107-451b-a8a3-d49f1d30b403",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"// attempts counter",
-									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-									"",
-									"var jsonData = JSON.parse(responseBody);",
-									"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
-									"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
-									"    // Reset attempt counter",
-									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-									"} else {",
-									"    // If too many attempts, abort",
-									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-									"        console.log(\"Not connected yet ! Too many attempts !\")",
-									"        // Reset attempt counter",
-									"        tests[\"Unable to connect\"] = false",
-									"    } else {",
-									"        // Schedule next check attempt",
-									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-									"        postman.setNextRequest('check status connected R1');",
-									"    }",
-									"}"
-								]
-							}
+							"name": "unmount R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"R1"
+									]
+								}
+							},
+							"response": []
 						},
 						{
-							"listen": "prerequest",
-							"script": {
-								"id": "ad1fdb49-a07e-4d21-ba91-a071a4c8eb43",
-								"type": "text/javascript",
-								"exec": [
-									"",
-									""
-								]
-							}
+							"name": "check unmounted CLI R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 404\", function () {",
+											"  pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"R1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "unmount R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"R2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check unmounted CLI R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 404\", function () {",
+											"  pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"R2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete snapshot 1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c47f229f-bfd2-4e40-ab87-fa28c8294afc",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([200,404]);",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/snapshot1",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"snapshot1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check nonexisting snapshot 1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "9f712eb7-1abc-4610-9da7-45d54b4f35b9",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody);",
+											"",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/snapshot1/node/R1",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"snapshot1",
+										"node",
+										"R1"
+									]
+								}
+							},
+							"response": []
 						}
 					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operational",
-								"network-topology:network-topology",
-								"topology",
-								"{{topology_id_cli}}",
-								"node",
-								"R1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "91c26942-0087-4466-887b-50882b3c03ea",
-					"name": "check uniconfig available R1",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "c9c88df9-546a-419c-bfe1-bd584ef3b8ce",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"// attempts counter",
-									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-									"",
-									"var jsonData = JSON.parse(responseBody);",
-									"if (pm.response.code === 200) {",
-									"    tests[\"Is connected\"] = true;",
-									"    // Reset attempt counter",
-									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-									"} else {",
-									"    // If too many attempts, abort",
-									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-									"        console.log(\"Not connected yet ! Too many attempts !\")",
-									"        // Reset attempt counter",
-									"        tests[\"Unable to connect\"] = false",
-									"    } else {",
-									"        // Schedule next check attempt",
-									"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
-									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-									"        postman.setNextRequest('check uniconfig available R1');",
-									"    }",
-									"}"
-								]
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "153ff007-f9c3-4a4f-ad15-d274741182d9",
-								"type": "text/javascript",
-								"exec": [
-									"",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"R1",
-								"frinx-uniconfig-topology:configuration"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "8a7565f9-23af-419a-a191-e181b0f3f310",
-					"name": "mount XR5 cli R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code\", function () {",
-									"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"R2\",\n      \n      \"cli-topology:host\" : \"{{xr2_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"{{topology_id_cli}}",
-								"node",
-								"R2"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "9858eef6-79ca-4c87-852b-53c2f7c6639e",
-					"name": "check status connected R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "b113cd75-f4f5-4e63-99a6-182778a11e37",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"// attempts counter",
-									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-									"",
-									"var jsonData = JSON.parse(responseBody);",
-									"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
-									"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
-									"    // Reset attempt counter",
-									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-									"} else {",
-									"    // If too many attempts, abort",
-									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-									"        console.log(\"Not connected yet ! Too many attempts !\")",
-									"        // Reset attempt counter",
-									"        tests[\"Unable to connect\"] = false",
-									"    } else {",
-									"        // Schedule next check attempt",
-									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-									"        postman.setNextRequest('check status connected R2');",
-									"    }",
-									"}"
-								]
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "ad1fdb49-a07e-4d21-ba91-a071a4c8eb43",
-								"type": "text/javascript",
-								"exec": [
-									"",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operational",
-								"network-topology:network-topology",
-								"topology",
-								"{{topology_id_cli}}",
-								"node",
-								"R2"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "27278ac6-a84a-4986-8da0-a1d9f3271e7e",
-					"name": "check uniconfig available R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "5101257e-f96d-43be-b90d-95c488a870e8",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"// attempts counter",
-									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-									"",
-									"var jsonData = JSON.parse(responseBody);",
-									"if (pm.response.code === 200) {",
-									"    tests[\"Is connected\"] = true;",
-									"    // Reset attempt counter",
-									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-									"} else {",
-									"    // If too many attempts, abort",
-									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-									"        console.log(\"Not connected yet ! Too many attempts !\")",
-									"        // Reset attempt counter",
-									"        tests[\"Unable to connect\"] = false",
-									"    } else {",
-									"        // Schedule next check attempt",
-									"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
-									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-									"        postman.setNextRequest('check uniconfig available R2');",
-									"    }",
-									"}"
-								]
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "153ff007-f9c3-4a4f-ad15-d274741182d9",
-								"type": "text/javascript",
-								"exec": [
-									"",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"R2",
-								"frinx-uniconfig-topology:configuration"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "d4e20462-149f-4c8a-87b3-fb10e6ee6959",
-					"name": "create snapshot R1 and R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "840f03e3-92d9-4caa-b7a4-7f9c608b7aa1",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									" pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Validate result\", function() {",
-									" pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"input\": {\n        \"name\": \"snapshot1\"\n    }\n}"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operations/snapshot-manager:create-snapshot",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operations",
-								"snapshot-manager:create-snapshot"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "da4d7306-fd4f-43e6-a9d1-d6d0fa7f0d8c",
-					"name": "check topology exists R1 and R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "8e4f4135-2743-4fcd-89bc-7eb170ec98fd",
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									" pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Validate topology id\", function() {",
-									" pm.expect(pm.response.json()[\"topology\"][0][\"topology-id\"]).to.eql(\"snapshot1\");",
-									"});",
-									"pm.test(\"Validate topology\", function() {",
-									"    var jstring=pm.response.json()[\"topology\"][0][\"node\"];",
-									"        for (var i =0;i<jstring.length;i++){",
-									"            if (jstring[i][\"node-id\"]===\"R1\"){",
-									"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
-									"            }",
-									"            else{",
-									"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
-									"            }",
-									"        }",
-									"});",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/snapshot1",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"snapshot1"
-							]
-						}
-					},
-					"response": []
+					"_postman_isSubFolder": true
 				}
 			]
 		},
 		{
-			"_postman_id": "3c598b6f-48e5-4ad4-a1c1-13cf3d5889ae",
 			"name": "Tests",
+			"description": null,
 			"item": [
 				{
-					"_postman_id": "6e4fb993-b0c7-42da-8a34-b78179cf989b",
-					"name": "delete snapshot",
+					"name": "Delete snapshot normal",
+					"description": null,
 					"item": [
 						{
-							"_postman_id": "622c9e10-2567-4d42-b5f7-df82ab2ce7e1",
 							"name": "delete snapshot 1",
 							"event": [
 								{
@@ -677,7 +1032,6 @@
 							"response": []
 						},
 						{
-							"_postman_id": "38f584c7-de3c-4259-9d6e-181487ebfb32",
 							"name": "check nonexisting snapshot 1",
 							"event": [
 								{
@@ -734,11 +1088,10 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"_postman_id": "198d75b6-3120-4588-b053-c63b818d6905",
-					"name": "bad input",
+					"name": "Delete snapshot bad-input",
+					"description": null,
 					"item": [
 						{
-							"_postman_id": "24991e8e-5839-4fee-8cc2-87d319a40070",
 							"name": "create snapshot bad input",
 							"event": [
 								{
@@ -798,264 +1151,6 @@
 						}
 					],
 					"_postman_isSubFolder": true
-				}
-			]
-		},
-		{
-			"_postman_id": "21e8146d-58e9-4509-98a3-03fcffb7ef7f",
-			"name": "Teardown",
-			"item": [
-				{
-					"_postman_id": "b89c27a1-7d12-40f7-84a1-274c4240949d",
-					"name": "unmount R1",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"{{topology_id_cli}}",
-								"node",
-								"R1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "26b020a4-e7a8-453e-b744-dbba6e5bd2ff",
-					"name": "check unmounted CLI R1",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 404\", function () {",
-									"  pm.response.to.have.status(404);",
-									"});"
-								]
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operational",
-								"network-topology:network-topology",
-								"topology",
-								"{{topology_id_cli}}",
-								"node",
-								"R1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "d43b6878-091f-468e-83ab-e366c8660dbc",
-					"name": "unmount R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});"
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"{{topology_id_cli}}",
-								"node",
-								"R2"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"_postman_id": "bd6f6baf-2eac-4dd3-bcfe-3f5ab351d7ba",
-					"name": "check unmounted CLI R2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"console.log(\"Response: \" + responseBody)",
-									"",
-									"pm.test(\"Status code is 404\", function () {",
-									"  pm.response.to.have.status(404);",
-									"});"
-								]
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-									""
-								]
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operational",
-								"network-topology:network-topology",
-								"topology",
-								"{{topology_id_cli}}",
-								"node",
-								"R2"
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		}

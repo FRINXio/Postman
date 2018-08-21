@@ -638,11 +638,11 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "FRHD-154",
+					"name": "FI-154",
 					"description": "This is applicable for XRv5 only",
 					"item": [
 						{
-							"name": "reconnect session",
+							"name": "reconnect session by change interface ip",
 							"event": [
 								{
 									"listen": "test",
@@ -676,7 +676,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"exit\"\n  }\n}\n"
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     interface MgmtEth0/0/CPU0/0 ipv4 address 192.168.1.219 255.255.255.0\n     commit\"\n  }\n}\n"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -706,7 +706,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "8258761c-79e5-4ad7-a181-67dc2cbb285d",
+										"id": "1eca527f-718c-4a38-9160-86e2f0719930",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -715,8 +715,8 @@
 											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
 											"",
 											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connected-message'] === \"Reconnecting due to java.io.IOException: Closed\") {",
-											"    tests[\"Is reconnecting\"] = jsonData.node[0]['cli-topology:connected-message'] === \"Reconnecting due to java.io.IOException: Closed\";",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connected-message'] === \"Attemp: [0] Reconnecting due to Keepalive timeout\") {",
+											"    tests[\"Is reconnecting\"] = jsonData.node[0]['cli-topology:connected-message'] === \"Attemp: [0] Reconnecting due to Keepalive timeout\";",
 											"    // Reset attempt counter",
 											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 											"} else {",
@@ -784,6 +784,212 @@
 										"{{topology_id_cli}}",
 										"node",
 										"{{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "mount IOS XR with new ip",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"192.168.1.219\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"{{version_device}}\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check xr5uc status connected with new ip",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "831705a1-870b-4859-be29-1fa2451b7f6a",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('check xr5uc status connected with new ip');",
+											"    }",
+											"}"
+										]
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "ad1fdb49-a07e-4d21-ba91-a071a4c8eb43",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "change ip back to original",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f1765ac7-305f-492e-a7cf-4c4bb54215d6",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"pm.test(\"Status code is 500\", function () {",
+											"    pm.response.to.have.status(500);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     interface MgmtEth0/0/CPU0/0 ipv4 address {{xr_ip}} 255.255.255.0\n     commit\"\n  }\n}\n"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
 									]
 								}
 							},

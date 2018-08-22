@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "4104f4c7-068b-43c3-a10e-50069eb13a89",
+		"_postman_id": "1f636615-9e15-4437-9707-0ff4c5b47a40",
 		"name": "pc_uniconfig_rsvp",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -3836,7 +3836,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "c4795e9f-12c4-4b27-822a-ce692ae75978",
+										"id": "68699810-b6d0-4298-87db-6a381aba47f5",
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
@@ -3878,7 +3878,27 @@
 											"    });",
 											"    ",
 											"}",
-											""
+											"",
+											"if ( \"cisco_xr6\" === postman.getEnvironmentVariable(\"env_type\") ){",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"Validate overall-configuration-status\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
+											"    });",
+											"    ",
+											"    pm.test(\"Validate configuration-status\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"error-type\"]).to.eql(\"processing-error\");",
+											"    });",
+											"    pm.test(\"Validate nodeId\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    pm.test(\"Validate configuration-status\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"error-message\"]).to.include(\"% Invalid input detected at '^' marker.\");",
+											"    });",
+											"    ",
+											"}"
 										]
 									}
 								}
@@ -3926,6 +3946,75 @@
 										"restconf",
 										"operations",
 										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "replace-config-with-operational after failed commit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\"target-nodes\": {\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
 									]
 								}
 							},

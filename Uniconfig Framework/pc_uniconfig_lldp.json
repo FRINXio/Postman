@@ -1,0 +1,1387 @@
+{
+	"info": {
+		"_postman_id": "c9bd47bf-7afa-4ca1-8e3d-6d76889922a9",
+		"name": "pc_uniconfig_lldp",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "LLDP CRUD",
+			"description": null,
+			"item": [
+				{
+					"name": "mount XE",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code\", function () {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"xe1\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"15.2\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 180,\n      \n      \"cli-topology:keepalive-delay\" : 45,\n      \"cli-topology:keepalive-timeout\" : 45\n    }\n  }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe1",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check xe1 connected",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f45478c4-964e-4d0a-a308-6261af129dbd",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+									"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check xe1 connected');",
+									"    }",
+									"}"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6177712c-ce12-4d3f-a3cd-337e4d20e17e",
+								"type": "text/javascript",
+								"exec": [
+									"",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe1",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "configure LLDP on xe",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3dfc8828-1ced-423e-8d00-360b471c0535",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     lldp run\n     end\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe1/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe1",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show active lldp on xe",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "821a609f-4242-4989-8d1a-a510e492ece5",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test('dryrun - contains Status: ACTIVE', function () {",
+									"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"Status: ACTIVE\");",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"show lldp\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe1/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe1",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show lldp on xe",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "088e7051-bfaa-4d17-9a1b-3cd77c4ae511",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"At leaas one interface has lldp configured\", function() {",
+									"  var json_string = pm.response.json()[\"lldp\"][\"interfaces\"][\"interface\"];",
+									"  var found_at_least_one_lldp_interface = false;",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"cdp_lldp_test_interface\") == json_string[i][\"name\"]) {",
+									"      found_at_least_one_lldp_interface = found_at_least_one_lldp_interface || true;",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface\"));",
+									"      pm.expect(json_string[i][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface\"));",
+									"    } else if (pm.environment.get(\"cdp_lldp_test_interface2\") == json_string[i][\"name\"]) {",
+									"      found_at_least_one_lldp_interface = found_at_least_one_lldp_interface || true;",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface2\"));",
+									"      pm.expect(json_string[i][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface2\"));",
+									"    } else if (pm.environment.get(\"cdp_lldp_test_interface3\") == json_string[i][\"name\"]) {",
+									"      found_at_least_one_lldp_interface = found_at_least_one_lldp_interface || true;",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface3\"));",
+									"      pm.expect(json_string[i][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface3\"));",
+									"    }",
+									"  }",
+									"  pm.expect(found_at_least_one_lldp_interface).to.eql(true);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/xe1/yang-ext:mount/frinx-openconfig-lldp:lldp",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id}}",
+								"node",
+								"xe1",
+								"yang-ext:mount",
+								"frinx-openconfig-lldp:lldp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mount second XE",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code\", function () {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"xe2\",\n      \n      \"cli-topology:host\" : \"{{classic2_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"15.2\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 180,\n      \n      \"cli-topology:keepalive-delay\" : 45,\n      \"cli-topology:keepalive-timeout\" : 45\n    }\n  }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe2",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check xe2 connected",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5f348e12-b911-4ad7-8cf7-c48e2d7978bc",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+									"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check xe2 connected');",
+									"    }",
+									"}"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6177712c-ce12-4d3f-a3cd-337e4d20e17e",
+								"type": "text/javascript",
+								"exec": [
+									"",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe2",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "configure LLDP on xe2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3dfc8828-1ced-423e-8d00-360b471c0535",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     lldp run\n     end\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe2/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe2",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show active lldp on xe2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "821a609f-4242-4989-8d1a-a510e492ece5",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test('dryrun - contains Status: ACTIVE', function () {",
+									"    pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"Status: ACTIVE\");",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"show lldp\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe2/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe2",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show lldp on xe2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ec615fbc-4096-4bf5-856a-3be239f332ae",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"At leaas one interface has lldp configured\", function() {",
+									"  var json_string = pm.response.json()[\"lldp\"][\"interfaces\"][\"interface\"];",
+									"  var found_at_least_one_lldp_interface = false;",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"cdp_lldp_test_interface\") == json_string[i][\"name\"]) {",
+									"      found_at_least_one_lldp_interface = found_at_least_one_lldp_interface || true;",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface\"));",
+									"      pm.expect(json_string[i][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface\"));",
+									"    } else if (pm.environment.get(\"cdp_lldp_test_interface2\") == json_string[i][\"name\"]) {",
+									"      found_at_least_one_lldp_interface = found_at_least_one_lldp_interface || true;",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface2\"));",
+									"      pm.expect(json_string[i][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface2\"));",
+									"    } else if (pm.environment.get(\"cdp_lldp_test_interface3\") == json_string[i][\"name\"]) {",
+									"      found_at_least_one_lldp_interface = found_at_least_one_lldp_interface || true;",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface3\"));",
+									"      pm.expect(json_string[i][\"name\"]).to.eql(pm.environment.get(\"cdp_lldp_test_interface3\"));",
+									"    }",
+									"  }",
+									"  pm.expect(found_at_least_one_lldp_interface).to.eql(true);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/xe2/yang-ext:mount/frinx-openconfig-lldp:lldp",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id}}",
+								"node",
+								"xe2",
+								"yang-ext:mount",
+								"frinx-openconfig-lldp:lldp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "build lldp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "968afafb-fb15-47d8-9043-29d0c72411fd",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code\", function () {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});",
+									"pm.test(\"output at least 1\", function () {",
+									"  pm.expect(pm.response.json()[\"output\"][\"result-nodes-count\"]).to.be.at.least(1);",
+									"  pm.expect(pm.response.json()[\"output\"][\"source-nodes-total\"]).to.be.at.least(1);",
+									"  pm.expect(pm.response.json()[\"output\"][\"source-nodes-used\"]).to.be.at.least(1);",
+									"  pm.expect(pm.response.json()[\"output\"][\"result-links-count\"]).to.be.at.least(1);",
+									"",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "saveHelperData",
+									"type": "any"
+								},
+								{
+									"key": "showPassword",
+									"value": false,
+									"type": "boolean"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\": {\n  \t\"node-aggregation\": \"system-name\",\n  \t\"link-aggregation\": \"bidirectional-abbreviations\",\n  \t\n  \t\"per-node-read-timeout\": 60,\n  \t\"concurrent-read-nodes\": 4,\n  \t\n  \t\"destination-topology\": \"lldp\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/lldptopo:build",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"lldptopo:build"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "export dot",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fd73e035-565d-4fe1-afb3-c56867a7577a",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"output includes lldp neighbor\", function () {",
+									"  pm.expect(pm.response.json()[\"output\"][\"export\"]).to.include(\"graph G\");",
+									"  pm.expect(pm.response.json()[\"output\"][\"export\"]).to.include(\"XE4.FRINX.LOCAL\");",
+									"  pm.expect(pm.response.json()[\"output\"][\"export\"]).to.include(\"XE1.FRINX\");",
+									"  pm.expect(pm.response.json()[\"output\"][\"export\"]).to.include(\"Gi3\");",
+									"  pm.expect(pm.response.json()[\"output\"][\"export\"]).to.include(\"Gi2\");",
+									"  pm.expect(pm.response.json()[\"output\"][\"export\"]).to.include(\"Gi1\");",
+									"  pm.expect(pm.response.json()[\"output\"][\"export\"]).to.include(\"nxos2\");",
+									"",
+									"",
+									"});"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a9cf10f5-8fcf-49bf-a7f3-f3f75a4b91e1",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Here we wait 10 seconds - be patient. The reasons is that this update was not able properly configure device.\");",
+									"setTimeout(function(){}, 10000);"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "saveHelperData",
+									"type": "any"
+								},
+								{
+									"key": "showPassword",
+									"value": false,
+									"type": "boolean"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\": {\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/lldptopo:export",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"lldptopo:export"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete LLDP xe2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4c7c80a9-1c81-4cdb-a613-364510ae4b9a",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     no lldp run\n     end\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe2/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe2",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show deleted lldp xe2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/xe2/yang-ext:mount/frinx-openconfig-lldp:lldp",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id}}",
+								"node",
+								"xe2",
+								"yang-ext:mount",
+								"frinx-openconfig-lldp:lldp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete LLDP xe1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4c7c80a9-1c81-4cdb-a613-364510ae4b9a",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\n     no lldp run\n     end\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe1/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe1",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show deleted lldp xe1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id}}/node/xe1/yang-ext:mount/frinx-openconfig-lldp:lldp",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id}}",
+								"node",
+								"xe1",
+								"yang-ext:mount",
+								"frinx-openconfig-lldp:lldp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "unmount xe2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe2",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check unmounted xe2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 404\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe2",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "unmount xe1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe1",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check unmounted xe1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 404\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/xe1",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"xe1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

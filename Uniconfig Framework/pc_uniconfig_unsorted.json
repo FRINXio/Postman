@@ -1053,20 +1053,79 @@
 							"description": null,
 							"item": [
 								{
+									"name": "check default error patterns in CONFDS",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "67dedd90-9c1d-4da6-a38d-b6d4e33369e9",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+													"var save;",
+													"//ironware",
+													"pm.test(\"Check existing pattern \", function () {",
+													"    pm.expect(pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"]).to.not.be.empty;",
+													"",
+													"});",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "create error patterns",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "562ba5fa-67c8-41c9-8651-7cb8bd3d2bc9",
+												"id": "d6d443d5-1280-4b1b-b1d0-09fe16f429d2",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
 													"",
-													"pm.test(\"Status code\", function () {",
-													"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-													"});",
-													""
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
 												]
 											}
 										}
@@ -1085,10 +1144,10 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"available-cli-error-patterns\": {\n        \"available-cli-device-error-patterns\": [\n        \t{\n\t        \t\"device-type\" : \"ios\",\n\t        \t\"device-version\" : \"15.*\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"xe wildcard error\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t},\n        \t{\n\t        \t\"device-type\" : \"ios xr\",\n\t        \t\"device-version\" : \"{{error_pattern_version}}\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"xr specific version error\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t}\n        \t\n    ]\n\n  }\n}\n"
+											"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n        \t{\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.3.4\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                    \t\"\\\\% (?i)Invalid input(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)incomplete command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)Ambigious command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"xe wildcard error\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
 										},
 										"url": {
-											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-error-patterns",
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
 											"protocol": "http",
 											"host": [
 												"{{odl_ip}}"
@@ -1097,7 +1156,7 @@
 											"path": [
 												"restconf",
 												"config",
-												"cli-translate-registry:available-cli-error-patterns"
+												"cli-translate-registry:available-cli-device-translations"
 											]
 										}
 									},
@@ -1167,7 +1226,7 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "42b99a17-1a01-4a5f-ac02-235ee73e819c",
+												"id": "b922c28a-67f0-4158-86bd-9191d4961af3",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1194,7 +1253,8 @@
 													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
 													"        postman.setNextRequest('check status connected 1');",
 													"    }",
-													"}"
+													"}",
+													""
 												]
 											}
 										},
@@ -1341,6 +1401,93 @@
 									"response": []
 								},
 								{
+									"name": "check created error patterns in CONFDS",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "520e0964-7948-4ca3-b677-36b0692dc119",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+													"",
+													"",
+													"pm.test(\"Check error pattern xr5\", function () {",
+													"    for(var i = 0 ; i < patterns.length; i++){",
+													"       if(patterns[i][\"device-version\"] == \"5.*\"){",
+													"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)Ambigious command(?-i).*\");",
+													"            }",
+													"    }",
+													"        ",
+													"});",
+													"  pm.test(\"Check error pattern xr5.3.4 \", function () {",
+													"    for(var i = 0 ; i < patterns.length; i++){",
+													"       if(patterns[i][\"device-version\"] == \"5.3.4\"){",
+													"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)Invalid input(?-i).*\");",
+													"        }   ",
+													"    }",
+													"});",
+													"",
+													"pm.test(\"Check error pattern xr6\" , function () {",
+													"    for(var i = 0 ; i < patterns.length; i++){",
+													"       if(patterns[i][\"device-version\"] == \"6.*\"){",
+													"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)incomplete command(?-i).*\");",
+													"            }",
+													"    }",
+													"});",
+													"   ",
+													"",
+													"    pm.test(\"Check error pattern classic \" + (postman.getEnvironmentVariable(\"node_id\")), function () {",
+													"    for(var i = 0 ; i < patterns.length; i++){",
+													"       if(patterns[i][\"device-version\"] == \"15.*\"){",
+													"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"xe wildcard error\");",
+													"            }",
+													"        }",
+													"    });",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "invalid input",
 									"event": [
 										{
@@ -1404,12 +1551,12 @@
 									"response": []
 								},
 								{
-									"name": "commit",
+									"name": "failed commit",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "6d59a709-78da-4890-883c-7b96ecf207f5",
+												"id": "a10e3c7c-50f0-4910-8d9f-3041a74251fb",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1418,13 +1565,19 @@
 													"  pm.response.to.have.status(200);",
 													"});",
 													"pm.test(\"Validate overall-configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
 													"});",
 													"pm.test(\"Validate configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(\"fail\");",
 													"});",
 													"pm.test(\"Validate nodeId\", function() {",
 													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"});",
+													"pm.test(\"Validate error-type\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"error-type\"]).to.eql(\"processing-error\");",
+													"});",
+													"pm.test(\"Validate rollback-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"rollback-status\"]).to.eql(\"complete\");",
 													"});"
 												]
 											}
@@ -1479,7 +1632,7 @@
 									"response": []
 								},
 								{
-									"name": "update error patterns",
+									"name": "update existing error patterns",
 									"event": [
 										{
 											"listen": "test",
@@ -1510,10 +1663,10 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"available-cli-error-patterns\": {\n        \"available-cli-device-error-patterns\": [\n        \t{\n\t        \t\"device-type\" : \"ios\",\n\t        \t\"device-version\" : \"15.*\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"xe wildcard error\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t},\n        \t{\n\t        \t\"device-type\" : \"ios xr\",\n\t        \t\"device-version\" : \"{{error_pattern_version}}\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"\\\\% (?i)invalid input(?-i).*\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t}\n        \t\n    ]\n\n  }\n}\n"
+											"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n        \t{\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.3.4\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)invalid input(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)Incomplete command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"error\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
 										},
 										"url": {
-											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-error-patterns",
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
 											"protocol": "http",
 											"host": [
 												"{{odl_ip}}"
@@ -1522,7 +1675,7 @@
 											"path": [
 												"restconf",
 												"config",
-												"cli-translate-registry:available-cli-error-patterns"
+												"cli-translate-registry:available-cli-device-translations"
 											]
 										}
 									},
@@ -1534,6 +1687,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "9ea372d1-71fd-464b-b564-275bbabe4aad",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1542,6 +1696,16 @@
 													"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
 													"});",
 													""
+												]
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"id": "b672c07e-35d5-41b9-8098-ced1e79e62d4",
+												"type": "text/javascript",
+												"exec": [
+													"pm.environment.set(\"error_pattern_version\",\"5.4.3\")"
 												]
 											}
 										}
@@ -1564,7 +1728,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"{{version_device}}\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
+											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"{{error_pattern_version}}\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
@@ -1592,7 +1756,7 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "e975948f-392c-4fc4-a779-507b20ebdd74",
+												"id": "2506b935-e1a7-4091-beec-9f7f97413d40",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1766,6 +1930,84 @@
 									"response": []
 								},
 								{
+									"name": "check updated error patterns in CONFDS",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "e7ed8d85-3d09-4a33-8d16-8b2eac5d4533",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+													"",
+													"",
+													"pm.test(\"Check error pattern xr5\", function () {",
+													"    for(var i = 0 ; i < patterns.length; i++){",
+													"       if(patterns[i][\"device-version\"] == \"5.*\"){",
+													"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)Incomplete command(?-i).*\");",
+													"            }",
+													"    }",
+													"        ",
+													"});",
+													"  pm.test(\"Check error pattern xr5.3.4 \", function () {",
+													"    for(var i = 0 ; i < patterns.length; i++){",
+													"       if(patterns[i][\"device-version\"] == \"5.3.4\"){",
+													"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)(?-i).*\");",
+													"        }   ",
+													"    }",
+													"});",
+													"",
+													"pm.test(\"Check error pattern xr6\" , function () {",
+													"    for(var i = 0 ; i < patterns.length; i++){",
+													"       if(patterns[i][\"device-version\"] == \"6.*\"){",
+													"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)invalid input(?-i).*\");",
+													"            }",
+													"    }",
+													"});",
+													"   ",
+													"",
+													"    pm.test(\"Check error pattern classic \" + (postman.getEnvironmentVariable(\"node_id\")), function () {",
+													"    for(var i = 0 ; i < patterns.length; i++){",
+													"       if(patterns[i][\"device-version\"] == \"15.*\"){",
+													"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"error\");",
+													"            }",
+													"        }",
+													"    });",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "invalid input match patterns",
 									"event": [
 										{
@@ -1833,7 +2075,7 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "d76fbee8-a917-4e99-8367-d2fe7851cd80",
+												"id": "5db6e6fc-54f2-4f98-b9bd-ddea91db0ed3",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1842,17 +2084,15 @@
 													"  pm.response.to.have.status(200);",
 													"});",
 													"pm.test(\"Validate overall-configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 													"});",
 													"pm.test(\"Validate configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"error-type\"]).to.eql(\"processing-error\");",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 													"});",
 													"pm.test(\"Validate nodeId\", function() {",
 													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
 													"});",
-													"pm.test(\"Validate configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"error-message\"]).to.include(\"% Invalid input detected at '^' marker.\");",
-													"});"
+													""
 												]
 											}
 										}
@@ -1904,6 +2144,166 @@
 										}
 									},
 									"response": []
+								},
+								{
+									"name": "delete  error patterns",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "91cb2082-7080-406c-9456-f6a0196f417c",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "put back default error patterns",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "8a901a2e-ef51-4009-8162-cb1d28318c8f",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n            {\n                \"device-type\": \"ironware\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"vrp\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)BGP(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"% Configure the peer-group .+ first\",\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"nexus\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"^\\\\s+\\\\^.*\",\n                        \"\\\\% (?i)Incomplete command(?-i).*\",\n                        \"\\\\% (?i)invalid input(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"12.*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)BGP(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"% Configure the peer-group .+ first\",\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"*\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"junos\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"4.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "check default patterns CONFDS",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "67dedd90-9c1d-4da6-a38d-b6d4e33369e9",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+													"var save;",
+													"//ironware",
+													"pm.test(\"Check existing pattern \", function () {",
+													"    pm.expect(pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"]).to.not.be.empty;",
+													"",
+													"});",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
 								}
 							],
 							"_postman_isSubFolder": true
@@ -1912,6 +2312,66 @@
 							"name": "case2",
 							"description": null,
 							"item": [
+								{
+									"name": "check default error patterns in CONFDS",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "fdd0667d-4999-4ae7-a208-16a0652671a6",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+													"var save;",
+													"//ironware",
+													"pm.test(\"Check existing pattern \", function () {",
+													"    pm.expect(pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"]).to.not.be.empty;",
+													"",
+													"});",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
 								{
 									"name": "create error patterns",
 									"event": [
@@ -1944,10 +2404,10 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"available-cli-error-patterns\": {\n        \"available-cli-device-error-patterns\": [\n        \t{\n\t        \t\"device-type\" : \"ios\",\n\t        \t\"device-version\" : \"15.*\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"xe wildcard error\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t},\n        \t{\n\t        \t\"device-type\" : \"ios xr\",\n\t        \t\"device-version\" : \"{{error_pattern_version_regex}}\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"xr specific version error\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t}\n        \t\n    ]\n\n  }\n}\n"
+											"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n        \t{\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.3.4\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)invalid input(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)incomplete command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)Ambigious command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"xe wildcard error\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
 										},
 										"url": {
-											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-error-patterns",
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
 											"protocol": "http",
 											"host": [
 												"{{odl_ip}}"
@@ -1956,7 +2416,7 @@
 											"path": [
 												"restconf",
 												"config",
-												"cli-translate-registry:available-cli-error-patterns"
+												"cli-translate-registry:available-cli-device-translations"
 											]
 										}
 									},
@@ -1968,6 +2428,7 @@
 										{
 											"listen": "test",
 											"script": {
+												"id": "b3494919-a4e7-4063-9a44-56cb35a7e22d",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -1976,6 +2437,16 @@
 													"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
 													"});",
 													""
+												]
+											}
+										},
+										{
+											"listen": "prerequest",
+											"script": {
+												"id": "c2664ecd-f382-4d01-a898-1911e29e6716",
+												"type": "text/javascript",
+												"exec": [
+													"pm.environment.set(\"error_pattern_version\",\"5.3.4\")"
 												]
 											}
 										}
@@ -2026,7 +2497,7 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "d7b9a1eb-a921-49bc-a46b-010e6bcca685",
+												"id": "193a3131-9378-4e57-8905-53d6ff08793b",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2053,7 +2524,8 @@
 													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
 													"        postman.setNextRequest('check status connected 3');",
 													"    }",
-													"}"
+													"}",
+													""
 												]
 											}
 										},
@@ -2205,14 +2677,15 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "55fe0ce4-4cbb-458f-a740-f9b126a367f0",
+												"id": "573fa1f1-5bb6-41b0-9e23-db34a31fcc54",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
 													"",
-													"pm.test(\"Status code is 200\", function () {",
-													"  pm.response.to.have.status(200);",
-													"});"
+													"pm.test(\"Status code\", function () {",
+													"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});",
+													""
 												]
 											}
 										}
@@ -2262,12 +2735,12 @@
 									"response": []
 								},
 								{
-									"name": "commit",
+									"name": "failed commit",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "cce0e56e-1375-4ac3-96cc-34ec1f6089fe",
+												"id": "188aee30-c53a-4094-8e38-c2672fe50ced",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2276,13 +2749,19 @@
 													"  pm.response.to.have.status(200);",
 													"});",
 													"pm.test(\"Validate overall-configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
 													"});",
 													"pm.test(\"Validate configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(\"fail\");",
 													"});",
 													"pm.test(\"Validate nodeId\", function() {",
 													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"});",
+													"pm.test(\"Validate error-type\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"error-type\"]).to.eql(\"processing-error\");",
+													"});",
+													"pm.test(\"Validate rollback-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"rollback-status\"]).to.eql(\"complete\");",
 													"});"
 												]
 											}
@@ -2337,12 +2816,12 @@
 									"response": []
 								},
 								{
-									"name": "update error patterns",
+									"name": "update existing error patterns",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "4779d252-d288-4bbb-bb1c-f52961f3e773",
+												"id": "925a8535-4b6a-4284-8cf8-e9bc1839e5d6",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2368,10 +2847,10 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"available-cli-error-patterns\": {\n        \"available-cli-device-error-patterns\": [\n        \t{\n\t        \t\"device-type\" : \"ios\",\n\t        \t\"device-version\" : \"15.*\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"xe wildcard error\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t},\n        \t{\n\t        \t\"device-type\" : \"ios xr\",\n\t        \t\"device-version\" : \"{{error_pattern_version_regex}}\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"\\\\% (?i)invalid input(?-i).*\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t}\n        \t\n    ]\n\n  }\n}\n"
+											"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n        \t{\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.3.4\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                    ]\n                }\n            }\n        ]\n    }\n}"
 										},
 										"url": {
-											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-error-patterns",
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
 											"protocol": "http",
 											"host": [
 												"{{odl_ip}}"
@@ -2380,7 +2859,7 @@
 											"path": [
 												"restconf",
 												"config",
-												"cli-translate-registry:available-cli-error-patterns"
+												"cli-translate-registry:available-cli-device-translations"
 											]
 										}
 									},
@@ -2450,7 +2929,7 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "57044db2-70aa-4899-9bac-60a3ae5e66e1",
+												"id": "38eec853-dcfe-41b6-94f9-e28e23102285",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2477,7 +2956,8 @@
 													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
 													"        postman.setNextRequest('check status connected 4');",
 													"    }",
-													"}"
+													"}",
+													""
 												]
 											}
 										},
@@ -2691,7 +3171,7 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "32c131c5-e6c4-4e7b-8820-c745d2da8e4c",
+												"id": "3a1f353c-b4d2-4ae2-bc37-5fe36216ddc0",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2700,17 +3180,15 @@
 													"  pm.response.to.have.status(200);",
 													"});",
 													"pm.test(\"Validate overall-configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 													"});",
 													"pm.test(\"Validate configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"error-type\"]).to.eql(\"processing-error\");",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 													"});",
 													"pm.test(\"Validate nodeId\", function() {",
 													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
 													"});",
-													"pm.test(\"Validate configuration-status\", function() {",
-													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"error-message\"]).to.include(\"% Invalid input detected at '^' marker.\");",
-													"});"
+													""
 												]
 											}
 										}
@@ -2762,6 +3240,166 @@
 										}
 									},
 									"response": []
+								},
+								{
+									"name": "delete  error patterns",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "39e957f7-bf0b-4bd7-93c2-102c52515356",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "put back default error patterns",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "fd0a39c8-fbab-4bc6-bc97-8ffddd9317be",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n            {\n                \"device-type\": \"ironware\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"vrp\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)BGP(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"% Configure the peer-group .+ first\",\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"nexus\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"^\\\\s+\\\\^.*\",\n                        \"\\\\% (?i)Incomplete command(?-i).*\",\n                        \"\\\\% (?i)invalid input(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"12.*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)BGP(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"% Configure the peer-group .+ first\",\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"*\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"junos\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"4.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "check default patterns CONFDS",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "67dedd90-9c1d-4da6-a38d-b6d4e33369e9",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+													"var save;",
+													"//ironware",
+													"pm.test(\"Check existing pattern \", function () {",
+													"    pm.expect(pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"]).to.not.be.empty;",
+													"",
+													"});",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
 								}
 							],
 							"_postman_isSubFolder": true
@@ -2771,7 +3409,7 @@
 							"description": null,
 							"item": [
 								{
-									"name": "create error pattern",
+									"name": "create error patterns",
 									"event": [
 										{
 											"listen": "test",
@@ -2802,10 +3440,10 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"available-cli-error-patterns\": {\n        \"available-cli-device-error-patterns\": [\n        \t{\n\t        \t\"device-type\" : \"ios xr\",\n\t        \t\"device-version\" : \"{{error_pattern_version}}\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"xr specific version error\"\n\t        \t\t\t]\n\t        \t\t\t\n\t        \t}\n        \t}\n        \t\n    ]\n\n  }\n}\n"
+											"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n        \t{\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.3.4\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)invalid input(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)incomplete command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"\\\\% (?i)Ambigious command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"xe wildcard error\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
 										},
 										"url": {
-											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-error-patterns",
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
 											"protocol": "http",
 											"host": [
 												"{{odl_ip}}"
@@ -2814,7 +3452,7 @@
 											"path": [
 												"restconf",
 												"config",
-												"cli-translate-registry:available-cli-error-patterns"
+												"cli-translate-registry:available-cli-device-translations"
 											]
 										}
 									},
@@ -2884,7 +3522,7 @@
 										{
 											"listen": "test",
 											"script": {
-												"id": "509c512c-402e-4ef0-9654-fd3a501a6f66",
+												"id": "e66b8e41-9726-4f76-8030-e73acfb7b73f",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -2911,7 +3549,21 @@
 													"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
 													"        postman.setNextRequest('check status connected 5');",
 													"    }",
-													"}"
+													"}",
+													"",
+													"if((postman.getEnvironmentVariable(\"node_id\")) == \"xe4\" ){",
+													"    pm.test(\"Check error pattern \" + (postman.getEnvironmentVariable(\"node_id\")), function () {",
+													"       if(postman.getEnvironmentVariable(\"version_device\") == \"15.*\"){",
+													"            pm.expect(jsonData.node[0][\"cli-topology:connection-status\"]).to.eql(\"connected\");",
+													"            pm.expect(jsonData.node[0][\"cli-topology:connected-message\"]).to.eql(\"Success\");",
+													"            pm.expect(jsonData.node[0][\"cli-topology:default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"xe wildcard error\");",
+													"            pm.expect(jsonData.node[0][ \"cli-topology:default-commit-error-patterns\"]).to.be.empty;",
+													"            } else {",
+													"                ",
+													"            }",
+													"    });",
+													"}",
+													""
 												]
 											}
 										},
@@ -2987,11 +3639,11 @@
 										{
 											"listen": "prerequest",
 											"script": {
-												"id": "491857ac-5a6e-4630-822d-2b5f9ffd61b1",
+												"id": "90922371-2c17-40f2-afa7-c327e59b36ee",
 												"type": "text/javascript",
 												"exec": [
-													"console.log(\"Here we wait 15 seconds - be patient. The reasons is that this update was not able properly configure device.\");",
-													"setTimeout(function(){}, 15000);"
+													"console.log(\"Here we wait 10 seconds - be patient. The reasons is that this update was not able properly configure device.\");",
+													"setTimeout(function(){}, 10000);"
 												]
 											}
 										}
@@ -3041,12 +3693,12 @@
 									"response": []
 								},
 								{
-									"name": "commit",
+									"name": "failed commit",
 									"event": [
 										{
 											"listen": "test",
 											"script": {
-												"id": "d2e44dc3-ba77-4ce1-a5b3-c7413a2192df",
+												"id": "923471a1-d6b8-4ad3-93a1-01b44fc0ee12",
 												"type": "text/javascript",
 												"exec": [
 													"console.log(\"Response: \" + responseBody)",
@@ -3073,7 +3725,7 @@
 													"});",
 													"tests[\"Body matches string: xe4\"] = responseBody.has(\"xe4\");",
 													"",
-													"tests[\"Body matches string:\"+ pm.environment.get(\"node_id\")] = responseBody.has(String(postman.getEnvironmentVariable(\"node_id\")));"
+													""
 												]
 											}
 										},
@@ -3192,6 +3844,166 @@
 										}
 									},
 									"response": []
+								},
+								{
+									"name": "delete  error patterns",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "8844a099-b320-45ee-b5d2-de9aae71b1cd",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "put back default error patterns",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "1a58686b-4bb0-4b79-adda-b296df5401b4",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 201\", function () {",
+													"  pm.response.to.have.status(201);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n            {\n                \"device-type\": \"ironware\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"vrp\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)BGP(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"% Configure the peer-group .+ first\",\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"nexus\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"^\\\\s+\\\\^.*\",\n                        \"\\\\% (?i)Incomplete command(?-i).*\",\n                        \"\\\\% (?i)invalid input(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"12.*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)BGP(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"% Configure the peer-group .+ first\",\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"*\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"junos\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"4.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "check default patterns CONFDS",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "67dedd90-9c1d-4da6-a38d-b6d4e33369e9",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+													"var save;",
+													"//ironware",
+													"pm.test(\"Check existing pattern \", function () {",
+													"    pm.expect(pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"]).to.not.be.empty;",
+													"",
+													"});",
+													"",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"cli-translate-registry:available-cli-device-translations"
+											]
+										}
+									},
+									"response": []
 								}
 							],
 							"_postman_isSubFolder": true
@@ -3256,10 +4068,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"available-cli-error-patterns\": {\n        \"available-cli-device-error-patterns\": [\n        \t{\n\t        \t\"device-type\" : \"ios xr\",\n\t        \t\"device-version\" : \"{{error_pattern_version}}\",\n\t        \t\"default-error-patterns\": {\n\t        \t\t\"error-pattern\": \n\t        \t\t\t[\n\t        \t\t\t \"\\\\% (?i)Failed to commit(?-i).*\"\n\t        \t\t\t]\n\t        \t}\n        \t}\n    ]\n  }\n}"
+									"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"{{error_pattern_version}}\",\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n\t        \t\t\t \"\\\\% (?i)Failed to commit(?-i).*\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-error-patterns",
+									"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -3268,7 +4080,7 @@
 									"path": [
 										"restconf",
 										"config",
-										"cli-translate-registry:available-cli-error-patterns"
+										"cli-translate-registry:available-cli-device-translations"
 									]
 								}
 							},
@@ -3512,6 +4324,94 @@
 							"response": []
 						},
 						{
+							"name": "check created error patterns in CONFDS",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "1b348aa1-19ce-41c6-bce5-74e4cfeec0b1",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+											"",
+											"",
+											"pm.test(\"Check error pattern xr5\", function () {",
+											"    for(var i = 0 ; i < patterns.length; i++){",
+											"       if(patterns[i][\"device-version\"] == \"5.*\"){",
+											"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)Ambigious command(?-i).*\");",
+											"            }",
+											"    }",
+											"        ",
+											"});",
+											"",
+											"  pm.test(\"Check error pattern xr5.3.4 \", function () {",
+											"    for(var i = 0 ; i < patterns.length; i++){",
+											"       if(patterns[i][\"device-version\"] == \"5.3.4\"){",
+											"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)Failed to commit(?-i).*\");",
+											"        }   ",
+											"    }",
+											"});",
+											"",
+											"pm.test(\"Check error pattern xr6\" , function () {",
+											"    for(var i = 0 ; i < patterns.length; i++){",
+											"       if(patterns[i][\"device-version\"] == \"6.*\"){",
+											"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"\\\\% (?i)incomplete command(?-i).*\");",
+											"            }",
+											"    }",
+											"});",
+											"   ",
+											"",
+											"    pm.test(\"Check error pattern classic \" + (postman.getEnvironmentVariable(\"node_id\")), function () {",
+											"    for(var i = 0 ; i < patterns.length; i++){",
+											"       if(patterns[i][\"device-version\"] == \"15.*\"){",
+											"            pm.expect(patterns[i][\"default-error-patterns\"][\"error-pattern\"][0]).to.eql(\"xe wildcard error\");",
+											"            }",
+											"        }",
+											"    });",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"cli-translate-registry:available-cli-device-translations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "invalid input",
 							"event": [
 								{
@@ -3573,7 +4473,7 @@
 							"response": []
 						},
 						{
-							"name": "commit",
+							"name": "failed commit",
 							"event": [
 								{
 									"listen": "test",
@@ -3650,6 +4550,166 @@
 										"restconf",
 										"operations",
 										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete  error patterns",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "67f1e4cc-d89e-4fec-a995-0cae12fef40d",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"cli-translate-registry:available-cli-device-translations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "put back default patterns CONFDS",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "e96a8865-8cca-4d9c-b22d-2351e557e07d",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 201\", function () {",
+											"  pm.response.to.have.status(201);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"available-cli-device-translations\": {\n        \"available-cli-device-translation\": [\n            {\n                \"device-type\": \"ironware\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"vrp\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"15.*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)BGP(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"% Configure the peer-group .+ first\",\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"nexus\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"^\\\\s+\\\\^.*\",\n                        \"\\\\% (?i)Incomplete command(?-i).*\",\n                        \"\\\\% (?i)invalid input(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"12.*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)BGP(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"% Configure the peer-group .+ first\",\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"*\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)^\\\\s+\\\\^.*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"junos\",\n                \"device-version\": \"*\",\n                \"default-commit-error-patterns\": {},\n                \"default-error-patterns\": {}\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"6.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"5.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            },\n            {\n                \"device-type\": \"ios xr\",\n                \"device-version\": \"4.*\",\n                \"default-commit-error-patterns\": {\n                    \"commit-error-pattern\": [\n                        \"(^|\\\\n)% (?i)Failed(?-i).*\"\n                    ]\n                },\n                \"default-error-patterns\": {\n                    \"error-pattern\": [\n                        \"(^|\\\\n)% (?i)Incomplete command(?-i).*\",\n                        \"(^|\\\\n)% (?i)invalid input(?-i).*\",\n                        \"(^|\\\\n)% (?i)Ambiguous command(?-i).*\",\n                        \"(^|\\\\n)\\\\s+\\\\^.*\"\n                    ]\n                }\n            }\n        ]\n    }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"cli-translate-registry:available-cli-device-translations"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check default patterns CONFDS",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "67dedd90-9c1d-4da6-a38d-b6d4e33369e9",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var patterns = pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"];",
+											"var save;",
+											"//ironware",
+											"pm.test(\"Check existing pattern \", function () {",
+											"    pm.expect(pm.response.json()[\"available-cli-device-translations\"][\"available-cli-device-translation\"]).to.not.be.empty;",
+											"",
+											"});",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/cli-translate-registry:available-cli-device-translations",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"cli-translate-registry:available-cli-device-translations"
 									]
 								}
 							},

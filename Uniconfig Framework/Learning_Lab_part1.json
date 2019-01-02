@@ -1,0 +1,799 @@
+{
+	"info": {
+		"_postman_id": "d86dd93f-2d4d-4ab1-9d14-df266c77e217",
+		"name": "Learning Lab part1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "sample XE collection",
+			"description": null,
+			"item": [
+				{
+					"name": "Mount IOS XE",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code\", function () {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"15.2\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 180,\n      \n      \"cli-topology:keepalive-delay\" : 45,\n      \"cli-topology:keepalive-timeout\" : 45\n    }\n  }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"{{node_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check xe uc status connected",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ffc53c24-96c7-42ab-8cbf-54f6a1454e94",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+									"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check xe uc status connected');",
+									"    }",
+									"}"
+								]
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6177712c-ce12-4d3f-a3cd-337e4d20e17e",
+								"type": "text/javascript",
+								"exec": [
+									"",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"{{node_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show all interfaces",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "01bba807-1a74-4ee3-9434-1bbd371c8952",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+									"});",
+									"",
+									"pm.test(\"Validate name GigabitEthernet1\", function() {",
+									"  var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"GigabitEthernet1\") == json_string[i][\"name\"]) {",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(\"GigabitEthernet1\");",
+									"    }",
+									"  }",
+									"      ",
+									"});",
+									"",
+									"pm.test(\"Validate name GigabitEthernet2\", function() {",
+									"  var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"GigabitEthernet2\") == json_string[i][\"name\"]) {",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(\"GigabitEthernet2\");",
+									"    }",
+									"  }",
+									"      ",
+									"});",
+									"",
+									"pm.test(\"Validate name GigabitEthernet3\", function() {",
+									"  var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"GigabitEthernet3\") == json_string[i][\"name\"]) {",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(\"GigabitEthernet3\");",
+									"    }",
+									"  }",
+									"      ",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration",
+								"frinx-openconfig-interfaces:interfaces"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create loopback",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f3fbe7d3-78be-439f-995e-f1eea6ffe389",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Status code is 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"frinx-openconfig-interfaces:interface\": [\n        {\n            \"name\": \"Loopback1\",\n            \"config\": {\n                \"type\": \"iana-if-type:softwareLoopback\",\n                \"enabled\": true,\n                \"name\": \"Loopback1\"\n            }\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback1",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration",
+								"frinx-openconfig-interfaces:interfaces",
+								"interface",
+								"Loopback1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "commit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+									"});",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+									"});",
+									"pm.test(\"Validate nodeId\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "showPassword",
+									"value": false,
+									"type": "boolean"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set ip address on loopback",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "515e5882-0dac-41c7-bb15-dadbd990b30d",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"frinx-openconfig-interfaces:interface\": [\n        {\n            \"name\": \"Loopback1\",\n            \"config\": {\n                \"type\": \"iana-if-type:softwareLoopback\",\n                \"enabled\": true,\n                \"name\": \"Loopback1\"\n            },\n            \"subinterfaces\": {\n                \"subinterface\": [\n                    {\n                        \"index\": 0,\n                        \"frinx-openconfig-if-ip:ipv4\": {\n                            \"addresses\": {\n                                \"address\": [\n                                    {\n                                        \"ip\": \"9.9.9.9\",\n                                        \"config\": {\n                                            \"ip\": \"9.9.9.9\",\n                                            \"prefix-length\": 24\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    }\n                ]\n            }\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback1",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration",
+								"frinx-openconfig-interfaces:interfaces",
+								"interface",
+								"Loopback1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "commit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+									"});",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+									"});",
+									"pm.test(\"Validate nodeId\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+									"});",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "showPassword",
+									"value": false,
+									"type": "boolean"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show all interfaces with loopback",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "14eff43b-4c8e-4648-8ecb-a6f4267cec10",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+									"});",
+									"",
+									"pm.test(\"Validate name GigabitEthernet1\", function() {",
+									"  var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"GigabitEthernet1\") == json_string[i][\"name\"]) {",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(\"GigabitEthernet1\");",
+									"    }",
+									"  }",
+									"      ",
+									"});",
+									"",
+									"pm.test(\"Validate name GigabitEthernet2\", function() {",
+									"  var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"GigabitEthernet2\") == json_string[i][\"name\"]) {",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(\"GigabitEthernet2\");",
+									"    }",
+									"  }",
+									"      ",
+									"});",
+									"",
+									"pm.test(\"Validate name GigabitEthernet3\", function() {",
+									"  var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"GigabitEthernet3\") == json_string[i][\"name\"]) {",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(\"GigabitEthernet3\");",
+									"    }",
+									"  }",
+									"      ",
+									"});",
+									"",
+									"pm.test(\"Validate name Loopback1\", function() {",
+									"  var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"  for (var i = 0; i < json_string.length; i++) {",
+									"    if (pm.environment.get(\"Loopback1\") == json_string[i][\"name\"]) {",
+									"      pm.expect(json_string[i][\"config\"][\"name\"]).to.eql(\"Loopback1\");",
+									"      pm.expect(json_string[i][\"subinterfaces\"][\"subinterface\"][0][\"frinx-openconfig-if-ip:ipv4\"][\"addresses\"][\"address\"][0][\"config\"][\"ip\"]).to.eql(\"9.9.9.9\");",
+									"    }",
+									"  }",
+									"      ",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration",
+								"frinx-openconfig-interfaces:interfaces"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show interfaces GigabitEthernet1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3dfc8828-1ced-423e-8d00-360b471c0535",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"sh interfaces GigabitEthernet1\n\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"{{node_id}}",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show interfaces GigabitEthernet1 controller",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3dfc8828-1ced-423e-8d00-360b471c0535",
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"show interfaces GigabitEthernet1 controller\n\"\n  }\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"{{node_id}}",
+								"yang-ext:mount",
+								"cli-unit-generic:execute-and-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unmount IOS XE",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_cli}}",
+								"node",
+								"{{node_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

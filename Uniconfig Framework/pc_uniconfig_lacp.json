@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c3ce03a1-b73e-4190-a509-6776578ac39c",
+		"_postman_id": "85fc7479-0b86-474d-bf4a-70e51ceb25ad",
 		"name": "pc_uniconfig_lacp",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -5980,6 +5980,355 @@
 												"frinx-openconfig-interfaces:interfaces",
 												"interface",
 												"{{lacp_url_intf-id}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "create passive mode diff interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "414cfda4-6503-48db-a0fd-2081f326d02c",
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Request data: \" + request.data.toString());",
+													"console.log(\"Response: \" + responseBody)",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"{{lacp_intf-id2}}\",\n            \"config\": {\n                \"type\": \"iana-if-type:ethernetCsmacd\",\n                \"name\": \"{{lacp_intf-id2}}\",\n                \"enabled\": false\n            },\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lacp_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_passive}}\"\n        }\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id2}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"uniconfig",
+												"node",
+												"{{node_id}}",
+												"frinx-uniconfig-topology:configuration",
+												"frinx-openconfig-interfaces:interfaces",
+												"interface",
+												"{{lacp_url_intf-id2}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "create commit diff interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate overall-configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"pm.test(\"Validate nodeId\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:commit"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "show created passive mode diff interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "356c6c24-b799-415e-b58a-36d9aeb32b73",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"//frinx-openconfig-if-aggregate:aggregate-id",
+													"pm.test(\"Validate frinx-openconfig-if-aggregate:aggregate-id = \" + pm.environment.get(\"lacp_bundle_id\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(pm.environment.get(\"lacp_bundle_id\"));",
+													"});",
+													"//frinx-lacp-lag-member:lacp-mode",
+													"pm.test(\"Validate frinx-lacp-lag-member:lacp-mode = \" + pm.environment.get(\"lacp_mode_passive\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"frinx-openconfig-if-ethernet:ethernet\"][\"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(pm.environment.get(\"lacp_mode_passive\"));",
+													"});",
+													"//type",
+													"pm.test(\"Validate type = \", function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"type\"]).to.eql(\"iana-if-type:ethernetCsmacd\");",
+													"});",
+													"//config name",
+													"pm.test(\"Validate config name = \" + pm.environment.get(\"lacp_intf-id2\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id2\"));",
+													"});",
+													"//name",
+													"pm.test(\"Validate name = \" + pm.environment.get(\"lacp_intf-id2\"), function() {",
+													"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:interface\"][0][\"name\"]).to.eql(pm.environment.get(\"lacp_intf-id2\"));",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": ""
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id2}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operational",
+												"network-topology:network-topology",
+												"topology",
+												"uniconfig",
+												"node",
+												"{{node_id}}",
+												"frinx-uniconfig-topology:configuration",
+												"frinx-openconfig-interfaces:interfaces",
+												"interface",
+												"{{lacp_url_intf-id2}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "create empty diff interface",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code\", function () {",
+													"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+													"});",
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"{{lacp_intf-id2}}\",\n            \"config\": {\n                \"type\": \"iana-if-type:ethernetCsmacd\",\n                \"name\": \"{{lacp_intf-id2}}\",\n                \"enabled\": false\n            }\n        }\n    ]\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id2}}",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"config",
+												"network-topology:network-topology",
+												"topology",
+												"uniconfig",
+												"node",
+												"{{node_id}}",
+												"frinx-uniconfig-topology:configuration",
+												"frinx-openconfig-interfaces:interfaces",
+												"interface",
+												"{{lacp_url_intf-id2}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "create commit",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"type": "text/javascript",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"pm.test(\"Validate overall-configuration-status\", function() {",
+													"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-config-results\" in pm.response.json()[\"output\"] ){",
+													"    pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+													"    pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  }",
+													"});"
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:commit"
 											]
 										}
 									},
@@ -12793,7 +13142,7 @@
 									"response": []
 								},
 								{
-									"name": "remove passive mode   BUG",
+									"name": "remove passive mode",
 									"event": [
 										{
 											"listen": "test",
@@ -12852,7 +13201,7 @@
 									"response": []
 								},
 								{
-									"name": "update passive mode commit  BUG",
+									"name": "update passive mode commit",
 									"event": [
 										{
 											"listen": "test",
@@ -12926,7 +13275,7 @@
 									"response": []
 								},
 								{
-									"name": "sync-from-network   BUG",
+									"name": "sync-from-network",
 									"event": [
 										{
 											"listen": "test",
@@ -13000,7 +13349,7 @@
 									"response": []
 								},
 								{
-									"name": "replace-config-with-operational   BUG",
+									"name": "replace-config-with-operational",
 									"event": [
 										{
 											"listen": "test",
@@ -13069,7 +13418,7 @@
 									"response": []
 								},
 								{
-									"name": "show removed passive mode BUG",
+									"name": "show removed passive mode",
 									"event": [
 										{
 											"listen": "test",
@@ -18231,7 +18580,7 @@
 									"response": []
 								},
 								{
-									"name": "update period fast BUG-ACTIVE not removed",
+									"name": "update period fast",
 									"event": [
 										{
 											"listen": "test",
@@ -18365,7 +18714,7 @@
 									"response": []
 								},
 								{
-									"name": "sync-from-network   BUG",
+									"name": "sync-from-network",
 									"event": [
 										{
 											"listen": "test",
@@ -18439,7 +18788,7 @@
 									"response": []
 								},
 								{
-									"name": "replace-config-with-operational   BUG",
+									"name": "replace-config-with-operational",
 									"event": [
 										{
 											"listen": "test",
@@ -18508,7 +18857,7 @@
 									"response": []
 								},
 								{
-									"name": "show updated period fast BUG",
+									"name": "show updated period fast",
 									"event": [
 										{
 											"listen": "test",

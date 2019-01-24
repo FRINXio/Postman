@@ -1,15 +1,17 @@
 {
 	"info": {
-		"_postman_id": "fb108bd3-1580-4738-a13b-4225c7d2880b",
+		"_postman_id": "56904e06-4f87-4b1a-b4ff-194fc45f14ea",
 		"name": "pc_uniconfig_lag",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "ASR LAG CRUD",
+			"description": null,
 			"item": [
 				{
 					"name": "ASR LAG CRUD Setup",
+					"description": null,
 					"item": [
 						{
 							"name": "create flow prerequisites",
@@ -448,6 +450,7 @@
 				},
 				{
 					"name": "ASR LAG CRUD Teardown",
+					"description": null,
 					"item": [
 						{
 							"name": "delete lag interface",
@@ -845,10 +848,72 @@
 		},
 		{
 			"name": "XR5 LAG CRUD",
+			"description": null,
 			"item": [
 				{
 					"name": "XR5 LAG CRUD Setup",
+					"description": null,
 					"item": [
+						{
+							"name": "create acl prerequisites",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "7c5d4e91-c7ac-4063-bee4-8eda6c4a23a4",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nipv6 access-list {{flow_prereq_ipv6_acl1}}\n10 deny ipv6 any any\nexit\nipv6 access-list {{flow_prereq_ipv6_acl2}}\n20 deny ipv6 any any\nexit\nipv4 access-list {{flow_prereq_ipv4_acl1}}\n10 deny ipv4 any any\nexit\nipv4 access-list {{flow_prereq_ipv4_acl2}}\n20 deny ipv4 any any\nexit\ncommit\nend\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
 						{
 							"name": "sync-from-network",
 							"event": [
@@ -917,6 +982,75 @@
 										"restconf",
 										"operations",
 										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "replace-config-with-operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
 									]
 								}
 							},
@@ -1157,6 +1291,7 @@
 				},
 				{
 					"name": "XR5 LAG CRUD Teardown",
+					"description": null,
 					"item": [
 						{
 							"name": "delete lag interface",
@@ -1415,6 +1550,66 @@
 							"response": []
 						},
 						{
+							"name": "delete acl prerequisites",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "374a6185-9bd5-4e42-94b4-d92d3194e142",
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nno ipv6 access-list {{flow_prereq_ipv6_acl1}}\nno ipv6 access-list {{flow_prereq_ipv6_acl2}}\nno ipv4 access-list {{flow_prereq_ipv4_acl1}}\nno ipv4 access-list {{flow_prereq_ipv4_acl2}}\ncommit\nend\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "sync-from-network",
 							"event": [
 								{
@@ -1494,9 +1689,11 @@
 		},
 		{
 			"name": "XR5 LAG-FULL CRUD",
+			"description": null,
 			"item": [
 				{
 					"name": "XR5 LAG-FULL CRUD Setup",
+					"description": null,
 					"item": [
 						{
 							"name": "delete lag interface",
@@ -1638,9 +1835,11 @@
 		},
 		{
 			"name": "Junos LAG CRUD",
+			"description": null,
 			"item": [
 				{
 					"name": "Junos LAG CRUD Setup",
+					"description": null,
 					"item": [
 						{
 							"name": "create lag interface",
@@ -2090,6 +2289,7 @@
 				},
 				{
 					"name": "Junos LAG CRUD Teardown",
+					"description": null,
 					"item": [
 						{
 							"name": "make interface empty",
@@ -2590,9 +2790,11 @@
 		},
 		{
 			"name": "Tests",
+			"description": null,
 			"item": [
 				{
 					"name": "LAG-FULL CRUD",
+					"description": null,
 					"item": [
 						{
 							"name": "create lag interface",
@@ -3340,9 +3542,11 @@
 				},
 				{
 					"name": "LAG CRUD",
+					"description": null,
 					"item": [
 						{
 							"name": "LAG CRUD Config",
+							"description": null,
 							"item": [
 								{
 									"name": "update lag config",
@@ -3579,6 +3783,7 @@
 						},
 						{
 							"name": "LAG CRUD Subinterface",
+							"description": null,
 							"item": [
 								{
 									"name": "create interface ip",
@@ -4059,6 +4264,7 @@
 						},
 						{
 							"name": "LAG CRUD IPv6",
+							"description": null,
 							"item": [
 								{
 									"name": "create ipv6",
@@ -4483,6 +4689,7 @@
 						},
 						{
 							"name": "LAG CRUD Damping",
+							"description": null,
 							"item": [
 								{
 									"name": "create lag damping",
@@ -4973,6 +5180,7 @@
 						},
 						{
 							"name": "LAG CRUD Statistics",
+							"description": null,
 							"item": [
 								{
 									"name": "create statistics",
@@ -5451,6 +5659,7 @@
 						},
 						{
 							"name": "LAG CRUD AggegationNoBfd",
+							"description": null,
 							"item": [
 								{
 									"name": "create aggregation without bfd",
@@ -5928,6 +6137,7 @@
 						},
 						{
 							"name": "LAG CRUD AggegationBfd",
+							"description": null,
 							"item": [
 								{
 									"name": "create aggregation with bgd",
@@ -6413,6 +6623,7 @@
 						},
 						{
 							"name": "LAG CRUD AggegationBfdLinkSpeed",
+							"description": null,
 							"item": [
 								{
 									"name": "create aggregation with link-speed",
@@ -6918,6 +7129,7 @@
 						},
 						{
 							"name": "LAG CRUD Flows",
+							"description": null,
 							"item": [
 								{
 									"name": "show no LAG flow configured",
@@ -9342,6 +9554,7 @@
 						},
 						{
 							"name": "LAG CRUD Acls",
+							"description": null,
 							"item": [
 								{
 									"name": "show no LAG acl configured",

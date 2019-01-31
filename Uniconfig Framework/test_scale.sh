@@ -10,7 +10,6 @@ set -x
 
 env_template_file="mocked_scale_env_tmpl.json"
 router_mount_folder="IOU Mount"
-router_RPC_folder="IOU RPC"
 router_unmount_folder="IOU Unmount"
 collection_file="postman_collection_scale.json"
 
@@ -86,20 +85,6 @@ configured_peer_devices=$i
 echo "Mounted devices: $mounted_peer_devices"
 echo "Mounted_devices" > ./mounted_devices.csv
 echo "$mounted_peer_devices" >> ./mounted_devices.csv
-
-
-# RPC tests
-# copy env template file and fill with correct values
-
-env_file_name=mocked_scale_env_$node_name.json
-cp $env_template_file $env_file_name
-sed -i "s/ODL_IP/$odl_ip_address/g" $env_file_name
-
-newman run $collection_file --bail -e $env_file_name -n 1 --folder "$router_RPC_folder"
-echo "RPC tests: $?"
-
-rm $env_file_name
-
 
 # Deconfiguration part missing for now
 for (( i=1; i <= $configured_peer_devices; i++ ))

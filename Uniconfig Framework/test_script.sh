@@ -51,7 +51,15 @@ mkdir -p junit_results
 
 folder="$dev_pref Mount $layer"
 echo "Performing $folder"
-unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/mount.xml"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
+unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/mount.xml"; if [ "$?" != "0" ]; then
+    echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file
+    if [ -f $file ] ; then
+        cat $file
+        rm $file
+    fi
+    echo "DEVICE HAS NOT BEEN MOUNTED"
+    exit 1
+fi
 
 txt_collections="`cat $tests_input_file | jq -c keys[]`"
 echo $txt_collections

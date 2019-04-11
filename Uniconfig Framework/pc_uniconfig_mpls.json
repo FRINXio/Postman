@@ -1,17 +1,15 @@
 {
 	"info": {
-		"_postman_id": "3dd4d488-5df2-40cd-8127-8785d11b236d",
+		"_postman_id": "e3b62c60-f0e5-4194-8b87-b5861307e620",
 		"name": "pc_uniconfig_mpls",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "XR5 MPLS-TE CRUD",
-			"description": null,
 			"item": [
 				{
 					"name": "XR5 MPLS-TE CRUD Setup",
-					"description": null,
 					"item": [
 						{
 							"name": "Delete mpls-te",
@@ -19,7 +17,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "97a6e942-2258-408d-ba27-a2319df3aa76",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -27,17 +25,18 @@
 											"  pm.expect(pm.response.code).to.be.oneOf([200,404]);",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								},
 								{
 									"listen": "prerequest",
 									"script": {
-										"type": "text/javascript",
+										"id": "e6e0e07d-dc13-48f5-b529-6dfc7cb27d14",
 										"exec": [
-											"",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -161,6 +160,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show nonexisting mpls-te",
 							"event": [
 								{
@@ -230,10 +363,9 @@
 				},
 				{
 					"name": "XR5 MPLS-TE READERS",
-					"description": null,
 					"item": [
 						{
-							"name": "delete previouse mpls-te",
+							"name": "delete previous mpls-te",
 							"event": [
 								{
 									"listen": "test",
@@ -292,7 +424,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "8327242a-237f-41d7-913a-c0b5023ab0cf",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -301,13 +433,15 @@
 											"});",
 											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
 											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -553,7 +687,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "9312ef7e-4c1c-4ef2-a6ea-7cd8561216c0",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -562,13 +696,15 @@
 											"});",
 											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
 											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -821,7 +957,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "a330950b-d97b-4b06-a148-c4692e6a4934",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -830,13 +966,15 @@
 											"});",
 											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
 											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1082,11 +1220,9 @@
 		},
 		{
 			"name": "XR5 MPLS-TUNNEL CRUD",
-			"description": null,
 			"item": [
 				{
 					"name": "XR5 MPLS-TUNNEL CRUD Setup",
-					"description": null,
 					"item": [
 						{
 							"name": "create tunnel",
@@ -1242,6 +1378,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show configured tunnel",
 							"event": [
 								{
@@ -1333,7 +1603,6 @@
 				},
 				{
 					"name": "XR5 MPLS-TUNNEL CRUD Teardown",
-					"description": null,
 					"item": [
 						{
 							"name": "delete tunnel",
@@ -1548,6 +1817,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show deleted tunnel",
 							"event": [
 								{
@@ -1588,7 +1991,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+									"raw": ""
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -1625,7 +2028,6 @@
 				},
 				{
 					"name": "XR5 MPLS-TUNNEL READERS",
-					"description": null,
 					"item": [
 						{
 							"name": "delete previous tunnel",
@@ -1687,7 +2089,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "c9e0957b-12cc-41c8-b105-7165f0be5b3b",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1696,13 +2098,15 @@
 											"});",
 											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
 											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1950,7 +2354,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "3e9a4cb0-8cc3-4413-8b59-5acb6d619682",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1959,13 +2363,15 @@
 											"});",
 											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
 											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -2233,7 +2639,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "54e3bc81-8495-4224-b269-52042251eebf",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2242,13 +2648,15 @@
 											"});",
 											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
 											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -2497,11 +2905,9 @@
 		},
 		{
 			"name": "Junos MPLS-TE CRUD",
-			"description": null,
 			"item": [
 				{
 					"name": "Junos MPLS-TE CRUD READERS",
-					"description": null,
 					"item": [
 						{
 							"name": "configure mpls-te",
@@ -2565,7 +2971,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "efe1ac92-07a7-496d-9b85-443487d82675",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2573,15 +2979,16 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test(\"Validate nodeId\", function() {",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"});",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
 											"",
-											"pm.test(\"No error occured\", function() {",
-											"  pm.expect(pm.response.text()).not.to.include(\"error-type\");",
+											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -2841,7 +3248,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "0915855c-7d59-4fd8-9139-360d737f8028",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2849,15 +3256,16 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test(\"Validate nodeId\", function() {",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"});",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
 											"",
-											"pm.test(\"No error occured\", function() {",
-											"  pm.expect(pm.response.text()).not.to.include(\"error-type\");",
+											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -3055,11 +3463,9 @@
 		},
 		{
 			"name": "Junos MPLS-TUNNEL CRUD",
-			"description": null,
 			"item": [
 				{
 					"name": "Junos MPLS-TUNNEL READERS",
-					"description": null,
 					"item": [
 						{
 							"name": "configure tunnel",
@@ -3123,7 +3529,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "590a56e7-4612-4946-bdc3-2dccf367d830",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -3131,15 +3537,16 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test(\"Validate nodeId\", function() {",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"});",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
 											"",
-											"pm.test(\"No error occured\", function() {",
-											"  pm.expect(pm.response.text()).not.to.include(\"error-type\");",
+											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -3423,7 +3830,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "cb41e54d-8bac-40b6-bbb9-1bc50e8c9e36",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -3431,15 +3838,16 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test(\"Validate nodeId\", function() {",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"});",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
 											"",
-											"pm.test(\"No error occured\", function() {",
-											"  pm.expect(pm.response.text()).not.to.include(\"error-type\");",
+											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -3639,11 +4047,9 @@
 		},
 		{
 			"name": "Tests",
-			"description": null,
 			"item": [
 				{
 					"name": "MPLS-TUNNEL-FULL CRUD",
-					"description": null,
 					"item": [
 						{
 							"name": "create tunnel",
@@ -3804,6 +4210,140 @@
 										"restconf",
 										"operations",
 										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
 									]
 								}
 							},
@@ -4059,6 +4599,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show configured tunnel",
 							"event": [
 								{
@@ -4304,6 +4978,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show deleted tunnel",
 							"event": [
 								{
@@ -4345,7 +5153,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+									"raw": ""
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -4382,11 +5190,9 @@
 				},
 				{
 					"name": "MPLS-TUNNEL CRUD",
-					"description": null,
 					"item": [
 						{
 							"name": "MPLS-TUNNEL CRUD Config",
-							"description": null,
 							"item": [
 								{
 									"name": "update tunnel",
@@ -4490,18 +5296,18 @@
 													"    });",
 													"    ",
 													"    ",
-													"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+													"    pm.test(\"dryrun - not empty configuration\", function() {",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).not.to.eql(\"\");",
 													"    });",
 													"",
 													"        pm.test('dryrun - contains interface tunnel-te 100', function () {",
-													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"interface tunnel-te 100\");",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"interface tunnel-te 100\");",
 													"    });",
 													"    pm.test('dryrun - contains metric absolute 200', function () {",
-													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"metric absolute 200\");",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"metric absolute 200\");",
 													"    });",
 													"    pm.test('dryrun - contains autoroute announce', function () {",
-													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"autoroute announce\");",
+													"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"autoroute announce\");",
 													"    });",
 													"}"
 												]
@@ -4620,6 +5426,140 @@
 									"response": []
 								},
 								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "show updated tunnel",
 									"event": [
 										{
@@ -4684,7 +5624,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+											"raw": ""
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -4936,13 +5876,146 @@
 										}
 									},
 									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
 								}
 							],
 							"_postman_isSubFolder": true
 						},
 						{
 							"name": "MPLS-TUNNEL CRUD Destination",
-							"description": null,
 							"item": [
 								{
 									"name": "create tunnel destination",
@@ -5097,6 +6170,140 @@
 									"response": []
 								},
 								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "show created tunnel destination",
 									"event": [
 										{
@@ -5166,7 +6373,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+											"raw": ""
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -5352,6 +6559,140 @@
 									"response": []
 								},
 								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "show updated tunnel destination",
 									"event": [
 										{
@@ -5421,7 +6762,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+											"raw": ""
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -5599,6 +6940,140 @@
 									"response": []
 								},
 								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "show deleted tunnel destination",
 									"event": [
 										{
@@ -5664,7 +7139,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+											"raw": ""
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -5769,13 +7244,146 @@
 										}
 									},
 									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
 								}
 							],
 							"_postman_isSubFolder": true
 						},
 						{
 							"name": "MPLS-TUNNEL CRUD Loadshare",
-							"description": null,
 							"item": [
 								{
 									"name": "create tunnel",
@@ -5925,6 +7533,140 @@
 												"restconf",
 												"operations",
 												"uniconfig-manager:commit"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
 											]
 										}
 									},
@@ -6171,6 +7913,140 @@
 									"response": []
 								},
 								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "show created tunnel loadshare",
 									"event": [
 										{
@@ -6240,7 +8116,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+											"raw": ""
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -6426,6 +8302,140 @@
 									"response": []
 								},
 								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "show updated tunnel loadshare",
 									"event": [
 										{
@@ -6495,7 +8505,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+											"raw": ""
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -6673,6 +8683,140 @@
 									"response": []
 								},
 								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "show deleted tunnel loadshare",
 									"event": [
 										{
@@ -6737,7 +8881,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+											"raw": ""
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -6918,6 +9062,140 @@
 									"response": []
 								},
 								{
+									"name": "sync-from-network",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"});",
+													"",
+													"pm.test(\"Validate configuration-status\", function() {",
+													"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+													"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+													"",
+													"  }",
+													"});",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "basic",
+											"basic": [
+												{
+													"key": "username",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "password",
+													"value": "admin",
+													"type": "string"
+												},
+												{
+													"key": "showPassword",
+													"value": false,
+													"type": "boolean"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:sync-from-network"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "calculate diff",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+												"exec": [
+													"console.log(\"Response: \" + responseBody)",
+													"",
+													"pm.test(\"Status code is 200\", function () {",
+													"  pm.response.to.have.status(200);",
+													"  ",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+													"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+													"    }",
+													"    else{",
+													"        console.warn(\"NO DIFF\" );",
+													"    }"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "Basic YWRtaW46YWRtaW4="
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+										},
+										"url": {
+											"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+											"protocol": "http",
+											"host": [
+												"{{odl_ip}}"
+											],
+											"port": "8181",
+											"path": [
+												"restconf",
+												"operations",
+												"uniconfig-manager:calculate-diff"
+											]
+										}
+									},
+									"response": []
+								},
+								{
 									"name": "show deleted tunnel",
 									"event": [
 										{
@@ -6958,7 +9236,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+											"raw": ""
 										},
 										"url": {
 											"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/lsps/constrained-path/tunnels/tunnel/{{mpls_tunnel_id}}",
@@ -6998,7 +9276,6 @@
 				},
 				{
 					"name": "MPLS-TE CRUD CiscoExt",
-					"description": null,
 					"item": [
 						{
 							"name": "create mpls-te invalid",
@@ -7161,7 +9438,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "c13743ac-f4ec-4ec4-86bc-af114abca387",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -7170,13 +9447,15 @@
 											"});",
 											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
 											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -7298,6 +9577,65 @@
 							"response": []
 						},
 						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "create mpls-te",
 							"event": [
 								{
@@ -7395,15 +9733,15 @@
 											"    });",
 											"    ",
 											"    ",
-											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    pm.test(\"dryrun - not empty configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).not.to.eql(\"\");",
 											"    });",
 											"",
 											"        pm.test('dryrun - contains mpls traffic-eng', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"mpls traffic-eng\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"mpls traffic-eng\");",
 											"    });",
 											"    pm.test('dryrun - contains interface GigabitEthernet0/0/0/1', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"interface GigabitEthernet0/0/0/1\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"interface GigabitEthernet0/0/0/1\");",
 											"    });",
 											"}"
 										]
@@ -7522,6 +9860,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show created mpls-te",
 							"event": [
 								{
@@ -7569,7 +10041,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+									"raw": ""
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/te-interface-attributes/interface/{{mpls_url_intf_id}}",
@@ -7838,7 +10310,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "f9cabf87-a497-413b-8c4c-eb464e3e3179",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -7847,13 +10319,15 @@
 											"});",
 											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"] ){",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
 											"  }",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -7975,6 +10449,65 @@
 							"response": []
 						},
 						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "create mpls-te valid with false and without interface",
 							"event": [
 								{
@@ -8074,15 +10607,15 @@
 											"    });",
 											"    ",
 											"    ",
-											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    pm.test(\"dryrun - not empty configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).not.to.eql(\"\");",
 											"    });",
 											"",
 											"        pm.test('dryrun - contains no mpls traffic-eng', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no mpls traffic-eng\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"no mpls traffic-eng\");",
 											"    });",
 											"            pm.test('dryrun - contains no interface', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no interface\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"no interface\");",
 											"    });",
 											"}"
 										]
@@ -8202,6 +10735,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "delete mpls-te",
 							"event": [
 								{
@@ -8295,12 +10962,12 @@
 											"    });",
 											"    ",
 											"    ",
-											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    pm.test(\"dryrun - not empty configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).not.to.eql(\"\");",
 											"    });",
 											"",
 											"        pm.test('dryrun - contains no mpls traffic-eng', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no mpls traffic-eng\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"no mpls traffic-eng\");",
 											"    });",
 											"}"
 										]
@@ -8429,6 +11096,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show deleted mpls-te",
 							"event": [
 								{
@@ -8470,7 +11271,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+									"raw": ""
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls",
@@ -8502,7 +11303,6 @@
 				},
 				{
 					"name": "MPLS-TE CRUD",
-					"description": null,
 					"item": [
 						{
 							"name": "create mpls-te",
@@ -8604,15 +11404,15 @@
 											"    });",
 											"    ",
 											"    ",
-											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    pm.test(\"dryrun - not empty configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).not.to.eql(\"\");",
 											"    });",
 											"",
 											"        pm.test('dryrun - contains mpls traffic-eng', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"mpls traffic-eng\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"mpls traffic-eng\");",
 											"    });",
 											"    pm.test('dryrun - contains interface GigabitEthernet0/0/0/1', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"interface GigabitEthernet0/0/0/1\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"interface GigabitEthernet0/0/0/1\");",
 											"    });",
 											"}"
 										]
@@ -8731,6 +11531,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show created mpls-te",
 							"event": [
 								{
@@ -8778,7 +11712,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+									"raw": ""
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/te-interface-attributes/interface/{{mpls_url_intf_id}}",
@@ -8905,15 +11839,15 @@
 											"    });",
 											"    ",
 											"    ",
-											"    pm.test(\"dryrun - not empty cli-configuration\", function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).not.to.eql(\"\");",
+											"    pm.test(\"dryrun - not empty configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).not.to.eql(\"\");",
 											"    });",
 											"",
 											"        pm.test('dryrun - contains mpls traffic-eng', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"mpls traffic-eng\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"mpls traffic-eng\");",
 											"    });",
 											"    pm.test('dryrun - contains no interface GigabitEthernet0/0/0/1', function () {",
-											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"cli-configuration\"]).to.include(\"no interface GigabitEthernet0/0/0/1\");",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"no interface GigabitEthernet0/0/0/1\");",
 											"    });",
 											"}"
 										]
@@ -9042,6 +11976,140 @@
 							"response": []
 						},
 						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c614b3fa-bc81-4d28-964c-e203f2b92a0f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-status-result\" in pm.response.json()[\"output\"][\"node-sync-status-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-status-results\"][\"node-sync-status-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "calculate diff",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"  ",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
+											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
+											"    }",
+											"    else{",
+											"        console.warn(\"NO DIFF\" );",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:calculate-diff"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "show deleted mpls-te",
 							"event": [
 								{
@@ -9083,7 +12151,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"IOS2\",\n      \n      \"cli-topology:host\" : \"{{classic_ip}}\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
+									"raw": ""
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{mpls_ni_name}}/mpls/te-interface-attributes/interface/{{mpls_url_intf_id}}",

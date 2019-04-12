@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "2ceab5ff-e57c-4a59-8620-e92357caf9c0",
+		"_postman_id": "fb216618-21f0-4ccd-b7ef-182eaa1bf5f2",
 		"name": "Learning Lab part1",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,39 +14,19 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "59fc5d01-175a-4686-abce-2e579b73ecbd",
+								"type": "text/javascript",
 								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code\", function () {",
+									"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});",
 									""
-								],
-								"type": "text/javascript"
+								]
 							}
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "xBS55z24FV2HWu5u",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "saveHelperData",
-									"type": "any"
-								},
-								{
-									"key": "showPassword",
-									"value": false,
-									"type": "boolean"
-								}
-							]
-						},
 						"method": "PUT",
 						"header": [
 							{
@@ -93,21 +73,45 @@
 							"listen": "test",
 							"script": {
 								"id": "ffc53c24-96c7-42ab-8cbf-54f6a1454e94",
+								"type": "text/javascript",
 								"exec": [
-									""
-								],
-								"type": "text/javascript"
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+									"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check xe uc status connected');",
+									"    }",
+									"}"
+								]
 							}
 						},
 						{
 							"listen": "prerequest",
 							"script": {
 								"id": "6177712c-ce12-4d3f-a3cd-337e4d20e17e",
+								"type": "text/javascript",
 								"exec": [
 									"",
 									""
-								],
-								"type": "text/javascript"
+								]
 							}
 						}
 					],
@@ -159,6 +163,49 @@
 							"script": {
 								"id": "01bba807-1a74-4ee3-9434-1bbd371c8952",
 								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+									"});",
+									"var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"",
+									"var interfaces =[];",
+									"var confifc=[];",
+									"for(var i= 0;i<json_string.length;i++){",
+									"    interfaces.push(json_string[i][\"name\"]);",
+									"    confifc.push(json_string[i][\"config\"][\"name\"] );",
+									"    console.log(\"interface\"+ interfaces[i]);",
+									"}",
+									"",
+									"pm.test(\"Validate name \"+postman.getEnvironmentVariable(\"test_interface1\"), function() {",
+									"    var found = interfaces.includes(postman.getEnvironmentVariable(\"test_interface1\"));",
+									"    var foundconf = confifc.includes(postman.getEnvironmentVariable(\"test_interface1\"));",
+									"    console.log(found);",
+									"    pm.expect(found).to.be.true;",
+									"    pm.expect(foundconf).to.be.true;",
+									"",
+									"});",
+									"",
+									"pm.test(\"Validate name \"+ postman.getEnvironmentVariable(\"test_interface2\"), function() {",
+									"    var found = interfaces.includes(postman.getEnvironmentVariable(\"test_interface2\"));",
+									"    var foundconf = confifc.includes(postman.getEnvironmentVariable(\"test_interface2\"));",
+									"    console.log(found);",
+									"    pm.expect(found).to.be.true;",
+									"    pm.expect(foundconf).to.be.true;",
+									"",
+									"      ",
+									"});",
+									"",
+									"pm.test(\"Validate name \"+ postman.getEnvironmentVariable(\"test_interface3\"), function() {",
+									"    var found = interfaces.includes(postman.getEnvironmentVariable(\"test_interface3\"));",
+									"    var foundconf = confifc.includes(postman.getEnvironmentVariable(\"test_interface3\"));",
+									"    console.log(found);",
+									"    pm.expect(found).to.be.true;",
+									"    pm.expect(foundconf).to.be.true;",
+									"",
+									"      ",
+									"});",
 									""
 								],
 								"type": "text/javascript"
@@ -215,7 +262,11 @@
 							"script": {
 								"id": "f3fbe7d3-78be-439f-995e-f1eea6ffe389",
 								"exec": [
-									""
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Status code is 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -267,11 +318,24 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b8699521-07ed-4594-a15e-97d3612df09f",
+								"type": "text/javascript",
 								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+									"});",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+									"});",
+									"pm.test(\"Validate nodeId\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+									"});",
 									""
-								],
-								"type": "text/javascript"
+								]
 							}
 						}
 					],
@@ -324,62 +388,6 @@
 					"response": []
 				},
 				{
-					"name": "show all interfaces",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "01bba807-1a74-4ee3-9434-1bbd371c8952",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operational",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"{{node_id}}",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "set ip address on loopback",
 					"event": [
 						{
@@ -387,7 +395,11 @@
 							"script": {
 								"id": "515e5882-0dac-41c7-bb15-dadbd990b30d",
 								"exec": [
-									""
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -439,11 +451,24 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7d3c7bd9-280e-4ec8-a4d7-0a05ff8f63df",
+								"type": "text/javascript",
 								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+									"});",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+									"});",
+									"pm.test(\"Validate nodeId\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+									"});",
 									""
-								],
-								"type": "text/javascript"
+								]
 							}
 						}
 					],
@@ -503,6 +528,67 @@
 							"script": {
 								"id": "14eff43b-4c8e-4648-8ecb-a6f4267cec10",
 								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+									"});",
+									"var json_string = pm.response.json()[\"frinx-openconfig-interfaces:interfaces\"][\"interface\"];",
+									"",
+									"var interfaces =[];",
+									"var confifc=[];",
+									"var sub =[];",
+									"for(var i= 0;i<json_string.length;i++){",
+									"    interfaces.push(json_string[i][\"name\"]);",
+									"    confifc.push(json_string[i][\"config\"][\"name\"]);",
+									"    if(json_string[i][\"name\"] == postman.getEnvironmentVariable(\"test_loopback\") ){",
+									"        sub.push(json_string[i][\"subinterfaces\"][\"subinterface\"][0][\"frinx-openconfig-if-ip:ipv4\"][\"addresses\"][\"address\"][0][\"config\"][\"ip\"]);",
+									"        sub.push(json_string[i][\"subinterfaces\"][\"subinterface\"][0][\"frinx-openconfig-if-ip:ipv4\"][\"addresses\"][\"address\"][0][\"config\"][\"prefix-length\"])",
+									"        console.log(sub);",
+									"    }",
+									"    console.log(\"interface \"+ interfaces[i]);",
+									"}",
+									"pm.test(\"Validate name \"+ postman.getEnvironmentVariable(\"test_loopback\"), function() {",
+									"    var found = interfaces.includes(postman.getEnvironmentVariable(\"test_loopback\"));",
+									"    var foundconf = confifc.includes(postman.getEnvironmentVariable(\"test_loopback\"));",
+									"    pm.expect(sub).to.have.members(['9.9.9.9', 24]);",
+									"    pm.expect(found).to.be.true;",
+									"    pm.expect(foundconf).to.be.true;",
+									"",
+									"      ",
+									"});",
+									"",
+									"pm.test(\"Validate name \"+postman.getEnvironmentVariable(\"test_interface1\"), function() {",
+									"    var found = interfaces.includes(postman.getEnvironmentVariable(\"test_interface1\"));",
+									"    var foundconf = confifc.includes(postman.getEnvironmentVariable(\"test_interface1\"));",
+									"    console.log(found);",
+									"    pm.expect(found).to.be.true;",
+									"    pm.expect(foundconf).to.be.true;",
+									"",
+									"});",
+									"",
+									"pm.test(\"Validate name \"+ postman.getEnvironmentVariable(\"test_interface2\"), function() {",
+									"    var found = interfaces.includes(postman.getEnvironmentVariable(\"test_interface2\"));",
+									"    var foundconf = confifc.includes(postman.getEnvironmentVariable(\"test_interface2\"));",
+									"    console.log(found);",
+									"    pm.expect(found).to.be.true;",
+									"    pm.expect(foundconf).to.be.true;",
+									"",
+									"      ",
+									"});",
+									"",
+									"pm.test(\"Validate name \"+ postman.getEnvironmentVariable(\"test_interface3\"), function() {",
+									"    var found = interfaces.includes(postman.getEnvironmentVariable(\"test_interface3\"));",
+									"    var foundconf = confifc.includes(postman.getEnvironmentVariable(\"test_interface3\"));",
+									"    console.log(found);",
+									"    pm.expect(found).to.be.true;",
+									"    pm.expect(foundconf).to.be.true;",
+									"",
+									"      ",
+									"});",
+									"",
+									"",
+									"",
 									""
 								],
 								"type": "text/javascript"
@@ -559,37 +645,18 @@
 							"script": {
 								"id": "3dfc8828-1ced-423e-8d00-360b471c0535",
 								"exec": [
-									""
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
 								],
 								"type": "text/javascript"
 							}
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "xBS55z24FV2HWu5u",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "saveHelperData",
-									"type": "any"
-								},
-								{
-									"key": "showPassword",
-									"value": false,
-									"type": "boolean"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
 							{
@@ -607,7 +674,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"show interfaces {{test_interface1}}\"\n  }\n}"
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"sh interfaces {{test_interface1}}\n\"\n  }\n}"
 						},
 						"url": {
 							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -639,7 +706,12 @@
 							"script": {
 								"id": "3dfc8828-1ced-423e-8d00-360b471c0535",
 								"exec": [
-									""
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -663,7 +735,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"show interfaces {{test_interface1}} controller\"\n  }\n}"
+							"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"show interfaces {{test_interface1}} controller\n\"\n  }\n}"
 						},
 						"url": {
 							"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -688,363 +760,19 @@
 					"response": []
 				},
 				{
-					"name": "delete subinterface ip address",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "515e5882-0dac-41c7-bb15-dadbd990b30d",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"subinterfaces\": {\n        \"subinterface\": [\n            {\n                \"index\": 0,\n                \"frinx-openconfig-if-ip:ipv4\": {\n                    \"addresses\": {\n                        \"address\": [\n                            {\n                                \"ip\": {{address_ip}},\n                                \"config\": {\n                                    \"ip\": {{address_ip}},\n                                    \"prefix-length\": {{prefix}}\n                                }\n                            }\n                        ]\n                    }\n                }\n            }\n        ]\n    }\n}"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{test_loopback}}/subinterfaces/subinterface/0",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"{{node_id}}",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces",
-								"interface",
-								"{{test_loopback}}",
-								"subinterfaces",
-								"subinterface",
-								"0"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "commit",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "7d3c7bd9-280e-4ec8-a4d7-0a05ff8f63df",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "showPassword",
-									"value": false,
-									"type": "boolean"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operations",
-								"uniconfig-manager:commit"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "show all interfaces",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "14eff43b-4c8e-4648-8ecb-a6f4267cec10",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operational",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"{{node_id}}",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "delete loopback interface",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "f3fbe7d3-78be-439f-995e-f1eea6ffe389",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"frinx-openconfig-interfaces:interface\": [\n        {\n            \"name\": {{test_loopback}},\n            \"config\": {\n                \"type\": \"iana-if-type:softwareLoopback\",\n                \"enabled\": true,\n                \"name\": {{test_loopback}}\n            }\n        }\n    ]\n}"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{test_loopback}}",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"config",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"{{node_id}}",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces",
-								"interface",
-								"{{test_loopback}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "commit",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "7d3c7bd9-280e-4ec8-a4d7-0a05ff8f63df",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "showPassword",
-									"value": false,
-									"type": "boolean"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operations",
-								"uniconfig-manager:commit"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "show all interfaces Copy",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "14eff43b-4c8e-4648-8ecb-a6f4267cec10",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Basic YWRtaW46YWRtaW4="
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces",
-							"protocol": "http",
-							"host": [
-								"{{odl_ip}}"
-							],
-							"port": "8181",
-							"path": [
-								"restconf",
-								"operational",
-								"network-topology:network-topology",
-								"topology",
-								"uniconfig",
-								"node",
-								"{{node_id}}",
-								"frinx-uniconfig-topology:configuration",
-								"frinx-openconfig-interfaces:interfaces"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Unmount IOS XE",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "563df39c-a127-4a98-9a66-198ce41cb34b",
+								"type": "text/javascript",
 								"exec": [
-									""
-								],
-								"type": "text/javascript"
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								]
 							}
 						}
 					],

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c84e8c06-e0b1-4ccf-9f2d-102dac9c2b3b",
+		"_postman_id": "fea437f8-0767-4edb-84d3-8b7de2c5784c",
 		"name": "Frinx Mount/Unmount",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -3508,7 +3508,7 @@
 							"response": []
 						},
 						{
-							"name": "Mount ASR netconf",
+							"name": "Mount IOS XR cli",
 							"event": [
 								{
 									"listen": "test",
@@ -3516,8 +3516,7 @@
 										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Success\", function () {",
+											"pm.test(\"Successful PUT request\", function () {",
 											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
 											"});"
 										]
@@ -3542,10 +3541,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node_id}}\",\n      \"netconf-node-topology:host\": \"{{xr_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\"\n    }\n  ]\n}"
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -3556,7 +3555,7 @@
 										"config",
 										"network-topology:network-topology",
 										"topology",
-										"{{topology_id_netconf}}",
+										"{{topology_id_cli}}",
 										"node",
 										"{{node_id}}"
 									]
@@ -3565,12 +3564,12 @@
 							"response": []
 						},
 						{
-							"name": "Check asruf status connected",
+							"name": "Check xr5uf status connected CLI",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "17fb1bc2-4a82-4dbb-9797-9ac46c555e05",
+										"id": "c699d1d6-7dcc-421f-b05a-0434cc8f1281",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -3578,8 +3577,8 @@
 											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
 											"",
 											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
 											"    // Reset attempt counter",
 											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
 											"} else {",
@@ -3594,7 +3593,7 @@
 											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
 											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
 											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('Check asruf status connected');",
+											"        postman.setNextRequest('Check xr5uf status connected CLI');",
 											"    }",
 											"}"
 										],
@@ -3604,7 +3603,7 @@
 								{
 									"listen": "prerequest",
 									"script": {
-										"id": "ed949348-2dcc-40c6-a2b0-f74af1b8a794",
+										"id": "663ee1bf-91e2-41ae-b6f1-c722572cc479",
 										"exec": [
 											""
 										],
@@ -3633,7 +3632,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -3644,7 +3643,7 @@
 										"operational",
 										"network-topology:network-topology",
 										"topology",
-										"{{topology_id_netconf}}",
+										"{{topology_id_cli}}",
 										"node",
 										"{{node_id}}"
 									]
@@ -3653,7 +3652,7 @@
 							"response": []
 						},
 						{
-							"name": "Check asruf unified mount point exists",
+							"name": "Check xr5uf unified mount point exists",
 							"event": [
 								{
 									"listen": "test",
@@ -3682,7 +3681,7 @@
 											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
 											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
 											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('Check asruf unified mount point exists');",
+											"        postman.setNextRequest('Check xr5uf unified mount point exists');",
 											"    }",
 											"}"
 										],
@@ -3736,151 +3735,6 @@
 										"node",
 										"{{node_id}}",
 										"yang-ext:mount"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Mount ASR cli",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "8ab90248-b499-43a2-a31a-db014b59d7d7",
-										"exec": [
-											"console.log(\"Request data: \" + request.data.toString());",
-											"pm.test(\"Successful PUT request\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_cli}}",
-										"node",
-										"{{node_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Check asruf status connected CLI",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "c699d1d6-7dcc-421f-b05a-0434cc8f1281",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('Check asruf status connected CLI');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "663ee1bf-91e2-41ae-b6f1-c722572cc479",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_cli}}",
-										"node",
-										"{{node_id}}"
 									]
 								}
 							},
@@ -4023,129 +3877,7 @@
 							"response": []
 						},
 						{
-							"name": "DELETE ASR netconf",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Check unmounted netconf",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"No data expected\", function () {",
-											"    pm.response.to.have.status(404);",
-											"});",
-											""
-										]
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "DELETE Mount ASR cli",
+							"name": "DELETE Mount IOS XR cli",
 							"event": [
 								{
 									"listen": "test",
@@ -4289,7 +4021,7 @@
 											"if (pm.response.code == 200) {",
 											"    var jsonData = pm.response.json()[\"units\"][\"unit\"];",
 											"    console.log(\"length: \" + jsonData.length);",
-											"    if(jsonData.length >= 13){",
+											"    if(jsonData.length >= 18){",
 											"       tests[\"Installed\"] = true ;",
 											"    }",
 											"    else{",
@@ -4378,247 +4110,12 @@
 							"response": []
 						},
 						{
-							"name": "Mount ASR netconf",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "ec3403a2-4086-459a-9f27-578e60aa530c",
-										"exec": [
-											"console.log(\"Request data: \" + request.data.toString());",
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node_id}}\",\n      \"netconf-node-topology:host\": \"{{xr_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n\t  \"netconf-node-topology:dry-run-journal-size\": 180\n    }\n  ]\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Check asruc status connected",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "1b418c7f-9c3b-4c89-a690-7eb8c1585de8",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('Check asruc status connected');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "ed949348-2dcc-40c6-a2b0-f74af1b8a794",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Check asruc unified point exists",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "7c325e95-65b4-438d-8091-b106d209f734",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if ( pm.response.code == 200){",
-											"    tests[\"Mount point exists\"] = true",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Mount point exists\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('Check asruc unified point exists');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "ed1f4afe-5479-4e45-bb4a-30485e52aae3",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id}}",
-										"node",
-										"{{node_id}}",
-										"yang-ext:mount"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "Mount ASR cli",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "b65facd5-2413-46cc-b457-bcfda6beb73b",
+										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -4626,8 +4123,7 @@
 											"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
 											"});",
 											""
-										],
-										"type": "text/javascript"
+										]
 									}
 								}
 							],
@@ -4649,7 +4145,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"5.3.4\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}",
@@ -4754,6 +4250,95 @@
 										"{{topology_id_cli}}",
 										"node",
 										"{{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check asruc unified mount point exists",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "40f47765-e52e-438c-b05f-7e5b0c05a7e5",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if ( pm.response.code == 200){",
+											"    tests[\"Mount point exists\"] = true",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Mount point exists\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('Check asruc unified mount point exists');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "ed1f4afe-5479-4e45-bb4a-30485e52aae3",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id}}/node/{{node_id}}/yang-ext:mount",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount"
 									]
 								}
 							},
@@ -4980,128 +4565,6 @@
 										"{{node_id}}",
 										"yang-ext:mount",
 										"cli-unit-generic:execute-and-read"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "DELETE Mount ASR netconf",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Check unmounted netconf",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"No data expected\", function () {",
-											"    pm.response.to.have.status(404);",
-											"});",
-											""
-										]
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}"
 									]
 								}
 							},

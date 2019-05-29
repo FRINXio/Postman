@@ -35,8 +35,6 @@ elif [ "$env_file" == "asr_env.json" ] ; then
   dev_pref="ASR"
 elif [ "$env_file" == "xrv6as5_env.json" ] ; then
   dev_pref="XR5"
-elif [ "$env_file" == "xr6.2.3_env.json" ] ; then
-  dev_pref="ASR"
 else
   echo "Unsupported env file: $env_file"
   exit 1

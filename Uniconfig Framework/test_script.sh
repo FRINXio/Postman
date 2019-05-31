@@ -31,12 +31,14 @@ elif [ "$env_file" == "xe_env.json" ] ; then
   dev_pref="XE"
 elif [ "$env_file" == "junos173virt_env.json" ] ; then
   dev_pref="Junos"
+elif [ "$env_file" == "xrv5.3.4asAsr.json" ] ; then
+  dev_pref="ASR"
+elif [ "$env_file" == "xrv6.1.2as5_env.json" ] ; then
+  dev_pref="XR5"
 elif [ "$env_file" == "asr_env.json" ] ; then
   dev_pref="ASR"
-elif [ "$env_file" == "xrv6as5_env.json" ] ; then
+elif [ "$env_file" == "xrv6.2.3as5_env.json" ] ; then
   dev_pref="XR5"
-elif [ "$env_file" == "xr6asAsr_env.json" ] ; then
-  dev_pref="ASR"
 else
   echo "Unsupported env file: $env_file"
   exit 1

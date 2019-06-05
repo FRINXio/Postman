@@ -33,9 +33,12 @@ elif [ "$env_file" == "classic_152_env.json" ] ; then
 elif [ "$env_file" == "xe_env.json" ] ; then
   dev_pref="XE"
   mount_pref="XE"
-elif [ "$env_file" == "junos173virt_env.json" ] ; then
+elif [ "$env_file" == "junos173virt-netconf_env.json" ] ; then
   dev_pref="Junos"
-  mount_pref="Junos"
+  mount_pref="Junos-netconf"
+elif [ "$env_file" == "junos173virt-cli_env.json" ] ; then
+  dev_pref="Junos"
+  mount_pref="Junos-cli"
 elif [ "$env_file" == "xrv5.3.4asAsr.json" ] ; then
   dev_pref="ASR"
   mount_pref="ASR"

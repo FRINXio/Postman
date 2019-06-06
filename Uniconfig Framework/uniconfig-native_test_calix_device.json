@@ -1,0 +1,290 @@
+{
+	"info": {
+		"_postman_id": "134f12dd-04c6-4c8e-b3a9-28449eca3c9a",
+		"name": "uniconfig-native_test_calix_device",
+		"description": "This collection is to test if it is possible to mount properly a calix device through uniconfig-native",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "permit calix models",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b3305c24-a72f-4c7b-ab54-9ad98f0df011",
+						"exec": [
+							"tests[\"Successful PUT request\"] = responseCode.code === 200 || responseCode.code === 201;"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\n    \"direct-unit-matcher\": [\n    \t{\n    \t\t\"name\": \"calix\",\n    \t\t\"capability-regex-matcher\": [\".*calix.*\", \".*ietf.*\", \".*tail-f.*\", \".*tailf.*\", \".*verizon.*\", \".*fastdsl.*\"]\n    \t}\n    ]\n    \n}"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/direct-unit-matcher:direct-unit-matchers/direct-unit-matcher/calix",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"direct-unit-matcher:direct-unit-matchers",
+						"direct-unit-matcher",
+						"calix"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "mount calix device",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
+						"exec": [
+							"console.log(\"Request data: \" + request.data.toString());",
+							"console.log(\"Response: \" + responseBody)",
+							"pm.test(\"Success\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node_id}}\",\n      \"netconf-node-topology:host\": \"{{calix_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\"\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"{{topology_id_netconf}}",
+						"node",
+						"{{node_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check status connected",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "03edc63a-086a-4d3a-ba5b-b748277d7052",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
+							"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('check status connected');",
+							"    }",
+							"}",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "2d8ee786-69ec-443f-b558-6a6f2a3b409f",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operational",
+						"network-topology:network-topology",
+						"topology",
+						"{{topology_id_netconf}}",
+						"node",
+						"{{node_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check uniconfig available",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (pm.response.code === 200) {",
+							"    tests[\"Is connected\"] = true;",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('check uniconfig available');",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

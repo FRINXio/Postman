@@ -23,24 +23,34 @@ fi
 mount_collection=pc_mount_unmount.json
 if [ "$env_file" == "xrv_env.json" ] ; then
   dev_pref="XR6"
+  mount_pref="XR6"
 elif [ "$env_file" == "xrv5_env.json" ] ; then
   dev_pref="XR5"
+  mount_pref="XR5"
 elif [ "$env_file" == "classic_152_env.json" ] ; then
   dev_pref="Classic"
+  mount_pref="Classic"
 elif [ "$env_file" == "xe_env.json" ] ; then
   dev_pref="XE"
+  mount_pref="XE"
 elif [ "$env_file" == "junos173virt_env.json" ] ; then
   dev_pref="Junos"
+  mount_pref="Junos"
 elif [ "$env_file" == "xrv5.3.4asAsr.json" ] ; then
   dev_pref="ASR"
+  mount_pref="ASR"
 elif [ "$env_file" == "xrv6.1.2as5_env.json" ] ; then
   dev_pref="XR5"
+  mount_pref="XR5"
 elif [ "$env_file" == "asr_env.json" ] ; then
   dev_pref="ASR"
+  mount_pref="ASR"
 elif [ "$env_file" == "xrv6.2.3as5_env.json" ] ; then
   dev_pref="XR5"
+  mount_pref="XRV6.2.3"
 elif [ "$env_file" == "xrv7.0.1as5_env.json" ] ; then
   dev_pref="XR5"
+  mount_pref="XR5"
 else
   echo "Unsupported env file: $env_file"
   exit 1
@@ -55,7 +65,7 @@ fi
 echo "Going to test with env_file $env_file. Assigned prefix is: \"$dev_pref\"."
 mkdir -p junit_results
 
-folder="$dev_pref Mount $layer"
+folder="$mount_pref Mount $layer"
 echo "Performing $folder"
 unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/mount.xml"; if [ "$?" != "0" ]; then
     echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file
@@ -99,7 +109,7 @@ do
   done
 done
 
-folder="$dev_pref Unmount $layer"
+folder="$mount_pref Unmount $layer"
 echo "Performing $folder"
 unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/unmount.xml"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
 

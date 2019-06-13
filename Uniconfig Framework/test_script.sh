@@ -48,9 +48,12 @@ elif [ "$env_file" == "xrv6.1.2as5_env.json" ] ; then
 elif [ "$env_file" == "asr_env.json" ] ; then
   dev_pref="ASR"
   mount_pref="ASR"
-elif [ "$env_file" == "xrv6.2.3as5_env.json" ] ; then
+elif [ "$env_file" == "xrv5.3.4asxrv6.2.3-cli_env.json" ] ; then
   dev_pref="XR5"
-  mount_pref="XRV6.2.3"
+  mount_pref="XR5"
+elif [ "$env_file" == "xrv5.3.4asxrv6.2.3-netconf_env.json" ] ; then
+  dev_pref="XR5"
+  mount_pref="XRV6.2.3-netconf"
 elif [ "$env_file" == "xrv7.0.1as5_env.json" ] ; then
   dev_pref="XR5"
   mount_pref="XR5"

@@ -54,21 +54,27 @@ do
   do
     ((i++))
     rfolder="$dev_pref $folder READERS"
-    echo "Performing $rfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$rfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$rfolder.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $rfolder FAILED" >> $file; fi
+    test_id="collection: $collection environment: $device device: $dev_pref folder: $rfolder"
+    echo "Performing: $test_id"
+    unbuffer newman run $collection -e $device -n 1 --folder "$rfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$rfolder.xml"; if [ "$?" != "0" ]; then echo "$test_id FAILED" >> $file; fi
 
     coll_len=`echo $folder | wc -w`
     coll_arr=($folder)
     ll=`if [ $coll_len -gt 2 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
+
     sfolder="$dev_pref ${coll_arr[@]:0:${ll}} Setup"
-    echo "Performing $sfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$sfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$sfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $sfolder FAILED" >> $file; fi
-    echo "Performing $folder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/$folder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $folder FAILED" >> $file; fi
+    test_id="collection: $collection environment: $device device: $dev_pref folder: $sfolder"
+    echo "Performing: $test_id"
+    unbuffer newman run $collection -e $device -n 1 --folder "$sfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$sfolder$i.xml"; if [ "$?" != "0" ]; then echo "$test_id FAILED" >> $file; fi
+
+    test_id="collection: $collection environment: $device device: $dev_pref folder: $folder"
+    echo "Performing: $test_id"
+    unbuffer newman run $collection -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/$folder$i.xml"; if [ "$?" != "0" ]; then echo "$test_id FAILED" >> $file; fi
 
     tfolder="$dev_pref ${coll_arr[@]:0:${ll}} Teardown"
-    echo "Performing $tfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$tfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$tfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $tfolder FAILED" >> $file; fi
+    test_id="collection: $collection environment: $device device: $dev_pref folder: $tfolder"
+    echo "Performing: $test_id"
+    unbuffer newman run $collection -e $device -n 1 --folder "$tfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$tfolder$i.xml"; if [ "$?" != "0" ]; then echo "$test_id FAILED" >> $file; fi
     sleep 2
   done
 done

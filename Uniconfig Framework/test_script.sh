@@ -24,25 +24,25 @@ mount_type=$4
 mount_collection=pc_mount_unmount.json
 if [ "$env_file" == "xrv6.1.2_env.json" ] ; then
   dev_pref="XR6"
-elif [ "$env_file" == "xrv5_env.json" ] ; then
+elif [ "$env_file" == "xrv5.3.4_env.json" ] ; then
   dev_pref="XR5"
 elif [ "$env_file" == "classic_152_env.json" ] ; then
   dev_pref="Classic"
-elif [ "$env_file" == "xe_env.json" ] ; then
+elif [ "$env_file" == "xe15_env.json" ] ; then
   dev_pref="XE"
 elif [ "$env_file" == "junos173virt_env.json" ] ; then
   dev_pref="Junos"
-elif [ "$env_file" == "junos173as14virt_env.json" ] ; then
+elif [ "$env_file" == "junos14virt_env.json" ] ; then
   dev_pref="Junos"
-elif [ "$env_file" == "xrv5.3.4asAsr.json" ] ; then
+elif [ "$env_file" == "asr-version5.3.4_env.json" ] ; then
   dev_pref="ASR"
-elif [ "$env_file" == "xrv6.1.2as5_env.json" ] ; then
+elif [ "$env_file" == "xrv6.1.2-cli5.3.4_env.json" ] ; then
   dev_pref="XR5"
 elif [ "$env_file" == "asr_env.json" ] ; then
   dev_pref="ASR"
-elif [ "$env_file" == "xrv5.3.4asxrv6.2.3_env.json" ] ; then
+elif [ "$env_file" == "xrv6.2.3_env.json" ] ; then
   dev_pref="XR5"
-elif [ "$env_file" == "xrv7.0.1as5_env.json" ] ; then
+elif [ "$env_file" == "xrv7.0.1_env.json" ] ; then
   dev_pref="XR5"
 else
   echo "Unsupported env file: $env_file"

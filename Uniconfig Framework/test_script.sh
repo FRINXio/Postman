@@ -19,53 +19,31 @@ layer="uniconfig"
 if [ "$3" == "unified" ]; then
     layer="unified"
 fi
+mount_type=$4
 
 mount_collection=pc_mount_unmount.json
-if [ "$env_file" == "xrv_env.json" ] ; then
+if [ "$env_file" == "xrv6.1.2_env.json" ] ; then
   dev_pref="XR6"
-  mount_pref="XR6"
 elif [ "$env_file" == "xrv5_env.json" ] ; then
   dev_pref="XR5"
-  mount_pref="XR5"
 elif [ "$env_file" == "classic_152_env.json" ] ; then
   dev_pref="Classic"
-  mount_pref="Classic"
 elif [ "$env_file" == "xe_env.json" ] ; then
   dev_pref="XE"
-  mount_pref="XE"
-elif [ "$env_file" == "junos173virt-netconf_env.json" ] ; then
+elif [ "$env_file" == "junos173virt_env.json" ] ; then
   dev_pref="Junos"
-  mount_pref="Junos-netconf"
-elif [ "$env_file" == "junos173virt-cli_env.json" ] ; then
+elif [ "$env_file" == "junos173as14virt_env.json" ] ; then
   dev_pref="Junos"
-  mount_pref="Junos-cli"
-elif [ "$env_file" == "junos173as14virt-netconf_env.json" ] ; then
-  dev_pref="Junos"
-  mount_pref="Junos-netconf"
 elif [ "$env_file" == "xrv5.3.4asAsr.json" ] ; then
   dev_pref="ASR"
-  mount_pref="ASR-cli"
-elif [ "$env_file" == "xrv5.3.4asAsr-netconf.json" ] ; then
-  dev_pref="ASR"
-  mount_pref="ASR-netconf"
 elif [ "$env_file" == "xrv6.1.2as5_env.json" ] ; then
   dev_pref="XR5"
-  mount_pref="XR5"
 elif [ "$env_file" == "asr_env.json" ] ; then
   dev_pref="ASR"
-  mount_pref="ASR-cli"
-elif [ "$env_file" == "asr-netconf_env.json" ] ; then
-  dev_pref="ASR"
-  mount_pref="ASR-netconf"
-elif [ "$env_file" == "xrv5.3.4asxrv6.2.3-cli_env.json" ] ; then
+elif [ "$env_file" == "xrv5.3.4asxrv6.2.3_env.json" ] ; then
   dev_pref="XR5"
-  mount_pref="XR5"
-elif [ "$env_file" == "xrv5.3.4asxrv6.2.3-netconf_env.json" ] ; then
-  dev_pref="XR5"
-  mount_pref="XRV6.2.3-netconf"
 elif [ "$env_file" == "xrv7.0.1as5_env.json" ] ; then
   dev_pref="XR5"
-  mount_pref="XR5"
 else
   echo "Unsupported env file: $env_file"
   exit 1
@@ -80,10 +58,10 @@ fi
 echo "Going to test with env_file $env_file. Assigned prefix is: \"$dev_pref\"."
 mkdir -p junit_results
 
-folder="$mount_pref Mount $layer"
+folder="$dev_pref-$mount_type Mount $layer"
 echo "Performing $folder"
 unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/mount.xml"; if [ "$?" != "0" ]; then
-    echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file
+    echo "Collection $mount_collection with environment $device testing $folder $mount_type FAILED" >> $file
     if [ -f $file ] ; then
         cat $file
         rm $file
@@ -106,27 +84,27 @@ do
     ((i++))
     rfolder="$dev_pref $folder READERS"
     echo "Performing $rfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$rfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$rfolder.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $rfolder FAILED" >> $file; fi
+    unbuffer newman run $collection -e $device -n 1 --folder "$rfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$rfolder.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $rfolder $mount_type FAILED" >> $file; fi
 
     coll_len=`echo $folder | wc -w`
     coll_arr=($folder)
     ll=`if [ $coll_len -gt 2 ]; then le=$(($coll_len-1)); echo $le; else echo $coll_len;fi`
     sfolder="$dev_pref ${coll_arr[@]:0:${ll}} Setup"
     echo "Performing $sfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$sfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$sfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $sfolder FAILED" >> $file; fi
+    unbuffer newman run $collection -e $device -n 1 --folder "$sfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$sfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $sfolder $mount_type FAILED" >> $file; fi
     echo "Performing $folder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/$folder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $folder FAILED" >> $file; fi
+    unbuffer newman run $collection -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/$folder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $folder $mount_type FAILED" >> $file; fi
 
     tfolder="$dev_pref ${coll_arr[@]:0:${ll}} Teardown"
     echo "Performing $tfolder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$tfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$tfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $tfolder FAILED" >> $file; fi
+    unbuffer newman run $collection -e $device -n 1 --folder "$tfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$tfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $tfolder $mount_type FAILED" >> $file; fi
     sleep 2
   done
 done
 
-folder="$mount_pref Unmount $layer"
+folder="$dev_pref-$mount_type Unmount $layer"
 echo "Performing $folder"
-unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/unmount.xml"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder FAILED" >> $file; fi
+unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/unmount.xml"; if [ "$?" != "0" ]; then echo "Collection $mount_collection with environment $device testing $folder $mount_type FAILED" >> $file; fi
 
 if [ -f $file ] ; then
     cat $file

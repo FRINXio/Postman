@@ -22,7 +22,7 @@ set +x
 env_file=$1
 tests_input_file=$2
 
-if [ "$env_file" == "xrv_env.json" ] ; then
+if [ "$env_file" == "xrv6.1.2_env.json" ] ; then
   dev_pref="XR6"
 elif [ "$env_file" == "xrv5_env.json" ] ; then
   dev_pref="XR5"

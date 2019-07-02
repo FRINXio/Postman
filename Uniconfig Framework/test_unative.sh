@@ -1,8 +1,8 @@
 #!/bin/bash
-# This script allows to run uniconfig-native collections
+# This script allows to run unative collections
 # The difference respect to the test_script.sh is that in this case
 # it is not necessary to execute the mount and unmount tests since
-# for uniconif-native is simple and it is already performend inside the
+# for unative is simple and it is already performend inside the
 # testsetup of every collection
 #
 # Steps to run the script
@@ -13,7 +13,7 @@
 #  "another file": ["another","list of","tests"]
 # }
 # 2) to run it do:
-# ./test_uniconfig_native.sh env_file json_input_file
+# ./test_unative.sh env_file json_input_file
 
 
 #set -exu

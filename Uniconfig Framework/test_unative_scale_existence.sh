@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # SG: tobe done update this documentation
-# This script allows to run uniconfig-native scale test with netconftest-tool
+# This script allows to run unative scale test with netconftest-tool
 # it assumes to have already karaf and the <device_number> devices set up
 # to run it do:
-# ./test_uniconfig_native_scale.sh --mount-xr6 <postman_env_file>
-# e.g.: ./test_uniconfig_native_scale.sh --mount-xr6 xrv_env.json
+# ./test_unative_scale.sh --mount-xr6 <postman_env_file>
+# e.g.: ./test_unative_scale.sh --mount-xr6 xrv_env.json
 # to mount the xr6 device
 #
 # otherwise to run the real test call the script with:
 # ./test_uniconfig_native_scale.sh <odl_ip> <first_device_number> <device_number> <iter_number> <test_scenario>
-# e.g.: ./test_uniconfig_native_scale_scale.sh 127.0.0.1 18500 100 1 --commit-all
+# e.g.: ./test_unative_scale_scale.sh 127.0.0.1 18500 100 1 --commit-all
 # where:
 # <odl_ip>: ip address of machine where is running odl
 # <first_device_number>: port number of first device
@@ -25,13 +25,13 @@
 #set -exu
 set +x
 
-# import the test_uniconfig_native_scale_utils.sh file to have the elementary functions available here in the test
+# import the test_unative_scale_utils.sh file to have the elementary functions available here in the test
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-source "$SCRIPTPATH"/test_uniconfig_native_scale_utils.sh
+source "$SCRIPTPATH"/test_unative_scale_utils.sh
 
 
 # parameters
-collection="pc_uniconfig-native_RPC_scale_test.json"
+collection="pc_unative_RPC_scale_test.json"
 device_prefix="netconf-"
 
 

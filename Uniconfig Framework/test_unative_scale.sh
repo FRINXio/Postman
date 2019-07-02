@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# This script allows to run uniconfig-native scale test with netconftest-tool
+# This script allows to run unative scale test with netconftest-tool
 # it assumes to have already karaf and the <device_number> devices set up
 # to run test call the script with:
-# ./test_uniconfig_native_scale.sh <odl_ip> <first_device_number> <device_number> <iter_number> <test_scenario>
-# e.g.: ./test_uniconfig_native_scale_scale.sh 127.0.0.1 18500 100 1 --commit-all
+# ./test_unative_scale.sh <odl_ip> <first_device_number> <device_number> <iter_number> <test_scenario>
+# e.g.: ./test_unative_scale_scale.sh 127.0.0.1 18500 100 1 --commit-all
 # where:
 # <odl_ip>: ip address of machine where is running odl
 # <first_device_number>: port number of first device
@@ -19,14 +19,14 @@
 #set -exu
 set +x
 
-# import the test_uniconfig_native_scale_utils.sh file to have the elementary functions available here in the test
+# import the test_unative_scale_utils.sh file to have the elementary functions available here in the test
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-source "$SCRIPTPATH"/test_uniconfig_native_scale_utils.sh
+source "$SCRIPTPATH"/test_unative_scale_utils.sh
 
 
 # run test
 # parameters
-collection="pc_uniconfig-native_RPC_scale_test.json"
+collection="pc_unative_RPC_scale_test.json"
 device_prefix="netconf-"
 # parameters from command line
 odl_ip=$1
@@ -126,7 +126,7 @@ file="report_iterations.txt"
 
 for (( iter=1; iter<=$iter_number; iter++ ))
 do
-    echo "Starting uniconfig-native scale test devices number $device_number iteration: $iter"
+    echo "Starting unative scale test devices number $device_number iteration: $iter"
 
     ### create
     # add an interface to the device configuration
@@ -227,7 +227,7 @@ do
     # calculate diff
     get_calculate_diff_duration "$iter" "$calculate_diff_folder" "$device_number" "$output_file"
 
-    echo "End uniconfig-native scale test devices number $device_number iteration: $iter"
+    echo "End unative scale test devices number $device_number iteration: $iter"
 done # end of iteration
 
 

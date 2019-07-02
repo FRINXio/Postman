@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# this script contains the functions used by the test_uniconfig_native_scale.sh test.
+# this script contains the functions used by the test_unative_scale.sh test.
 
 set +x
 

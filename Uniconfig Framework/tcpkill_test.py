@@ -243,10 +243,10 @@ def main(args):
         monitor.join()
         print('Monitor killed')
 
-        if followers is not None:
-            followers_list = followers.split(',')
-            odl_ip = random.choice(followers_list)
-            print('Check connected devices on follower: %s' % odl_ip)
+        # if followers is not None:
+        #     followers_list = followers.split(',')
+        #     odl_ip = random.choice(followers_list)
+        #     print('Check connected devices on follower: %s' % odl_ip)
 
         # check all connected after
         # iterate the check because it may take time, in specific if the number of devices increase

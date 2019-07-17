@@ -22,7 +22,7 @@ def get_args(argv=None):
                         help='Number of ports')
     parser.add_argument('--interface', action='store', type=str, default='lo',
                         help='Interface name to be blocked with tcpkill')
-    parser.add_argument('--log-file', action='store', type=str, default='tcpkill_test.log',
+    parser.add_argument('--log-file', action='store', type=str, default='test_tcpkill.log',
                         help='log file where to store errors')
     parser.add_argument('--iterations', action='store', type=int, default=1,
                         help='Number of iterations of the test')
@@ -243,10 +243,10 @@ def main(args):
         monitor.join()
         print('Monitor killed')
 
-        # if followers is not None:
-        #     followers_list = followers.split(',')
-        #     odl_ip = random.choice(followers_list)
-        #     print('Check connected devices on follower: %s' % odl_ip)
+        if followers is not None:
+            followers_list = followers.split(',')
+            odl_ip = random.choice(followers_list)
+            print('Check connected devices on follower: %s' % odl_ip)
 
         # check all connected after
         # iterate the check because it may take time, in specific if the number of devices increase

@@ -60,7 +60,7 @@ run_iter_loop () {
 
     local _test_id="iteration: $_iter collection: $_collection folder: $_folder"
     echo $_test_id
-    unbuffer newman run "$_collection" --bail folder -n "$((_device_number+1))" --folder "$_folder" --env-var "odl_ip=$_odl_ip" --iteration-data "$_nodes_file" --reporters cli,junit --reporter-junit-export "./junit_results/$_iter/${_folder}_${_node_id}.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $_file; fi
+    unbuffer newman run "$_collection" --bail folder -n "$_device_number" --folder "$_folder" --env-var "odl_ip=$_odl_ip" --iteration-data "$_nodes_file" --reporters cli,junit --reporter-junit-export "./junit_results/$_iter/${_folder}_${_node_id}.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $_file; fi
 
 }
 

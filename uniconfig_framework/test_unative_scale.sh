@@ -3,7 +3,7 @@
 # it assumes to have already karaf and the <device_number> devices set up
 # to run test call the script with:
 # ./test_unative_scale.sh <odl_ip> <first_device_number> <device_number> <iter_number> <test_scenario>
-# e.g.: ./test_unative_scale_scale.sh 127.0.0.1 18500 100 1 --commit-all
+# e.g.: ./test_unative_scale.sh 127.0.0.1 18500 100 1 --commit-all
 # where:
 # <odl_ip>: ip address of machine where is running odl
 # <first_device_number>: port number of first device

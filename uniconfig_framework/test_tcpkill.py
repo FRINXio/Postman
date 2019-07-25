@@ -123,9 +123,9 @@ def check_all_connected(odl_ip=None, _iter=None, port_number=None, when=None, lo
     # count connected devices
     connected_devices = count_connected(odl_ip=odl_ip)
     print('%s: Iteration: %s Connected devices %s: %s' % (str(datetime.datetime.now()), _iter, when, connected_devices))
-    if connected_devices != port_number + 1:
+    if connected_devices != port_number:
         error_msg = 'ERROR: Iteration: %s Connected devices %s: %s expected to be equal to: %s' % (
-            _iter, when, connected_devices, port_number + 1)
+            _iter, when, connected_devices, port_number)
         print_and_log(log_file=log_file, error_msg=error_msg)
 
 
@@ -261,14 +261,14 @@ def main(args):
             connected_devices_after = count_connected(odl_ip=odl_ip)
             print('%s: Iteration: %s After: %s sec ODL node: %s Connected devices: %s' % (
                 str(datetime.datetime.now()), _iter, _i, odl_ip, connected_devices_after))
-            if connected_devices_after == port_number + 1:
+            if connected_devices_after == port_number:
                 all_connected = True
                 break
             _i = _i + slp
 
         if not all_connected:
             error_msg = 'ERROR: Iteration: %s After: %s sec ODL node: %s Connected devices: %s expected to be equal to: %s' % (
-                _iter, _i, odl_ip, connected_devices_after, port_number + 1)
+                _iter, _i, odl_ip, connected_devices_after, port_number)
             print_and_log(log_file=log_file, error_msg=error_msg)
 
         _iter += 1

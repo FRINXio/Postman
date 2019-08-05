@@ -10,6 +10,7 @@ import random
 import datetime
 import psutil
 import threading
+import logging
 
 
 def get_args(argv=None):
@@ -233,11 +234,19 @@ def main(args):
         # check all connected before
         check_all_connected(odl_ip=odl_ip, _iter=_iter, port_number=port_number, when='before', log_file=log_file)
 
-        stop_thread = False
-        monitor = threading.Thread(target=connecting_monitor, args=(lambda: stop_thread, odl_ip))
-        monitor.start()
+        try:
+            stop_thread = False
+            monitor = threading.Thread(target=connecting_monitor, args=(lambda: stop_thread, odl_ip))
+            monitor.start()
 
-        killing_phase(interface=interface, first_port=first_port, port_number=port_number, delay=delay)
+            killing_phase(interface=interface, first_port=first_port, port_number=port_number, delay=delay)
+
+        except Exception:
+            logging.exception('')
+            stop_thread = True
+            monitor.join()
+            print('Monitor killed because an exception has been raised in the main process')
+            sys.exit(1)
 
         stop_thread = True
         monitor.join()

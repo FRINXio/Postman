@@ -67,6 +67,7 @@ do
    # let's break if mounting a node failed 
    if [ $nrc -ne 0 ]; then
      break
+     exit 1
    fi
    mounted_peer_devices=$i
 

@@ -1,0 +1,634 @@
+{
+	"info": {
+		"_postman_id": "e8872c3e-1670-4433-9ec1-887fe60e7171",
+		"name": "Learning_Lab_part8",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "configure eBgp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "84b5e749-0c73-4602-bc9a-fdfdaa288f9d",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code\", function () {",
+							"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"protocol\": [\n        {\n            \"name\": \"{{bgp_process-name}}\",\n            \"identifier\": \"frinx-openconfig-policy-types:BGP\",\n            \"config\": {\n                \"name\": \"{{bgp_process-name}}\",\n                \"identifier\": \"frinx-openconfig-policy-types:BGP\"\n            },\n            \"bgp\": {\n                \"global\": {\n                    \"config\": {\n                        \"as\": {{bgp_as}}\n                    }\n                },\n                \"neighbors\": {\n                    \"neighbor\": [\n                        {\n                            \"neighbor-address\": \"{{ip1}}\",\n                            \"config\": {\n                                \"neighbor-address\": \"{{ip1}}\",\n                                \"peer-group\": \"{{bgp_group}}\",\n                                \"peer-as\": {{bgp_peer-as}},\n                                \"enabled\": true\n                            }\n                        }\n                    ]\n                }\n          \n            }\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration",
+						"frinx-openconfig-network-instance:network-instances",
+						"network-instance",
+						"{{bgp_ni-name}}",
+						"protocols",
+						"protocol",
+						"frinx-openconfig-policy-types:BGP",
+						"{{bgp_process-name}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "commit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2caf21de-6da4-4e86-bdbc-8221eb5701a2",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+							"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+							"});",
+							"pm.test(\"dryrun - node-id\", function() {",
+							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+							"});",
+							"pm.test(\"dryrun - configuration status\", function() {",
+							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"input\": {\n    \"target-nodes\": {\n      \n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operations",
+						"uniconfig-manager:commit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show eBgp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c1bf79c3-25b4-4f6c-91a2-c97d196897e6",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"//identifier",
+							"pm.test(\"Validate identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+							"});",
+							"//config identifier",
+							"pm.test(\"Validate config identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+							"});",
+							"",
+							"//name ",
+							"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+							"});",
+							"//name 2",
+							"pm.test(\"Validate name 2 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+							"});",
+							"pm.test(\"Validate neighbor properties \", function() {",
+							"    var data = pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"]",
+							"    for(var i = 0; i < data.length; i++){",
+							"        const neighbours = data[i]",
+							"         if(neighbours[\"neighbor-address\"] === pm.environment.get(\"neighbor2\")){",
+							"            pm.expect(afisafi(data[i],pm.environment.get(\"neighbor2\"))).to.be.true;",
+							"            pm.expect(neighbours[\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+							"            pm.expect(neighbours[\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+							"            pm.expect(neighbours[\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor2\"));",
+							"            pm.expect(neighbours[\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+							"         }",
+							"         else if(neighbours[\"neighbor-address\"] === pm.environment.get(\"neighbor3\")){",
+							"            if(data[i]['afi-safis']['afi-safi'][0]['afi-safi-name'] === pm.environment.get(\"bgp_openconfig_types\")){",
+							"                if(data[i]['afi-safis']['afi-safi'][0]['afi-safi-name'] === data[i]['afi-safis']['afi-safi'][0]['config']['afi-safi-name']){",
+							"                    tests[\"Validate afi-safi-name for \" + pm.environment.get(\"neighbor3\")  + \" with afi-safi \" + pm.environment.get(\"bgp_openconfig_types\")] = true; ",
+							"                }",
+							"                else{",
+							"                    tests[\"Validate afi-safi-name for \" + pm.environment.get(\"neighbor3\")] = false;",
+							"                }",
+							"            }",
+							"            else ",
+							"                tests[\"Validate afi-safi-name for \" + pm.environment.get(\"neighbor3\")] = false;",
+							"                ",
+							"            pm.expect(neighbours[\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+							"            pm.expect(neighbours[\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+							"            pm.expect(neighbours[\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor3\"));",
+							"            pm.expect(neighbours[\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+							"         }",
+							"    }",
+							"});",
+							"pm.test(\"Validate global properties\", function() {",
+							"  var data = pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"];",
+							"  ",
+							"  pm.expect(data[\"config\"][\"as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+							"  pm.expect(afisafi(data,\"GLOBAL\")).to.be.true;",
+							"});",
+							"",
+							"",
+							"function afisafi(data,nameofgroup){",
+							"    var afisafis=data['afi-safis']['afi-safi'];",
+							"    console.log(afisafis);",
+							"    for(var i = 0;i<afisafis.length; i++){",
+							"        if(data['afi-safis']['afi-safi'][i]['afi-safi-name'] === pm.environment.get(\"bgp_openconfig_types_UPD\") ){",
+							"            if(data['afi-safis']['afi-safi'][i]['afi-safi-name'] === data['afi-safis']['afi-safi'][i]['config']['afi-safi-name']){",
+							"                tests[\"Validate afi-safi-name for \" + nameofgroup + \" with afi-safi \" + pm.environment.get(\"bgp_openconfig_types_UPD\")] = true;",
+							"",
+							"            }",
+							"            else{",
+							"                tests[\"Validate afi-safi-name for \" + nameofgroup] = false;",
+							"            }",
+							"        }",
+							"        else if(data['afi-safis']['afi-safi'][i]['afi-safi-name'] === pm.environment.get(\"bgp_openconfig_types\")){",
+							"            if(data['afi-safis']['afi-safi'][i]['afi-safi-name'] === data['afi-safis']['afi-safi'][i]['config']['afi-safi-name']){",
+							"                tests[\"Validate afi-safi-name for \" + nameofgroup  + \" with afi-safi \" + pm.environment.get(\"bgp_openconfig_types\")] = true; ",
+							"            ",
+							"                if(data[\"afi-safis\"][\"afi-safi\"][i][\"apply-policy\"]){",
+							"                    if(data[\"afi-safis\"][\"afi-safi\"][i][\"apply-policy\"][\"config\"][\"export-policy\"][0] === pm.environment.get(\"export_policy\")) {",
+							"                        tests[\"Validate afi-safi-name for \" + nameofgroup  + \" for apply-policy \"] = true; ",
+							"            ",
+							"                    }",
+							"                    else ",
+							"                        tests[\"Validate afi-safi-name for \" + nameofgroup  + \" for apply-policy \"] = false; ",
+							"",
+							"                }",
+							"            }",
+							"            else{",
+							"                tests[\"Validate afi-safi-name for \" + nameofgroup] = false;",
+							"            }",
+							"        }",
+							"        else {",
+							"            return false;",
+							"        }",
+							"    }",
+							"    return true;",
+							"}",
+							"",
+							"pm.test(\"Validate peer-group = \", function() {",
+							" var data = pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"]",
+							"    for(var i = 0; i < data.length; i++){",
+							"",
+							"        const peergroup = data[i]",
+							"         if(peergroup[\"peer-group-name\"] === pm.environment.get(\"bgp_peer_name\")){",
+							"             //afi-safi ",
+							"            pm.expect(afisafi(data[i],pm.environment.get(\"bgp_peer_name\"))).to.be.true;",
+							"            pm.expect(peergroup[\"config\"][\"auth-password\"]).to.eql(pm.environment.get(\"bgp_password\"));",
+							"            pm.expect(peergroup[\"config\"][\"send-community\"]).to.eql(pm.environment.get(\"bgp_send_community\"));",
+							"            pm.expect(peergroup[\"config\"][\"peer-as\"]).to.eql(Number(pm.environment.get(\"bgp_peer-as4\")));",
+							"            pm.expect(peergroup[\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+							"            pm.expect(peergroup[\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+							"            pm.expect(peergroup[\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface\"));",
+							"            pm.expect(peergroup[\"transport\"][\"config\"][\"passive-mode\"]).to.be.true;",
+							"            pm.expect(peergroup[\"route-reflector\"][\"config\"][\"route-reflector-client\"]).to.be.true;",
+							"",
+							"         }",
+							"    }",
+							"",
+							"});",
+							"",
+							"",
+							"//config name",
+							"pm.test(\"Validate config name = \", function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(\"default\");",
+							"});",
+							"",
+							"  ",
+							"  ",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}/",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operational",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration",
+						"frinx-openconfig-network-instance:network-instances",
+						"network-instance",
+						"{{bgp_ni-name}}",
+						"protocols",
+						"protocol",
+						"frinx-openconfig-policy-types:BGP",
+						"{{bgp_process-name}}",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete global bgp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "bb7da700-66b2-4e42-84f4-2a1c9636ec4c",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}/",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration",
+						"frinx-openconfig-network-instance:network-instances",
+						"network-instance",
+						"{{bgp_ni-name}}",
+						"protocols",
+						"protocol",
+						"frinx-openconfig-policy-types:BGP",
+						"{{bgp_process-name}}",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "commit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2caf21de-6da4-4e86-bdbc-8221eb5701a2",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+							"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+							"});",
+							"pm.test(\"dryrun - node-id\", function() {",
+							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+							"});",
+							"pm.test(\"dryrun - configuration status\", function() {",
+							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"input\": {\n    \"target-nodes\": {\n      \n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operations",
+						"uniconfig-manager:commit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show eBgp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c1bf79c3-25b4-4f6c-91a2-c97d196897e6",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"//identifier",
+							"pm.test(\"Validate identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+							"});",
+							"//config identifier",
+							"pm.test(\"Validate config identifier = \" + pm.environment.get(\"l3_vpn_bgp_table_policy\"), function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"identifier\"]).to.eql(pm.environment.get(\"l3_vpn_bgp_table_policy\"));",
+							"});",
+							"",
+							"//name ",
+							"pm.test(\"Validate name = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+							"});",
+							"//name 2",
+							"pm.test(\"Validate name 2 = \" + pm.environment.get(\"bgp_ni-name\"), function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(pm.environment.get(\"bgp_ni-name\"));",
+							"});",
+							"pm.test(\"Validate neighbor properties \", function() {",
+							"    var data = pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"neighbors\"][\"neighbor\"]",
+							"    for(var i = 0; i < data.length; i++){",
+							"        const neighbours = data[i]",
+							"         if(neighbours[\"neighbor-address\"] === pm.environment.get(\"neighbor2\")){",
+							"            pm.expect(afisafi(data[i],pm.environment.get(\"neighbor2\"))).to.be.true;",
+							"            pm.expect(neighbours[\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+							"            pm.expect(neighbours[\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+							"            pm.expect(neighbours[\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor2\"));",
+							"            pm.expect(neighbours[\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+							"         }",
+							"         else if(neighbours[\"neighbor-address\"] === pm.environment.get(\"neighbor3\")){",
+							"            if(data[i]['afi-safis']['afi-safi'][0]['afi-safi-name'] === pm.environment.get(\"bgp_openconfig_types\")){",
+							"                if(data[i]['afi-safis']['afi-safi'][0]['afi-safi-name'] === data[i]['afi-safis']['afi-safi'][0]['config']['afi-safi-name']){",
+							"                    tests[\"Validate afi-safi-name for \" + pm.environment.get(\"neighbor3\")  + \" with afi-safi \" + pm.environment.get(\"bgp_openconfig_types\")] = true; ",
+							"                }",
+							"                else{",
+							"                    tests[\"Validate afi-safi-name for \" + pm.environment.get(\"neighbor3\")] = false;",
+							"                }",
+							"            }",
+							"            else ",
+							"                tests[\"Validate afi-safi-name for \" + pm.environment.get(\"neighbor3\")] = false;",
+							"                ",
+							"            pm.expect(neighbours[\"config\"][\"peer-group\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+							"            pm.expect(neighbours[\"config\"][\"description\"]).to.eql(pm.environment.get(\"eth_description\"));",
+							"            pm.expect(neighbours[\"config\"][\"neighbor-address\"]).to.eql(pm.environment.get(\"neighbor3\"));",
+							"            pm.expect(neighbours[\"transport\"][\"config\"][\"passive-mode\"]).to.eql(false);",
+							"         }",
+							"    }",
+							"});",
+							"pm.test(\"Validate global properties\", function() {",
+							"  var data = pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"global\"];",
+							"  ",
+							"  pm.expect(data[\"config\"][\"as\"]).to.eql(JSON.parse(pm.environment.get(\"bgp_peer-as4\")));",
+							"  pm.expect(afisafi(data,\"GLOBAL\")).to.be.true;",
+							"});",
+							"",
+							"",
+							"function afisafi(data,nameofgroup){",
+							"    var afisafis=data['afi-safis']['afi-safi'];",
+							"    console.log(afisafis);",
+							"    for(var i = 0;i<afisafis.length; i++){",
+							"        if(data['afi-safis']['afi-safi'][i]['afi-safi-name'] === pm.environment.get(\"bgp_openconfig_types_UPD\") ){",
+							"            if(data['afi-safis']['afi-safi'][i]['afi-safi-name'] === data['afi-safis']['afi-safi'][i]['config']['afi-safi-name']){",
+							"                tests[\"Validate afi-safi-name for \" + nameofgroup + \" with afi-safi \" + pm.environment.get(\"bgp_openconfig_types_UPD\")] = true;",
+							"",
+							"            }",
+							"            else{",
+							"                tests[\"Validate afi-safi-name for \" + nameofgroup] = false;",
+							"            }",
+							"        }",
+							"        else if(data['afi-safis']['afi-safi'][i]['afi-safi-name'] === pm.environment.get(\"bgp_openconfig_types\")){",
+							"            if(data['afi-safis']['afi-safi'][i]['afi-safi-name'] === data['afi-safis']['afi-safi'][i]['config']['afi-safi-name']){",
+							"                tests[\"Validate afi-safi-name for \" + nameofgroup  + \" with afi-safi \" + pm.environment.get(\"bgp_openconfig_types\")] = true; ",
+							"            ",
+							"                if(data[\"afi-safis\"][\"afi-safi\"][i][\"apply-policy\"]){",
+							"                    if(data[\"afi-safis\"][\"afi-safi\"][i][\"apply-policy\"][\"config\"][\"export-policy\"][0] === pm.environment.get(\"export_policy\")) {",
+							"                        tests[\"Validate afi-safi-name for \" + nameofgroup  + \" for apply-policy \"] = true; ",
+							"            ",
+							"                    }",
+							"                    else ",
+							"                        tests[\"Validate afi-safi-name for \" + nameofgroup  + \" for apply-policy \"] = false; ",
+							"",
+							"                }",
+							"            }",
+							"            else{",
+							"                tests[\"Validate afi-safi-name for \" + nameofgroup] = false;",
+							"            }",
+							"        }",
+							"        else {",
+							"            return false;",
+							"        }",
+							"    }",
+							"    return true;",
+							"}",
+							"",
+							"pm.test(\"Validate peer-group = \", function() {",
+							" var data = pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"bgp\"][\"peer-groups\"][\"peer-group\"]",
+							"    for(var i = 0; i < data.length; i++){",
+							"",
+							"        const peergroup = data[i]",
+							"         if(peergroup[\"peer-group-name\"] === pm.environment.get(\"bgp_peer_name\")){",
+							"             //afi-safi ",
+							"            pm.expect(afisafi(data[i],pm.environment.get(\"bgp_peer_name\"))).to.be.true;",
+							"            pm.expect(peergroup[\"config\"][\"auth-password\"]).to.eql(pm.environment.get(\"bgp_password\"));",
+							"            pm.expect(peergroup[\"config\"][\"send-community\"]).to.eql(pm.environment.get(\"bgp_send_community\"));",
+							"            pm.expect(peergroup[\"config\"][\"peer-as\"]).to.eql(Number(pm.environment.get(\"bgp_peer-as4\")));",
+							"            pm.expect(peergroup[\"config\"][\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+							"            pm.expect(peergroup[\"peer-group-name\"]).to.eql(pm.environment.get(\"bgp_peer_name\"));",
+							"            pm.expect(peergroup[\"transport\"][\"config\"][\"local-address\"]).to.eql(pm.environment.get(\"test_interface\"));",
+							"            pm.expect(peergroup[\"transport\"][\"config\"][\"passive-mode\"]).to.be.true;",
+							"            pm.expect(peergroup[\"route-reflector\"][\"config\"][\"route-reflector-client\"]).to.be.true;",
+							"",
+							"         }",
+							"    }",
+							"",
+							"});",
+							"",
+							"",
+							"//config name",
+							"pm.test(\"Validate config name = \", function() {",
+							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(\"default\");",
+							"});",
+							"",
+							"  ",
+							"  ",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{bgp_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:BGP/{{bgp_process-name}}/",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operational",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration",
+						"frinx-openconfig-network-instance:network-instances",
+						"network-instance",
+						"{{bgp_ni-name}}",
+						"protocols",
+						"protocol",
+						"frinx-openconfig-policy-types:BGP",
+						"{{bgp_process-name}}",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

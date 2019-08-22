@@ -1,0 +1,240 @@
+{
+	"info": {
+		"_postman_id": "9f24bff2-25d3-4fe1-a8a5-db99453aecb4",
+		"name": "unative_test_sros_device",
+		"description": "This collection is to test if it is possible to mount properly a sros device through uniconfig-native",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "mount_sros_device",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
+						"exec": [
+							"console.log(\"Request data: \" + request.data.toString());",
+							"console.log(\"Response: \" + responseBody)",
+							"pm.test(\"Success\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node_id}}\",\n      \"netconf-node-topology:host\": \"{{sros_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 10,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n      \"uniconfig-config:uniconfig-native-enabled\": true,\n      \"uniconfig-config:blacklist\": {\n          \"uniconfig-config:path\": []\n      },\n      \"netconf-node-topology:yang-module-capabilities\": {\n      \"capability\": [\"urn:ietf:params:xml:ns:yang:ietf-inet-types?module=ietf-inet-types&amp;revision=2010-09-24\",\n                     \"urn:ietf:params:xml:ns:netconf:base:1.0?module=ietf-netconf&amp;revision=2011-06-01\"]\n      },\n      \"netconf-node-topology:customization-factory\": \"netconf-customization-alu\"\n      \n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"{{topology_id_netconf}}",
+						"node",
+						"{{node_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check_status_connected",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "03edc63a-086a-4d3a-ba5b-b748277d7052",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
+							"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('check_status_connected');",
+							"    }",
+							"}",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "2d8ee786-69ec-443f-b558-6a6f2a3b409f",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operational",
+						"network-topology:network-topology",
+						"topology",
+						"{{topology_id_netconf}}",
+						"node",
+						"{{node_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check_uniconfig_available",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (pm.response.code === 200) {",
+							"    tests[\"Is connected\"] = true;",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('check_uniconfig_available');",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

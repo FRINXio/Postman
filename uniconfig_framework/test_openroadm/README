@@ -1,0 +1,127 @@
+To prepare schema folder for netconf-testtool:
+mkdir schema
+
+from public repository:
+https://github.com/OpenROADM/OpenROADM_MSA_Public
+
+copy model/Common
+copy model/Device
+remove from schema all file without .yang extension
+
+!!! it is necessary to add some dependency model
+these models can be just googled and downloaded:
+
+iana-afn-safi@2013-07-04.yang
+ietf-netconf@2011-06-01.yang
+
+
+
+also it is necessary to comment out mandatory true from operational-state in file org-openroadm-device
+ grouping interfaces-grp {
+    description
+      "OpenROADM Interface configuration parameters.";
+    list interface {
+      key "name";
+      description
+        "The list of configured interfaces on the device.";
+      leaf name {
+        type string;
+        description
+          "The name of the interface.";
+      }
+      leaf description {
+        type string;
+        description
+          "A textual description of the interface.";
+      }
+      leaf type {
+        type identityref {
+          base org-openroadm-interfaces:interface-type;
+        }
+        mandatory true;
+        description
+          "The type of the interface.";
+      }
+      leaf lifecycle-state {
+        type org-openroadm-common-state-types:lifecycle-state;
+        description
+          "Lifecycle State of interface. Whether it is planned, deployed, in maintenance, etc.";
+      }
+      leaf administrative-state {
+        type org-openroadm-equipment-states-types:admin-states;
+        mandatory true;
+      }
+      leaf operational-state {
+        type org-openroadm-common-state-types:state;
+        config false;
+        // mandatory true;
+      }
+
+
+
+
+
+from file org-openroadm-maintenance-testsignal comment mandatory true in leaf testPattern
+
+      leaf testPattern {
+        when "../enabled = 'true'";
+        type enumeration {
+          enum "PRBS" {
+            value 0;
+            description
+              "Unframed, inverted PN-31 pattern or PRBS31 pattern per IEEE 802.3 clause 50.3.8.2 (inverted PN-31 at line rate)";
+          }
+          enum "PRBS31" {
+            value 1;
+            description
+              "PRBS31 with standard mapping per G.709";
+          }
+          enum "PRBS23" {
+            value 2;
+            description
+              "SONET/SDH Framed,inverted PN-23 pattern.";
+          }
+          enum "PRZEROS" {
+            value 3;
+            description
+              "pseudo-random with zeros data pattern per IEEE 802.3 clause 49.2.8";
+          }
+          enum "IDLE" {
+            value 4;
+            description
+              "Scrambled IDLE test-pattern per IEEE 802.3ba";
+          }
+        }
+        // mandatory true;
+        description
+          "Set test signal pattern";
+      }
+
+
+
+
+
+also
+from file org-openroadm-maintenance-testsignal comment mandatory true in leaf syncSeconds
+
+
+      leaf syncSeconds {
+        when "../enabled = 'true' and ../inSync = 'true'";
+        type uint32;
+        config false;
+        // mandatory true;
+        description
+          "number of seconds the received test signal is in sync.";
+      }
+
+
+
+
+
+
+then run netconf testtool e.g.:
+java -Djava.security.egd=file:/dev/./urandom -Xmx2G -jar netconf-testtool-1.4.2-Oxygen-SR2.4_2_3_rc3-frinxodl-20190807.134428-5-executable.jar --exi false --ssh true --md-sal true --starting-port 18000 --device-count 1 --schemas-dir schema/ --debug false
+
+
+then execute commands from postman collection:
+unative_test_openroam_device.json  with environment openroadm_env.json

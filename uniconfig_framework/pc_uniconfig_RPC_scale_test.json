@@ -1,0 +1,434 @@
+{
+	"info": {
+		"_postman_id": "a3f406a1-e78f-485d-a597-fc572baec78c",
+		"name": "pc_uniconfig_RPC_scale_test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "check_number_mounted_devices_unified",
+			"item": [
+				{
+					"name": "check_number_mounted_devices_unified",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c2c72371-daa9-480c-800c-fe79f2831d9c",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Check number of mounted devices in unified",
+									"pm.test(\"Check N devices mounted in unified\", function() {",
+									"    pm.expect(pm.response.json()[\"topology\"][0][\"node\"].length).to.eql(Number(pm.environment.get(\"device_number\")));",
+									"    ",
+									"});",
+									"",
+									"",
+									"pm.test(\"Check all devices completed\", function () {",
+									"    for(var i = 0; i < pm.response.json()[\"topology\"][0][\"node\"].length; i++){",
+									"        pm.expect(pm.response.json()[\"topology\"][0][\"node\"][i][\"unified-topology:connection-status\"] == \"connected\")",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/unified?depth=3",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"unified"
+							],
+							"query": [
+								{
+									"key": "depth",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "put_configuration",
+			"item": [
+				{
+					"name": "put_configuration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "52e0fbcc-79a4-49ca-9dc5-ecb503029f8f",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\n    \"frinx-openconfig-interfaces:interface\": [\n\n        {\n\n            \"name\": \"Loopback2\",\n\n            \"config\": {\n\n                \"type\": \"iana-if-type:softwareLoopback\",\n\n                \"enabled\": true,\n\n                \"name\": \"Loopback2\",\n\n                \"description\": \"testing purpose\"\n\n            },\n\n            \"subinterfaces\": {\n\n                \"subinterface\": [\n\n                    {\n\n                        \"index\": 0,\n\n                        \"frinx-openconfig-if-ip:ipv4\": {\n\n                            \"addresses\": {\n\n                                \"address\": [\n\n                                    {\n\n                                        \"ip\": \"10.10.10.10\",\n\n                                        \"config\": {\n\n                                            \"ip\": \"10.10.10.10\",\n\n                                            \"prefix-length\": 24\n\n                                        }\n\n                                    }\n\n                                ]\n\n                            }\n\n                        }\n\n                    }\n\n                ]\n\n            }\n\n        }\n\n    ]\n\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback2",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration",
+								"frinx-openconfig-interfaces:interfaces",
+								"interface",
+								"Loopback2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "calculate_diff",
+			"item": [
+				{
+					"name": "calculate_diff",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c2c72371-daa9-480c-800c-fe79f2831d9c",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// All devices must have a difference inside their configs",
+									"pm.test(\"Check N devices have diff\", function() {",
+									"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"].length).to.eql(Number(pm.environment.get(\"device_number\")));",
+									"    ",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:calculate-diff"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "dry_run",
+			"item": [
+				{
+					"name": "dry_run",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8a94c4b7-1ca4-4439-abbd-d9877ff03261",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+									"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "547f667f-12eb-41a4-b2ae-27a8c477c2a6",
+								"exec": [
+									"console.log(\"Here we wait 10 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
+									"setTimeout(function(){}, 10000);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"dryrun-manager:dryrun-commit"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "commit_all",
+			"item": [
+				{
+					"name": "commit_all",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "349ddc7f-6e30-4627-ad1b-a14912b3d543",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"",
+									"//check that each node has configuration-status complete",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  console.log(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"])",
+									"  for (var node of pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"]) {",
+									"      pm.expect(node[\"configuration-status\"]).to.eql(\"complete\");",
+									"  } ",
+									"  ",
+									"});",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    }\n            }\n        }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "sync_from_network",
+			"item": [
+				{
+					"name": "sync_from_network",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "31358e04-53fb-45ee-92ce-e516f2f7fc73",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// check the number of devices synced",
+									"pm.test(\"Check N devices synced\", function() {",
+									"    pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"].length).to.eql(Number(pm.environment.get(\"device_number\")));",
+									"    ",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t \n\t\t}\n\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:sync-from-network"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

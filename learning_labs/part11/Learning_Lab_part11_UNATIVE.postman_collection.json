@@ -398,6 +398,166 @@
 			"response": []
 		},
 		{
+			"name": "commit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "42d708e6-36cb-440c-89dd-2787b147c3fe",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
+							"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+							"});",
+							"",
+							"",
+							"var result = pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
+							"pm.test(\"Commited node R1 status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
+							"    for(var i = 0; i < result.length; i++){",
+							"        if( result[i][\"node-id\"] = \"R1\"){",
+							"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
+							"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"complete\");",
+							"",
+							"        }",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n        }"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:checked-commit",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operations",
+						"uniconfig-manager:checked-commit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show bgp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (pm.response.code === 200) {",
+							"    tests[\"Is connected\"] = true;",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('check uniconfig available R1');",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/Cisco-IOS-XR-ipv4-bgp-cfg:bgp",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration",
+						"Cisco-IOS-XR-ipv4-bgp-cfg:bgp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "delete bgp",
 			"event": [
 				{
@@ -423,6 +583,166 @@
 			],
 			"request": {
 				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/Cisco-IOS-XR-ipv4-bgp-cfg:bgp",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration",
+						"Cisco-IOS-XR-ipv4-bgp-cfg:bgp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "commit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "42d708e6-36cb-440c-89dd-2787b147c3fe",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
+							"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+							"});",
+							"",
+							"",
+							"var result = pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
+							"pm.test(\"Commited node R1 status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
+							"    for(var i = 0; i < result.length; i++){",
+							"        if( result[i][\"node-id\"] = \"R1\"){",
+							"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
+							"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"complete\");",
+							"",
+							"        }",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n        }"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:checked-commit",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operations",
+						"uniconfig-manager:checked-commit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show bgp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (pm.response.code === 200) {",
+							"    tests[\"Is connected\"] = true;",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('check uniconfig available R1');",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
 				"header": [
 					{
 						"key": "Authorization",
@@ -506,6 +826,166 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\n    \"Cisco-IOS-XR-ipv4-bgp-cfg:bgp\": {\n        \"instance\": [\n            {\n                \"instance-name\": \"{{bgp_process-name}}\",\n                \"instance-as\": [\n                    {\n                        \"as\": 0,\n                        \"four-byte-as\": [\n                            {\n                                \"as\": \"{{bgp_as}}\",\n                                \"bgp-running\": [\n                                    null\n                                ],\n                                \"default-vrf\": {\n                                    \"bgp-entity\": {\n                                        \"neighbor-groups\": {\n                                            \"neighbor-group\": [\n                                                {\n                                                    \"neighbor-group-name\": \"{{bgp_group}}\",\n                                                    \"create\": [\n                                                        null\n                                                    ]\n                                                }\n                                            ]\n                                        },\n                                        \"neighbors\": {\n                                            \"neighbor\": [\n                                                {\n                                                    \"neighbor-address\": \"{{ip1}}\",\n                                                    \"remote-as\": {\n                                                        \"as-xx\": 0,\n                                                        \"as-yy\": \"{{bgp_peer-as}}\"\n                                                    }\n                                                },\n                                                {\n                                                    \"neighbor-address\": \"{{ip2}}\",\n                                                    \"remote-as\": {\n                                                        \"as-xx\": 0,\n                                                        \"as-yy\": \"{{bgp_peer-as2}}\"\n                                                    }\n                                                }\n                                            ]\n                                        }\n                                    }\n                                }\n                            }\n                        ]\n                    }\n                ]\n            }\n        ]\n    }\n}"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/Cisco-IOS-XR-ipv4-bgp-cfg:bgp",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"config",
+						"network-topology:network-topology",
+						"topology",
+						"uniconfig",
+						"node",
+						"{{node_id}}",
+						"frinx-uniconfig-topology:configuration",
+						"Cisco-IOS-XR-ipv4-bgp-cfg:bgp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "commit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "42d708e6-36cb-440c-89dd-2787b147c3fe",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
+							"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+							"});",
+							"",
+							"",
+							"var result = pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
+							"pm.test(\"Commited node R1 status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
+							"    for(var i = 0; i < result.length; i++){",
+							"        if( result[i][\"node-id\"] = \"R1\"){",
+							"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
+							"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"complete\");",
+							"",
+							"        }",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n        }"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:checked-commit",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"restconf",
+						"operations",
+						"uniconfig-manager:checked-commit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show bgp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (pm.response.code === 200) {",
+							"    tests[\"Is connected\"] = true;",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('check uniconfig available R1');",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
 				},
 				"url": {
 					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/Cisco-IOS-XR-ipv4-bgp-cfg:bgp",
@@ -635,76 +1115,6 @@
 						"restconf",
 						"operations",
 						"uniconfig-manager:replace-config-with-operational"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "commit",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "42d708e6-36cb-440c-89dd-2787b147c3fe",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
-							"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
-							"});",
-							"",
-							"",
-							"var result = pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
-							"pm.test(\"Commited node R1 status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
-							"    for(var i = 0; i < result.length; i++){",
-							"        if( result[i][\"node-id\"] = \"R1\"){",
-							"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
-							"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"complete\");",
-							"",
-							"        }",
-							"    }",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"R1\"]\n                }\n            }\n        }"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:checked-commit",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:checked-commit"
 					]
 				}
 			},

@@ -14,6 +14,7 @@ collection=pc_uniconfig_RPC_test_ram.json
 if [ -f $logfile ] ; then
     rm $logfile
 fi
+touch $logfile
 
 end_test_date=$(date --utc -d "$test_duration" +%s);
 echo "##### Expected end test date: `date --utc -d @$end_test_date`"

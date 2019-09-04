@@ -11,6 +11,7 @@ set -x
 env_template_file="mocked_scale_env_tmpl.json"
 router_mount_folder="IOU Mount"
 router_unmount_folder="IOU Unmount"
+router_ready_folder="IOU Ready"
 collection_file="postman_collection_scale.json"
 
 max_devices_configured=$1
@@ -36,9 +37,21 @@ if [ $max_devices_configured -eq 0 ]; then
   sufix_msg_part="(continue infinitelly)"
 fi
 
+
+
 # Configuration part
 i=0
 mounted_peer_devices=0
+
+# Check if translation units are avaiable
+# copy env template file and fill with correct values
+env_file_name=mocked_scale_env_$node_name.json
+cp $env_template_file $env_file_name
+sed -i "s/ODL_IP/$odl_ip_address/g" $env_file_name
+
+newman run $collection_file --bail -e $env_file_name -n 1 --folder "$router_ready_folder"
+
+
 for (( ; ; ))
 do
 
@@ -56,7 +69,6 @@ do
    sed -i "s/NODE_NAME/$node_name/g" $env_file_name
    sed -i "s/NODE_IP/$router_ip/g" $env_file_name
    sed -i "s/TOPOLOGY_PORT/$router_port/g" $env_file_name
-
 
    newman run $collection_file --bail -e $env_file_name -n 1 --folder "$router_mount_folder"
    nrc=$?

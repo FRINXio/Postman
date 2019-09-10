@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "531e247d-c3fa-44cd-af5d-5e3886454ab2",
+		"_postman_id": "aca8b9ba-f664-43f4-b8b3-56f91f7e8d6f",
 		"name": "pc_uniconfig_syslog",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -742,9 +742,8 @@
 											"  ",
 											"});",
 											"",
-											"//data",
-											"pm.test(\"Expected diff\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"created-data\"][0][\"path\"]).to.include(\"frinx-logging:logging/interfaces/interface=\");",
+											"pm.test(\"Configuration and operational datastore is equal \", function() {",
+											"  pm.expect(pm.response.json()[\"output\"]).to.not.have.property(\"node-with-diff\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -784,21 +783,30 @@
 							"response": []
 						},
 						{
-							"name": "show deleted syslog operational",
+							"name": "show deleted syslog",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "54af26c9-0bc5-4bd5-9f66-72820276accd",
+										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
 											"});",
+											"pm.test(\"Validate interface-id\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"interface-id\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
+											"});",
+											"pm.test(\"Validate interface-id\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"config\"][\"interface-id\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
+											"});",
+											"pm.test(\"Validate event-name\", function() {",
+											"  pm.expect(pm.response.text()).not.to.include(\"frinx-event-types:LINK_UP_DOWN\");",
+											"});",
+											"",
 											""
-										],
-										"type": "text/javascript"
+										]
 									}
 								}
 							],
@@ -832,80 +840,6 @@
 									"path": [
 										"restconf",
 										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"{{node_id}}",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-logging:logging",
-										"interfaces",
-										"interface",
-										"{{lag_prefix}}{{lag_inf-id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "show deleted syslog config",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "cdccd728-f05b-48bf-97bf-ccc64df4dc16",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate interface-id\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"interface-id\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
-											"});",
-											"pm.test(\"Validate interface-id\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-logging:interface\"][0][\"config\"][\"interface-id\"]).to.eql(postman.getEnvironmentVariable(\"lag_prefix\")+postman.getEnvironmentVariable(\"lag_inf-id\"));",
-											"});",
-											"pm.test(\"Validate event-name\", function() {",
-											"  pm.expect(pm.response.text()).not.to.include(\"frinx-event-types:LINK_UP_DOWN\");",
-											"});",
-											"",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
 										"network-topology:network-topology",
 										"topology",
 										"uniconfig",
@@ -985,7 +919,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "7407ad9f-6fad-42a5-a293-4e58192e74b0",
+										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -994,9 +928,15 @@
 											"});",
 											"pm.test(\"Validate overall-configuration-status\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});"
-										],
-										"type": "text/javascript"
+											"});",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"pm.test(\"Validate node-id\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											""
+										]
 									}
 								}
 							],

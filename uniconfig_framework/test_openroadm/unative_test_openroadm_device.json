@@ -1,896 +1,2467 @@
 {
 	"info": {
 		"_postman_id": "bc011436-a9f9-4110-a6a5-0821e61d1a32",
-		"name": "unative_test_openroam_device",
+		"name": "unative_test_openroadm_device",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "mount_openroadm_device",
-			"event": [
+			"name": "CRUD",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
-						"exec": [
-							"console.log(\"Request data: \" + request.data.toString());",
-							"console.log(\"Response: \" + responseBody)",
-							"pm.test(\"Success\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node_id}}\",\n      \"netconf-node-topology:host\": \"{{openroadm_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n      \"uniconfig-config:uniconfig-native-enabled\": true,\n      \"uniconfig-config:blacklist\": {\n          \"uniconfig-config:path\": []\n      }\n    }\n  ]\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "mount_openroadm_device",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"{{topology_id_netconf}}",
-						"node",
-						"{{node_id}}"
-					]
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node_id}}\",\n      \"netconf-node-topology:host\": \"{{openroadm_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n      \"uniconfig-config:uniconfig-native-enabled\": true,\n      \"uniconfig-config:blacklist\": {\n          \"uniconfig-config:path\": []\n      }\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check_status_connected",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "03edc63a-086a-4d3a-ba5b-b748277d7052",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
+									"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check_status_connected');",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "2d8ee786-69ec-443f-b558-6a6f2a3b409f",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check_uniconfig_available_config",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CREATE_configure_something_on_openroadm",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"frinx-uniconfig-topology:configuration\": {\n    \t\"org-openroadm-device:org-openroadm-device\": {\n    \t\t\"interface\": [{\"name\": \"foo\",\n    \t\t\t           \"description\": \"try description\", \n    \t\t\t           \"administrative-state\": \"inService\",\n                           \"type\": \"org-openroadm-interfaces:ethernetCsmacd\"\n                           \n    \t\t}]}\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "commit_all_routers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fb7504ad-6171-484e-bd84-8c55e79bfdb7",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check_uniconfig_available_operational",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (pm.response.code === 200) {",
+									"    tests[\"Is connected\"] = true;",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check uniconfig available');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show_interface_at_netconf",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/interface/foo",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id}}",
+								"yang-ext:mount",
+								"org-openroadm-device:org-openroadm-device",
+								"interface",
+								"foo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UPDATE_configure_something_on_openroadm",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"frinx-uniconfig-topology:configuration\": {\n    \t\"org-openroadm-device:org-openroadm-device\": {\n    \t\t\"interface\": [{\"name\": \"foo\",\n    \t\t\t           \"description\": \"try description UPDATED\", \n    \t\t\t           \"administrative-state\": \"inService\",\n                           \"type\": \"org-openroadm-interfaces:ethernetCsmacd\"\n                           \n    \t\t}]}\n\t}\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "commit_all_routers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fb7504ad-6171-484e-bd84-8c55e79bfdb7",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show_interface_at_netconf",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/interface/foo",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id}}",
+								"yang-ext:mount",
+								"org-openroadm-device:org-openroadm-device",
+								"interface",
+								"foo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE_configure_something_on_openroadm",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/org-openroadm-device:org-openroadm-device/interface/foo",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id}}",
+								"frinx-uniconfig-topology:configuration",
+								"org-openroadm-device:org-openroadm-device",
+								"interface",
+								"foo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "commit_all_routers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fb7504ad-6171-484e-bd84-8c55e79bfdb7",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show_interface_at_netconf",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 404\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/interface/foo",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id}}",
+								"yang-ext:mount",
+								"org-openroadm-device:org-openroadm-device",
+								"interface",
+								"foo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "unmount_openroadm_device",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id}}"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "check_status_connected",
-			"event": [
+			"name": "CRD_FAN_module",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"id": "03edc63a-086a-4d3a-ba5b-b748277d7052",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"// attempts counter",
-							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-							"",
-							"var jsonData = JSON.parse(responseBody);",
-							"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
-							"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
-							"    // Reset attempt counter",
-							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-							"} else {",
-							"    // If too many attempts, abort",
-							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-							"        console.log(\"Not connected yet ! Too many attempts !\")",
-							"        // Reset attempt counter",
-							"        tests[\"Unable to connect\"] = false",
-							"    } else {",
-							"        // Schedule next check attempt",
-							"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-							"        postman.setNextRequest('check_status_connected');",
-							"    }",
-							"}",
-							""
+					"name": "mount_openroadm_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript"
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node_id1}}\",\n      \"netconf-node-topology:host\": \"{{openroadm_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port_dev1}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n      \"uniconfig-config:uniconfig-native-enabled\": true,\n      \"uniconfig-config:blacklist\": {\n          \"uniconfig-config:path\": []\n      }\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id1}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id1}}"
+							]
+						}
+					},
+					"response": []
 				},
 				{
-					"listen": "prerequest",
-					"script": {
-						"id": "2d8ee786-69ec-443f-b558-6a6f2a3b409f",
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "check_status_connected_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "03edc63a-086a-4d3a-ba5b-b748277d7052",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
+									"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check_status_connected');",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "2d8ee786-69ec-443f-b558-6a6f2a3b409f",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operational",
-						"network-topology:network-topology",
-						"topology",
-						"{{topology_id_netconf}}",
-						"node",
-						"{{node_id}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "check_uniconfig_available_config",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
-						"exec": [
-							"console.log(\"Request data: \" + request.data.toString());",
-							"console.log(\"Response: \" + responseBody)",
-							"pm.test(\"Success\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([404]);",
-							"});"
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript"
-					}
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id1}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id1}}"
+							]
+						}
+					},
+					"response": []
 				},
 				{
-					"listen": "prerequest",
-					"script": {
-						"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "check_uniconfig_available_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
-						"frinx-uniconfig-topology:configuration"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "CREATE_configure_something_on_openroadm",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 201\", function () {",
-							"  pm.response.to.have.status(201);",
-							"});"
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id1}}/frinx-uniconfig-topology:configuration",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id1}}",
+								"frinx-uniconfig-topology:configuration"
+							]
+						}
 					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"frinx-uniconfig-topology:configuration\": {\n    \t\"org-openroadm-device:org-openroadm-device\": {\n    \t\t\"interface\": [{\"name\": \"foo\",\n    \t\t\t           \"description\": \"try description\", \n    \t\t\t           \"administrative-state\": \"inService\",\n                           \"type\": \"org-openroadm-interfaces:ethernetCsmacd\"\n                           \n    \t\t}]}\n\t}\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
-						"frinx-uniconfig-topology:configuration",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "commit_all_routers",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "fb7504ad-6171-484e-bd84-8c55e79bfdb7",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:commit"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "check_uniconfig_available_operational",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"// attempts counter",
-							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-							"",
-							"var jsonData = JSON.parse(responseBody);",
-							"if (pm.response.code === 200) {",
-							"    tests[\"Is connected\"] = true;",
-							"    // Reset attempt counter",
-							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-							"} else {",
-							"    // If too many attempts, abort",
-							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-							"        console.log(\"Not connected yet ! Too many attempts !\")",
-							"        // Reset attempt counter",
-							"        tests[\"Unable to connect\"] = false",
-							"    } else {",
-							"        // Schedule next check attempt",
-							"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
-							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-							"        postman.setNextRequest('check uniconfig available');",
-							"    }",
-							"}"
-						],
-						"type": "text/javascript"
-					}
+					"response": []
 				},
 				{
-					"listen": "prerequest",
-					"script": {
-						"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "mount_openroadm_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
-						"frinx-uniconfig-topology:configuration"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "show_interface_at_netconf",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							""
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
 						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node_id2}}\",\n      \"netconf-node-topology:host\": \"{{openroadm_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port_dev2}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n      \"uniconfig-config:uniconfig-native-enabled\": true,\n      \"uniconfig-config:blacklist\": {\n          \"uniconfig-config:path\": []\n      }\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id2}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id2}}"
+							]
+						}
 					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
+					"response": []
 				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/interface/foo",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"{{topology_id_netconf}}",
-						"node",
-						"{{node_id}}",
-						"yang-ext:mount",
-						"org-openroadm-device:org-openroadm-device",
-						"interface",
-						"foo"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "UPDATE_configure_something_on_openroadm",
-			"event": [
 				{
-					"listen": "test",
-					"script": {
-						"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"frinx-uniconfig-topology:configuration\": {\n    \t\"org-openroadm-device:org-openroadm-device\": {\n    \t\t\"interface\": [{\"name\": \"foo\",\n    \t\t\t           \"description\": \"try description UPDATED\", \n    \t\t\t           \"administrative-state\": \"inService\",\n                           \"type\": \"org-openroadm-interfaces:ethernetCsmacd\"\n                           \n    \t\t}]}\n\t}\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "check_status_connected_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "03edc63a-086a-4d3a-ba5b-b748277d7052",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
+									"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check_status_connected');",
+									"    }",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "2d8ee786-69ec-443f-b558-6a6f2a3b409f",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
-						"frinx-uniconfig-topology:configuration",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "commit_all_routers",
-			"event": [
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id2}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id2}}"
+							]
+						}
+					},
+					"response": []
+				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "fb7504ad-6171-484e-bd84-8c55e79bfdb7",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "check_uniconfig_available_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:commit"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "show_interface_at_netconf",
-			"event": [
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id2}}/frinx-uniconfig-topology:configuration",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id2}}",
+								"frinx-uniconfig-topology:configuration"
+							]
+						}
+					},
+					"response": []
+				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/interface/foo",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "add_fan_module_ft0_single_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"{{topology_id_netconf}}",
-						"node",
-						"{{node_id}}",
-						"yang-ext:mount",
-						"org-openroadm-device:org-openroadm-device",
-						"interface",
-						"foo"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "DELETE_configure_something_on_openroadm",
-			"event": [
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"org-openroadm-device:circuit-packs\": [\n\t  \t\t{\"org-openroadm-device:circuit-pack-type\": \"NCS1004 Fan\",\n    \t\t \"org-openroadm-device:circuit-pack-name\": \"0/FT0\",\n    \t\t \"org-openroadm-device:shelf\": \"0\",\n    \t\t \"org-openroadm-device:slot\": \"FT0\"\n    \t\t}\n  ]\n}\n "
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id1}}/frinx-uniconfig-topology:configuration/org-openroadm-device:org-openroadm-device/circuit-packs/0%2FFT0",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id1}}",
+								"frinx-uniconfig-topology:configuration",
+								"org-openroadm-device:org-openroadm-device",
+								"circuit-packs",
+								"0%2FFT0"
+							]
+						}
+					},
+					"response": []
+				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/org-openroadm-device:org-openroadm-device/interface/foo",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "add_fan_module_ft0_ft1_ft2_multiple_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
-						"frinx-uniconfig-topology:configuration",
-						"org-openroadm-device:org-openroadm-device",
-						"interface",
-						"foo"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "commit_all_routers",
-			"event": [
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"org-openroadm-device:org-openroadm-device\" :{\n  \t\"org-openroadm-device:circuit-packs\": [\n    \t\t{\"org-openroadm-device:circuit-pack-type\": \"NCS1004 Fan\",\n    \t\t \"org-openroadm-device:circuit-pack-name\": \"0/FT0\",\n    \t\t \"org-openroadm-device:shelf\": \"0\",\n    \t\t \"org-openroadm-device:slot\": \"FT0\"\n    \t\t\t\n    \t\t},\n    \t\t{\"org-openroadm-device:circuit-pack-type\": \"NCS1004 Fan\",\n    \t\t \"org-openroadm-device:circuit-pack-name\": \"0/FT1\",\n    \t\t \"org-openroadm-device:shelf\": \"0\",\n    \t\t \"org-openroadm-device:slot\": \"FT1\"\n    \t\t\t\n    \t\t},\n            {\"org-openroadm-device:circuit-pack-type\": \"NCS1004 Fan\",\n    \t\t \"org-openroadm-device:circuit-pack-name\": \"0/FT2\",\n    \t\t \"org-openroadm-device:shelf\": \"0\",\n    \t\t \"org-openroadm-device:slot\": \"FT2\"\n    \t\t}\n    \t]\n\t}\n  \n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id1}}/frinx-uniconfig-topology:configuration/org-openroadm-device:org-openroadm-device/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id1}}",
+								"frinx-uniconfig-topology:configuration",
+								"org-openroadm-device:org-openroadm-device",
+								""
+							]
+						}
+					},
+					"response": []
+				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "fb7504ad-6171-484e-bd84-8c55e79bfdb7",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "commit_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ba00000c-e2eb-43bd-aef6-31abf93288ec",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"pm.test(\"Validate node-id\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(\"openroadm_dev1\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:commit"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "show_interface_at_netconf",
-			"event": [
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id1}}\"]\n                }\n            }\n        }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code 404\", function () {",
-							"  pm.response.to.have.status(404);",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/interface/foo",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "add_fan_module_ft0_ft1_ft2_multiple_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"{{topology_id_netconf}}",
-						"node",
-						"{{node_id}}",
-						"yang-ext:mount",
-						"org-openroadm-device:org-openroadm-device",
-						"interface",
-						"foo"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "unmount_openroadm_device",
-			"event": [
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"org-openroadm-device:org-openroadm-device\" :{\n  \t\"org-openroadm-device:circuit-packs\": [\n    \t\t{\"org-openroadm-device:circuit-pack-type\": \"NCS1004 Fan\",\n    \t\t \"org-openroadm-device:circuit-pack-name\": \"0/FT0\",\n    \t\t \"org-openroadm-device:shelf\": \"0\",\n    \t\t \"org-openroadm-device:slot\": \"FT0\"\n    \t\t\t\n    \t\t},\n    \t\t{\"org-openroadm-device:circuit-pack-type\": \"NCS1004 Fan\",\n    \t\t \"org-openroadm-device:circuit-pack-name\": \"0/FT1\",\n    \t\t \"org-openroadm-device:shelf\": \"0\",\n    \t\t \"org-openroadm-device:slot\": \"FT1\"\n    \t\t\t\n    \t\t},\n            {\"org-openroadm-device:circuit-pack-type\": \"NCS1004 Fan\",\n    \t\t \"org-openroadm-device:circuit-pack-name\": \"0/FT2\",\n    \t\t \"org-openroadm-device:shelf\": \"0\",\n    \t\t \"org-openroadm-device:slot\": \"FT2\"\n    \t\t}\n    \t]\n\t}\n  \n}"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id2}}/frinx-uniconfig-topology:configuration/org-openroadm-device:org-openroadm-device/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id2}}",
+								"frinx-uniconfig-topology:configuration",
+								"org-openroadm-device:org-openroadm-device",
+								""
+							]
+						}
+					},
+					"response": []
+				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
-						"exec": [
-							"console.log(\"Request data: \" + request.data.toString());",
-							"console.log(\"Response: \" + responseBody)",
-							"pm.test(\"Success\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
+					"name": "commit_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ba00000c-e2eb-43bd-aef6-31abf93288ec",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"pm.test(\"Validate node-id\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(\"openroadm_dev2\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
 					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"{{topology_id_netconf}}",
-						"node",
-						"{{node_id}}"
-					]
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                   \"node\": [\"{{node_id2}}\"]\n                }\n            }\n        }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check_uniconfig_available_operational_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (pm.response.code === 200) {",
+									"    tests[\"Is connected\"] = true;",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check uniconfig available');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id1}}/frinx-uniconfig-topology:configuration",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id1}}",
+								"frinx-uniconfig-topology:configuration"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "check_uniconfig_available_operational_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "70042dae-e1e4-40c9-82ed-7181a12e65b2",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"// attempts counter",
+									"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"if (pm.response.code === 200) {",
+									"    tests[\"Is connected\"] = true;",
+									"    // Reset attempt counter",
+									"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"} else {",
+									"    // If too many attempts, abort",
+									"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+									"        console.log(\"Not connected yet ! Too many attempts !\")",
+									"        // Reset attempt counter",
+									"        tests[\"Unable to connect\"] = false",
+									"    } else {",
+									"        // Schedule next check attempt",
+									"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+									"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+									"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+									"        postman.setNextRequest('check uniconfig available');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6a9889b3-07f5-43de-af08-2d9d08a1757c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id2}}/frinx-uniconfig-topology:configuration",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operational",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id2}}",
+								"frinx-uniconfig-topology:configuration"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show_all_fan_at_netconf_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id1}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id1}}",
+								"yang-ext:mount",
+								"org-openroadm-device:org-openroadm-device",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show_all_fan_at_netconf_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id2}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id2}}",
+								"yang-ext:mount",
+								"org-openroadm-device:org-openroadm-device",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show_fan_ft0_at_netconf_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 201\", function () {",
+									"  pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id1}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/circuit-packs/0%2FFT0",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id1}}",
+								"yang-ext:mount",
+								"org-openroadm-device:org-openroadm-device",
+								"circuit-packs",
+								"0%2FFT0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "del_fan_module_ft0_ft1_ft2_multiple_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id1}}/frinx-uniconfig-topology:configuration/org-openroadm-device:org-openroadm-device/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id1}}",
+								"frinx-uniconfig-topology:configuration",
+								"org-openroadm-device:org-openroadm-device",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "commit_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ba00000c-e2eb-43bd-aef6-31abf93288ec",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"pm.test(\"Validate node-id\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(\"openroadm_dev1\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id1}}\"]\n                }\n            }\n        }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "del_fan_module_ft0_ft1_ft2_multiple_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "38384ba3-c33e-44f6-944f-e87fa16e3e38",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id2}}/frinx-uniconfig-topology:configuration/org-openroadm-device:org-openroadm-device/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"uniconfig",
+								"node",
+								"{{node_id2}}",
+								"frinx-uniconfig-topology:configuration",
+								"org-openroadm-device:org-openroadm-device",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "commit_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ba00000c-e2eb-43bd-aef6-31abf93288ec",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Validate overall-configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"pm.test(\"Validate configuration-status\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(\"complete\");",
+									"});",
+									"pm.test(\"Validate node-id\", function() {",
+									"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(\"openroadm_dev2\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                   \"node\": [\"{{node_id2}}\"]\n                }\n            }\n        }"
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"operations",
+								"uniconfig-manager:commit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show_all_fan_at_netconf_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 404\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id1}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id1}}",
+								"yang-ext:mount",
+								"org-openroadm-device:org-openroadm-device",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "show_all_fan_at_netconf_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a372704-8b00-43b2-93db-43eb998ef45a",
+								"exec": [
+									"console.log(\"Response: \" + responseBody)",
+									"",
+									"pm.test(\"Status code 404\", function () {",
+									"  pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id2}}/yang-ext:mount/org-openroadm-device:org-openroadm-device/",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id2}}",
+								"yang-ext:mount",
+								"org-openroadm-device:org-openroadm-device",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "unmount_openroadm_dev1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "unmount_openroadm_dev2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2bdd58ba-9beb-4e52-ad37-c983dfef2a47",
+								"exec": [
+									"console.log(\"Request data: \" + request.data.toString());",
+									"console.log(\"Response: \" + responseBody)",
+									"pm.test(\"Success\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id2}}",
+							"protocol": "http",
+							"host": [
+								"{{odl_ip}}"
+							],
+							"port": "8181",
+							"path": [
+								"restconf",
+								"config",
+								"network-topology:network-topology",
+								"topology",
+								"{{topology_id_netconf}}",
+								"node",
+								"{{node_id2}}"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		}
 	]
 }

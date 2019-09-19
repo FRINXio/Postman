@@ -44,6 +44,8 @@ elif [ "$env_file" == "xrv6.2.3_env.json" ] ; then
   dev_pref="XR5"
 elif [ "$env_file" == "xrv7.0.1_env.json" ] ; then
   dev_pref="XR5"
+elif [ "$env_file" == "xrv6.6.1_env.json" ] ; then
+  dev_pref="XR5"
 else
   echo "Unsupported env file: $env_file"
   exit 1

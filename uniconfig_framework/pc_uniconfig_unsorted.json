@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "43e766b5-6947-4dc7-8fb3-15d1c8841a4e",
+		"_postman_id": "5345bc3a-0ee1-4c21-b221-1ebd9095e562",
 		"name": "FRINX Uniconfig Unsorted",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -6060,6 +6060,222 @@
 										"network-topology:network-topology",
 										"topology",
 										"cli",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "FRHD-433",
+					"item": [
+						{
+							"name": "configure device",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "840cf0f2-4352-47f2-99f5-d7183468402f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\ntelnet vrf default ipv4 server max-servers 10\nlacp system mac 0123.0123.0123\ncall-home\n service active\n contact smart-licensing\n profile CiscoTAC-1\n  active\n  destination transport-method http\n !\n!\nipv6 access-list D300000000_Ipv6_out\n 10 permit udp any any eq 3784\n!\nipv4 access-list BFD\n 10 permit udp any any eq 3784\n!\nclass-map match-any class_qos_group\n match qos-group 4 60 \n end-class-map\n! \nclass-map match-any class_qos_group2\n match qos-group 4 50 \n end-class-map\n! \npolicy-map policy1\n class class_qos_group\n  set dscp af31\n ! \n class class-default\n !        \n end-policy-map\n! \npolicy-map policy2\n class class_qos_group2\n  set dscp af32\n ! \n class class-default\n ! \n end-policy-map\n! \ninterface Bundle-Ether60\n!\ninterface Bundle-Ether60.70\n description desc_test\n vrf THU\n ipv4 address 10.1.2.3 255.255.255.248\n load-interval 30\n encapsulation dot1q 70\n logging events link-status\n carrier-delay up 500\n!\ninterface Bundle-Ether200\n description TB-002XRV-02-aaaaaaa\n!\ninterface Bundle-Ether200.1\n description 200.1\n!\ninterface Bundle-Ether3133\n!\nexit\n!\nprefix-set CUST_D300000000_in\nend-set\n!\nprefix-set CUST_D300000000_BH_in\n  2400:a140::/32 eq 128\nend-set\n!\nprefix-set CUST_IPv6_D300000000_in\nend-set\n!\nas-path-set 100\n  ios-regex '^(23816_)+$',\n  ios-regex '^(23816_)'\nend-set\n!\ncommunity-set CUST-LP-40\n  no-export\nend-set\n!\ncommunity-set CUST-LP-700\n  no-export\nend-set\n!\ncommunity-set DDosS-CUST-BH\n  17676:1088\nend-set\n!\nroute-policy TESTTEST\n  set med 70\n  pass\nend-policy\n!\nroute-policy ZR-SET-MED\n  pass\nend-policy\n!\nroute-policy SET-COMMUNITY-THU\n  done\nend-policy\n!\nroute-policy CUST_D300000001_in\n  if as-path length ge 75 then\n    drop\n  elseif not as-path in 100 then\n    set med +50\n    set next-hop 2001::\n    pass\n  elseif community matches-any DDosS-CUST-BH and destination in CUST_D300000000_BH_in then\n    set community (17676:2089)\n    set next-hop 169.254.255.254\n  elseif destination in CUST_D300000000_in then\n    set med 100\n  elseif community matches-any CUST-LP-40 then\n    set local-preference 40\n    set community (17676:330) additive\n  elseif community matches-any CUST-LP-700 then\n    set local-preference 700\n    set community (17676:330) additive\n  else\n    set local-preference 1200\n    set community (17676:330) additive\n  endif\nend-policy\n!\nroute-policy POLICY-PEER-GROUP-IN\n  pass\nend-policy\n!\nroute-policy ISIS-REDISTRIBUTE-001\n  done\nend-policy\n!\nroute-policy ISIS-REDISTRIBUTE-002\n  done\nend-policy\n!\nroute-policy POLICY-PEER-GROUP-OUT\n  pass\nend-policy\n!\nroute-policy POLICY-PEER-GROUP-IN-UPDATE\n  pass\nend-policy\n!\nroute-policy POLICY-PEER-GROUP-OUT-UPDATE\n  pass\nend-policy\n!\nroute-policy policy_CUST_BGP-Default_Originate\n  drop\nend-policy\n!\nrouter isis 200\n!\nrouter isis 300\n!\nrouter isis 400\n address-family ipv6 unicast\n !\n!\nrouter ospf 100\n vrf THU\n  max-metric router-lsa include-stub summary-lsa external-lsa\n !\n!\nrouter ospf default\n!\nrouter ospfv3 default\n!\nrouter bgp 20101 instance aaa\n neighbor 2400:2020:40:ff::1\n  remote-as 17676\n  shutdown\n !\n vrf iups\n !\n!\ncommit\nend\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"cli",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "6a0b6fd5-eb3a-42c3-b757-6961562cea31",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "98337603-8f30-4241-877a-abf6fea47cbb",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "restore empty config",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+											"});",
+											"",
+											"pm.test(\"Config replaced\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"(config)#load \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"Loading.\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"This commit will replace or remove the entire running configuration.\");",
+											"});"
+										]
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nload {{conf_file_stored}}\ncommit replace\nyes\nend\n\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
 										"node",
 										"{{node_id}}",
 										"yang-ext:mount",

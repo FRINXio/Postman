@@ -41,15 +41,15 @@ kill_and_get_log () {
     sleep 30
 
     echo "Killing karaf"
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no killall java
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no killall java
     sleep 10  #sleep to wait for karaf not to write any more into karaf.log
 
     echo "Compressing karaf.log ${_odl_ip}"
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o \
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o \
     StrictHostKeyChecking=no tar -zcvf "${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/${_test}_karaf.log.tar.gz" -C "${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/data/" "log/"
 
     echo "Fetching compressed karaf.log ${_odl_ip}"
-    scp -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa "vagrant@${_odl_ip}:${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/${_test}_karaf.log.tar.gz" "$WORKSPACE/${_test}_karaf.log.tar.gz" || true
+    scp -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa "vagrant@${_odl_ip}:${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/${_test}_karaf.log.tar.gz" "$WORKSPACE/${_test}_karaf.log.tar.gz" || true
 
 }
 
@@ -61,7 +61,7 @@ check_odl_backup_created () {
 
     echo "Check odl backup created"
 
-    if ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "test -d ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/daexim"; then
+    if ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "test -d ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/daexim"; then
       echo "Backup exists"
     else
       echo "Backup NOT exists"
@@ -75,7 +75,7 @@ clean_karaf () {
     local _odl_ip=$1
 
     echo "Cleaning karaf"
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no rm -rf "${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/journal" "${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/snapshots"
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no rm -rf "${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/journal" "${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/snapshots"
 
 }
 
@@ -84,10 +84,10 @@ set_daexim_flag () {
     local _odl_ip=$1
 
     echo "Set daexim flag"
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "echo 'daexim.importOnInit=true' > ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/etc/org.opendaylight.daexim.cfg"
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "echo 'daexim.importOnInit=true' > ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/etc/org.opendaylight.daexim.cfg"
 
     echo "Show daexim flag"
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no cat ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/etc/org.opendaylight.daexim.cfg
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no cat ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/etc/org.opendaylight.daexim.cfg
 
 }
 
@@ -96,7 +96,7 @@ rm_daexim_config_file () {
     local _odl_ip=$1
 
     echo "Remove daexim config file"
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "rm ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/etc/org.opendaylight.daexim.cfg"
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "rm ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/etc/org.opendaylight.daexim.cfg"
 
 }
 
@@ -105,7 +105,7 @@ rm_daexim_folder () {
     local _odl_ip=$1
 
     echo "Remove daexim folder"
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "rm -r ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/daexim"
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "rm -r ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/daexim"
 
 }
 
@@ -114,7 +114,7 @@ start_karaf () {
     local _odl_ip=$1
 
     echo "Start karaf"
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no nohup ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/bin/start
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no nohup ${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/bin/start
 
 
 }
@@ -128,11 +128,11 @@ change_karaf_features () {
     local features_file="${KARAF_INSTALLDIR}/${BUNDLEFOLDER}/etc/org.apache.karaf.features.cfg"
 
     echo "Change karaf features in config file: "
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "sed -i \"s/\(odlFeaturesBoot=odl-netconf-topology\).*/\1,${_features}/\" $features_file"
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "sed -i \"s/\(odlFeaturesBoot=odl-netconf-topology\).*/\1,${_features}/\" $features_file"
 
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "Show updated karaf features config file: "
-    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts-repo/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "cat $features_file"
+    ssh  vagrant@${_odl_ip} -i $WORKSPACE/scripts/releng/sshkeysforlab/.ssh/id_rsa -o StrictHostKeyChecking=no "cat $features_file"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 }
 
@@ -187,7 +187,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
     cd -;
 
     # run postman collection to check if is imported
@@ -216,7 +216,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
     cd -;
 
     # run postman collection to check if is imported
@@ -244,7 +244,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
     cd -;
 
     # run postman collection to export
@@ -268,7 +268,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
     cd -;
 
     # run postman collection to import
@@ -297,7 +297,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
     cd -;
 
     # run postman collection to export
@@ -321,7 +321,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
     cd -;
 
     # run postman collection to export
@@ -353,7 +353,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip unative
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip unative
     cd -;
 
     # run postman collection to export
@@ -381,7 +381,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip unative
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip unative
     cd -;
 
     # run postman collection to export
@@ -444,7 +444,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip unative
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip unative
     cd -;
 
     # run postman collection to export
@@ -472,7 +472,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip unative
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip unative
     cd -;
 
     # run postman collection to export
@@ -557,7 +557,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
     cd -;
 
     # run postman collection to check if is imported
@@ -586,7 +586,7 @@ then
     start_karaf "$odl_ip"
 
     # check karaf ready
-    cd $WORKSPACE/scripts-repo/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
     cd -;
 
     # run postman collection to check if is imported

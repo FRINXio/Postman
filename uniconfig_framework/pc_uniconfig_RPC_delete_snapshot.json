@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "69bae8b2-7706-4807-962e-eb0351322773",
+		"_postman_id": "c1d27ff7-8213-4bb5-9c75-0b3bfa0608e8",
 		"name": "pc_uniconfig_RPC_delete_snapshot",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -500,9 +500,56 @@
 											"pm.test(\"Status code is 200\", function () {",
 											" pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result\", function() {",
-											" pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
-											"});"
+											"",
+											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
+											"    pm.test(\"Validate result\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
+											"    });",
+											"",
+											"}else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    ",
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function () {",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"});",
+											"",
+											"    var results = [];",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"",
+											"    for(var i = 0; i < result.length; i++){",
+											"        results[i] = result[i][\"node-id\"];",
+											"    }",
+											"",
+											"    ",
+											"    pm.test(\"Commited node R1 status: \" + pm.response.json()[\"output\"][\"overall-status\"], function () {",
+											"    for(var i = 0; i < result.length; i++){",
+											"        if( result[i][\"node-id\"] == \"R1\"){",
+											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(result[i][\"status\"]).to.eql(\"complete\");",
+											"            break;",
+											"        }",
+											"            var found = results.includes('R1');",
+											"            pm.expect(found).to.be.true;",
+											"",
+											"    }",
+											"});",
+											"",
+											"    pm.test(\"Commited node R2 status: \" + pm.response.json()[\"output\"][\"overall-status\"], function () {",
+											"    for(var i = 0; i < result.length; i++){",
+											"        if( result[i][\"node-id\"] == \"R2\"){",
+											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R2\");",
+											"            pm.expect(result[i][\"status\"]).to.eql(\"complete\");",
+											"            break;",
+											"        }",
+											"            var found = results.includes('R2');",
+											"            pm.expect(found).to.be.true;",
+											"",
+											"    }",
+											"",
+											"});",
+											"}",
+											""
 										],
 										"type": "text/javascript"
 									}
@@ -522,7 +569,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"input\": {\n        \"name\": \"snapshot1\"\n    }\n}"
+									"raw": "{\n    \"input\": {\n        \"name\": \"snapshot1\",\n            \"target-nodes\": {\n                \t\"node\": [\"R1\",\"R2\"]\n\n                }\n    }\n}"
 								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operations/snapshot-manager:create-snapshot",
@@ -550,28 +597,11 @@
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 200\", function () {",
-											" pm.response.to.have.status(200);",
+											"pm.test(\"Status code is 404\", function () {",
+											" pm.response.to.have.status(404);",
 											"});",
 											"",
-											"pm.test(\"Validate topology id\", function() {",
-											" pm.expect(pm.response.json()[\"topology\"][0][\"topology-id\"]).to.eql(\"snapshot1\");",
-											"});",
-											"pm.test(\"Validate topology\", function() {",
-											"    var jstring=pm.response.json()[\"topology\"][0][\"node\"];",
-											"        for (var i =0;i<jstring.length;i++){",
-											"            if (jstring[i][\"node-id\"]===\"R1\"){",
-											"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
-											"            }",
-											"            if (jstring[i][\"node-id\"]===\"R2\"){",
-											"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
-											"            }",
-											"        }",
-											"});",
-											"",
-											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
-											"",
-											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");"
+											""
 										],
 										"type": "text/javascript"
 									}
@@ -986,17 +1016,26 @@
 									"listen": "test",
 									"script": {
 										"id": "fd941daf-bd85-4818-b33a-64dcc44dddc6",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											" pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result\", function() {",
-											" pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
-											"});"
-										]
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
+											"    pm.test(\"Validate result\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
+											"    });",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate result\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"    }); ",
+											"    ",
+											"}"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1092,7 +1131,7 @@
 					"name": "Delete snapshot bad-input",
 					"item": [
 						{
-							"name": "create snapshot bad input",
+							"name": "delete snapshot bad input",
 							"event": [
 								{
 									"listen": "test",
@@ -1104,14 +1143,28 @@
 											"pm.test(\"Status code is 200\", function () {",
 											" pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result fail\", function() {",
-											" pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_fail\"));",
-											"});",
-											"pm.test(\"Validate error message\", function() {",
-											" pm.expect(pm.response.json()[\"output\"][\"error-message\"]).to.eql(\"Snapshot with name snapshot2 does not exist. Cannot delete snapshot.\");",
-											"});",
-											"",
-											""
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"    ",
+											"    pm.test(\"Validate result fail\", function() {",
+											"       pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_fail\"));",
+											"    });",
+											"    pm.test(\"Validate error message\", function() {",
+											"       pm.expect(pm.response.json()[\"output\"][\"error-message\"]).to.eql(\"Snapshot with name snapshot2 does not exist. Cannot delete snapshot.\");",
+											"    });",
+											"    ",
+											"    ",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"   ",
+											"    pm.test(\"Validate result fail\", function() {",
+											"       pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_fail\"));",
+											"    });",
+											"    pm.test(\"Validate error message\", function() {",
+											"       pm.expect(pm.response.json()[\"output\"][\"error-message\"]).to.eql(\"Snapshot with name snapshot2 does not exist. Cannot delete snapshot.\");",
+											"    }); ",
+											"    ",
+											"    ",
+											"}"
 										],
 										"type": "text/javascript"
 									}

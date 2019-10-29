@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "385273dc-d90c-4954-802d-257efe29ac8c",
+		"_postman_id": "3472067c-3e2a-4586-a834-8fd21f19224e",
 		"name": "pc_unative_RPC_delete_snapshot",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -474,17 +474,52 @@
 									"listen": "test",
 									"script": {
 										"id": "840f03e3-92d9-4caa-b7a4-7f9c608b7aa1",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											" pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result\", function() {",
-											" pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
-											"});"
-										]
+											"",
+											"    var results = [];",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for(var i = 0; i < result.length; i++){",
+											"             results[i] = result[i][\"node-id\"];",
+											"    }",
+											"pm.test(\"Validate node overall status\", function() {",
+											"       if ( [\"output\"] ){",
+											"            pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"    });",
+											"pm.test(\"Validate node R1 result status\", function() {",
+											"        var nodes = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"        for(var i=0;i<nodes.length;i++){",
+											"            if(nodes[i][\"node-id\"] == \"R1\"){",
+											"                pm.expect(nodes[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"                break;",
+											"            }   ",
+											"            ",
+											"            var found = results.includes('R1');",
+											"            pm.expect(found).to.be.true;",
+											"       }",
+											"",
+											"    }); ",
+											"pm.test(\"Validate node R2 result status\", function() {",
+											"        var nodes = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"        for(var i=0;i<nodes.length;i++){",
+											"            if(nodes[i][\"node-id\"] == \"R2\"){",
+											"               pm.expect(nodes[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"                break;",
+											"            } ",
+											"",
+											"            var found = results.includes('R2');",
+											"            pm.expect(found).to.be.true;",
+											"            ",
+											"        }",
+											"",
+											"   });"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -502,7 +537,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"input\": {\n        \"name\": \"snapshot1\"\n    }\n}"
+									"raw": "{\n    \"input\": {\n        \"name\": \"snapshot1\",\n        \"target-nodes\": {\n\t\t\t\"node\": [\"R1\",\"R2\"]\n\t\t}\n    }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/snapshot-manager:create-snapshot",
@@ -588,6 +623,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -919,9 +955,11 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Tests",
@@ -936,17 +974,18 @@
 									"listen": "test",
 									"script": {
 										"id": "fd941daf-bd85-4818-b33a-64dcc44dddc6",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											" pm.response.to.have.status(200);",
 											"});",
+											"    ",
 											"pm.test(\"Validate result\", function() {",
-											" pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
-											"});"
-										]
+											"         pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"});   "
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -964,7 +1003,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"input\": {\n        \"name\": \"snapshot1\"\n    }\n}"
+									"raw": "{\n    \"input\": {\n        \"name\": \"snapshot1\"\n\n    }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/snapshot-manager:delete-snapshot",
@@ -989,15 +1028,14 @@
 									"listen": "test",
 									"script": {
 										"id": "d2ec02ef-819b-43a8-9c24-1a5e42ae25b0",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 404\", function () {",
 											"  pm.response.to.have.status(404);",
-											"});",
-											""
-										]
+											"});"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1032,6 +1070,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1050,14 +1089,13 @@
 											"pm.test(\"Status code is 200\", function () {",
 											" pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result fail\", function() {",
-											" pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"fail\");",
-											"});",
-											"pm.test(\"Validate error message\", function() {",
-											" pm.expect(pm.response.json()[\"output\"][\"error-message\"]).to.eql(\"Snapshot with name snapshot2 does not exist. Cannot delete snapshot.\");",
-											"});",
 											"",
-											""
+											" pm.test(\"Validate result fail\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"  });",
+											" pm.test(\"Validate error message\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"error-message\"]).to.eql(\"Snapshot with name snapshot2 does not exist. Cannot delete snapshot.\");",
+											"  });"
 										],
 										"type": "text/javascript"
 									}
@@ -1107,8 +1145,7 @@
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1156,8 +1193,7 @@
 											"",
 											"pm.test(\"Status code is 404\", function () {",
 											"  pm.response.to.have.status(404);",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1194,9 +1230,12 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

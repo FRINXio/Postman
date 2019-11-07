@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "cef94760-db52-4d0b-baa9-50e7375a1780",
+		"_postman_id": "f70d628a-f4f0-4633-b0bb-a90a3f07a809",
 		"name": "pc_uniconfig_RPC_calculate_diff",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -135,10 +135,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
 									"protocol": "http",
@@ -224,10 +220,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration",
 									"protocol": "http",
@@ -373,10 +365,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
 									"protocol": "http",
@@ -462,10 +450,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration",
 									"protocol": "http",
@@ -579,10 +563,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -699,10 +679,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -728,6 +704,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -828,10 +805,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
 									"protocol": "http",
@@ -947,10 +920,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
 									"protocol": "http",
@@ -972,9 +941,11 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Tests",
@@ -1107,21 +1078,31 @@
 									"listen": "test",
 									"script": {
 										"id": "f7ea228d-9fa3-4425-80b5-a27e096090a7",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"pm.test(\"Validate data created\", function() {",
 											"",
 											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"node-id\"]).to.eql(\"R1\");",
 											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"created-data\"][0][\"data\"]).to.not.be.empty;",
 											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"created-data\"][0][\"data\"]).to.include(\"loopback123\");",
 											"});",
-											""
-										]
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"pm.test(\"Validate data created\", function() {",
+											"",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(\"R1\");",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"created-data\"][0][\"data\"]).to.include(\"loopback123\");",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(\"complete\");",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1170,6 +1151,7 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"var list = pm.response.json()[\"output\"][\"node-with-diff\"]",
 											"var items=[];",
 											"for(var i = 0;i < list.length;i++){",
@@ -1204,7 +1186,45 @@
 											"        } else",
 											"        pm.expect(items).to.be.an('array').that.includes(\"R2\");",
 											"    }",
-											"});"
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"var list = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"]",
+											"var items=[];",
+											"for(var i = 0;i < list.length;i++){",
+											"    items[i]=list[i][\"node-id\"];",
+											"}",
+											"",
+											"pm.test(\"No duplicate nodes\", function() {",
+											"  ",
+											"    pm.expect(items).to.have.members([\"R1\", \"R2\"]);",
+											"    pm.expect(items).to.have.lengthOf.at.most(2);",
+											"",
+											"});",
+											"",
+											"pm.test(\"Validate data created R1\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R1\") {",
+											"            pm.expect(list[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(list[i][\"created-data\"][0][\"data\"]).to.not.be.empty;",
+											"            pm.expect(list[i][\"created-data\"][0][\"data\"]).to.include(\"loopback123\");",
+											"            ",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R1\");",
+											"    }",
+											"});",
+											"",
+											"pm.test(\"Validate data created R2\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R2\") {",
+											"                pm.expect(list[i][\"node-id\"]).to.eql(\"R2\");",
+											"                pm.expect(list[i][\"created-data\"][0][\"data\"]).to.not.be.empty;",
+											"                pm.expect(list[i][\"created-data\"][0][\"data\"]).to.include(\"loopback123\");",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R2\");",
+											"    }",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1224,7 +1244,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1243,6 +1263,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1262,10 +1283,27 @@
 											"  pm.response.to.have.status(200);",
 											"  ",
 											"});",
-											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\") {",
 											"pm.test(\"Validate no diff R1 and R2\", function() {",
 											"            pm.expect(pm.response.json()[\"output\"]).to.be.empty;",
-											"});"
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\") {",
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"    });",
+											"",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"    pm.test(\"Status of all output nodes should be 'complete'\", function() {",
+											"        result.forEach(function(nodeResult, index) {",
+											"            pm.expect(nodeResult[\"node-id\"]).to.be.oneOf([\"R1\", \"R2\"]);",
+											"            pm.expect(nodeResult[\"status\"]).to.eq(\"complete\")",
+											"        });",
+											"    })",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1285,7 +1323,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1304,6 +1342,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1440,6 +1479,7 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\") {",
 											"var list = pm.response.json()[\"output\"][\"node-with-diff\"]",
 											"var items=[];",
 											"for(var i = 0;i < list.length;i++){",
@@ -1460,7 +1500,45 @@
 											"",
 											"pm.test(\"Validate failed result \", function() {",
 											"            pm.expect(items).to.not.have.members([\"R3\"]);",
-											"});"
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\") {",
+											"var list = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"]",
+											"var items=[];",
+											"for(var i = 0;i < list.length;i++){",
+											"    items[i]=list[i][\"node-id\"];",
+											"}",
+											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    });",
+											"",
+											"var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"pm.test(\"Validate data created R3\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R3\") {",
+											"            pm.expect(list[i][\"node-id\"]).to.eql(\"R3\");",
+											"            pm.expect(list[i][\"status\"]).to.eql(\"fail\");",
+											"            pm.expect(list[i][\"error-type\"]).to.eql(\"processing-error\");",
+											"            pm.expect(list[i][\"error-message\"]).to.eql(\"Node is missing in uniconfig topology CONFIG and OPERATIONAL datastore.\");",
+											"            ",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R3\");",
+											"    }",
+											"});",
+											"pm.test(\"Validate data created R1\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R1\") {",
+											"                pm.expect(list[i][\"node-id\"]).to.eql(\"R1\");",
+											"                pm.expect(list[i][\"status\"]).to.eql(\"fail\");",
+											"                pm.expect(list[i][\"error-type\"]).to.eql(\"processing-error\");",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R1\");",
+											"    }",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1480,7 +1558,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\"node\": [\"R1\", \"R3\"]\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R3\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1499,9 +1577,12 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

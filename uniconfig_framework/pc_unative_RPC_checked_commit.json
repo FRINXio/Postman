@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "ed816a3d-0dba-4948-9a86-2ca3d59d9617",
+		"_postman_id": "170007a2-a533-4816-bbd9-821db365336b",
 		"name": "pc_unative_RPC_checked_commit",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -728,14 +728,14 @@
 									"listen": "test",
 									"script": {
 										"id": "7962ea75-1246-4bb4-9630-14f712bc9df7",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});"
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -757,7 +757,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": [\n                \t\n                ]\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -782,17 +782,28 @@
 									"listen": "test",
 									"script": {
 										"id": "17633f9f-f6cb-46ba-b3d4-41691e09b158",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code 200\", function () {",
+											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Result complete\", function () {",
-											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
-											"});"
-										]
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"    });",
+											"",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"    pm.test(\"Status of all output nodes should be 'complete'\", function() {",
+											"        result.forEach(function(nodeResult, index) {",
+											"            pm.expect(nodeResult[\"node-id\"]).to.be.oneOf([\"R1\", \"R2\"]);",
+											"            pm.expect(nodeResult[\"status\"]).to.eq(\"complete\")",
+											"        });",
+											"    })"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -814,7 +825,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "    {\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
@@ -3359,8 +3370,7 @@
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"",
-											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function () {",
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function () {",
 											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
 											"    });",
 											"",
@@ -3370,7 +3380,8 @@
 											"             results[i] = result[i][\"node-id\"];",
 											"        }",
 											"    ",
-											"pm.test(\"Commited node R1 status: fail \", function () {",
+											"    ",
+											"    pm.test(\"Commited node R1 status: fail \", function () {",
 											"        for(var i = 0; i < result.length; i++){",
 											"            if( result[i][\"node-id\"] == \"R1\"){",
 											"                pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
@@ -3384,19 +3395,21 @@
 											"        }",
 											"    });",
 											"",
+											"",
 											"pm.test(\"Commited node R3 status: fail \", function () {",
 											"    for(var i = 0; i < result.length; i++){",
 											"        if( result[i][\"node-id\"] == \"R3\"){",
 											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R3\");",
 											"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
 											"            pm.expect(result[i][\"error-type\"]).to.eql(\"no-connection\");",
-											"            pm.expect(result[i][\"error-message\"]).to.contain(\"Unified mountpoint not found.\");",
+											"            pm.expect(result[i][\"error-message\"]).to.contain(\"Node has not been mounted yet.\");",
 											"            break;",
 											"        }",
 											"            var found = results.includes('R3');",
 											"            pm.expect(found).to.be.true;",
 											"",
-											"    } ",
+											"    }",
+											"",
 											"});"
 										],
 										"type": "text/javascript"
@@ -4344,9 +4357,10 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function () {",
+											"       pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function () {",
 											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
 											"});",
+											"",
 											"",
 											"var results = [];",
 											"var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
@@ -4354,13 +4368,14 @@
 											"        results[i] = result[i][\"node-id\"];",
 											"    }",
 											"",
+											"    ",
 											"pm.test(\"Commited node R1 status: FAIL \", function () {",
 											"    for(var i = 0; i < result.length; i++){",
 											"        if( result[i][\"node-id\"] == \"R1\"){",
 											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
 											"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
 											"            pm.expect(result[i][\"error-type\"]).to.eql(\"no-connection\");",
-											"            pm.expect(result[i][\"error-message\"]).to.contain(\"Unified mountpoint not found.\");",
+											"            pm.expect(result[i][\"error-message\"]).to.contain(\"Unified Mountpoint not found.\");",
 											"            break;",
 											"        }",
 											"            var found = results.includes('R1');",

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "72a9d19b-aea6-485a-9297-8dfbfa1325f8",
+		"_postman_id": "d110459e-2259-4ff6-8e61-b61ea4466240",
 		"name": "pc_unative_RPC_calculate_diff",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -736,7 +736,6 @@
 									"listen": "test",
 									"script": {
 										"id": "79f94ff4-4ddb-473e-b0bf-c7ff36772f97",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -744,7 +743,8 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											""
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -766,7 +766,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t \n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -791,18 +791,28 @@
 									"listen": "test",
 									"script": {
 										"id": "1a9010ba-df62-4e07-bf08-c5755258cb65",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
-											"});",
-											""
-										]
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"    });",
+											"",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"    pm.test(\"Status of all output nodes should be 'complete'\", function() {",
+											"        result.forEach(function(nodeResult, index) {",
+											"            pm.expect(nodeResult[\"node-id\"]).to.be.oneOf([\"R1\", \"R2\"]);",
+											"            pm.expect(nodeResult[\"status\"]).to.eq(\"complete\")",
+											"        });",
+											"    })"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -820,7 +830,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \n                }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
@@ -949,6 +959,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1185,9 +1196,11 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Tests",
@@ -1328,11 +1341,11 @@
 											"});",
 											"pm.test(\"Validate data created\", function() {",
 											"",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"node-id\"]).to.eql(\"R1\");",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"created-data\"][0][\"data\"]).to.not.be.empty;",
-											"    pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"created-data\"][0][\"data\"]).to.include(\"Loopback123\");",
-											"});",
-											""
+											"    pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(\"R1\");",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"created-data\"][0][\"data\"]).to.include(\"Loopback123\");",
+											"    pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(\"complete\");",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1383,7 +1396,7 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"var list = pm.response.json()[\"output\"][\"node-with-diff\"]",
+											"var list = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"]",
 											"var items=[];",
 											"for(var i = 0;i < list.length;i++){",
 											"    items[i]=list[i][\"node-id\"];",
@@ -1437,7 +1450,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1456,6 +1469,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1468,7 +1482,6 @@
 									"listen": "test",
 									"script": {
 										"id": "3a9e125d-e86a-466c-be86-4494a8838303",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1477,10 +1490,22 @@
 											"  ",
 											"});",
 											"",
-											"pm.test(\"Validate no diff R1 and R2\", function() {",
-											"            pm.expect(pm.response.json()[\"output\"]).to.be.empty;",
-											"});"
-										]
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"    });",
+											"",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"    pm.test(\"Status of all output nodes should be 'complete'\", function() {",
+											"        result.forEach(function(nodeResult, index) {",
+											"            pm.expect(nodeResult[\"node-id\"]).to.be.oneOf([\"R1\", \"R2\"]);",
+											"            pm.expect(nodeResult[\"status\"]).to.eq(\"complete\")",
+											"        });",
+											"    })"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1498,7 +1523,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1517,6 +1542,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1655,26 +1681,40 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"var list = pm.response.json()[\"output\"][\"node-with-diff\"]",
+											"var list = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"]",
 											"var items=[];",
 											"for(var i = 0;i < list.length;i++){",
 											"    items[i]=list[i][\"node-id\"];",
 											"}",
+											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    });",
 											"",
+											"var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"pm.test(\"Validate data created R3\", function() {",
+											"    for(var i = 0;i < list.length;i++){",
+											"        if (items[i] == \"R3\") {",
+											"            pm.expect(list[i][\"node-id\"]).to.eql(\"R3\");",
+											"            pm.expect(list[i][\"status\"]).to.eql(\"fail\");",
+											"            pm.expect(list[i][\"error-type\"]).to.eql(\"processing-error\");",
+											"            pm.expect(list[i][\"error-message\"]).to.eql(\"Node is missing in uniconfig topology CONFIG and OPERATIONAL datastore.\");",
+											"            ",
+											"        } else",
+											"        pm.expect(items).to.be.an('array').that.includes(\"R3\");",
+											"    }",
+											"});",
 											"pm.test(\"Validate data created R1\", function() {",
 											"    for(var i = 0;i < list.length;i++){",
 											"        if (items[i] == \"R1\") {",
-											"            pm.expect(list[i][\"node-id\"]).to.eql(\"R1\");",
-											"            pm.expect(list[i][\"created-data\"][0][\"data\"]).to.not.be.empty;",
-											"            pm.expect(pm.response.json()[\"output\"][\"node-with-diff\"][0][\"created-data\"][0][\"data\"]).to.include(\"Loopback123\");",
-											"            ",
+											"                pm.expect(list[i][\"node-id\"]).to.eql(\"R1\");",
+											"                pm.expect(list[i][\"status\"]).to.eql(\"fail\");",
+											"                pm.expect(list[i][\"error-type\"]).to.eql(\"processing-error\");",
 											"        } else",
 											"        pm.expect(items).to.be.an('array').that.includes(\"R1\");",
 											"    }",
-											"});",
-											"",
-											"pm.test(\"Validate failed result \", function() {",
-											"            pm.expect(items).to.not.have.members([\"R3\"]);",
 											"});"
 										],
 										"type": "text/javascript"
@@ -1695,7 +1735,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\"node\": [\"R1\", \"R3\"]\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R3\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1714,9 +1754,12 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f14bf9f1-099c-4175-9240-883b11cda485",
+		"_postman_id": "db94a661-f132-49a3-b1ba-70c21345d241",
 		"name": "pc_uniconfig_RPC_sync_from_network",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -135,10 +135,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
 									"protocol": "http",
@@ -224,10 +220,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration",
 									"protocol": "http",
@@ -373,10 +365,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
 									"protocol": "http",
@@ -462,10 +450,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration",
 									"protocol": "http",
@@ -579,10 +563,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -701,10 +681,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -730,6 +706,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -830,10 +807,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R1",
 									"protocol": "http",
@@ -947,10 +920,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/R2",
 									"protocol": "http",
@@ -972,9 +941,11 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Tests",
@@ -1059,10 +1030,25 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result\", function() {",
+											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(\"R1\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"sync-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-sync-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"",
+											"  }",
 											"});",
-											""
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(\"R1\");",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1150,10 +1136,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -1208,10 +1190,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -1301,6 +1279,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1448,6 +1427,7 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"pm.test(\"Validate nodes\",function(){",
 											"    var jstring=pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"];",
 											"    for(var i=0;i<jstring.length;i++){",
@@ -1462,7 +1442,28 @@
 											"",
 											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
 											"",
-											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");"
+											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"pm.test(\"Validate nodes\",function(){",
+											"     pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    var jstring=pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for(var i=0;i<jstring.length;i++){",
+											"        if(jstring[i][\"node-id\"]===\"R1\"){",
+											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"        if(jstring[i][\"node-id\"]===\"R2\"){",
+											"             pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"             pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"    }",
+											"});",
+											"",
+											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
+											"",
+											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1486,7 +1487,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t \n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -1548,10 +1549,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -1620,10 +1617,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -1777,6 +1770,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1795,7 +1789,49 @@
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											""
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"    pm.test(\"Validate nodes\",function(){",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-sync-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    var jstring=pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"];",
+											"    for(var i=0;i<jstring.length;i++){",
+											"        if(jstring[i][\"node-id\"]===\"R1\"){",
+											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(jstring[i][\"sync-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"        if(jstring[i][\"node-id\"]===\"R2\"){",
+											"             pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"             pm.expect(jstring[i][\"sync-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"        ",
+											"    }",
+											"});",
+											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
+											"",
+											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");",
+											"    ",
+											"    ",
+											"    ",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"pm.test(\"Validate nodes\",function(){",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    var jstring=pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for(var i=0;i<jstring.length;i++){",
+											"        if(jstring[i][\"node-id\"]===\"R1\"){",
+											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"        if(jstring[i][\"node-id\"]===\"R2\"){",
+											"             pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"             pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"        ",
+											"    }",
+											"});",
+											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
+											"",
+											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1819,7 +1855,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t \n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -1985,6 +2021,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2068,6 +2105,7 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"pm.test(\"Validate error message\",function(){",
 											"   pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(\"R3\");",
 											"   pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"error-message\"]).to.eql(\"java.lang.Exception: Unified mountpoint does not exist for node R3\");",
@@ -2075,8 +2113,29 @@
 											"   pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][1][\"node-id\"]).to.eql(\"R1\");",
 											"   ",
 											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"pm.test(\"Validate nodes\",function(){",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    var jstring=pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for(var i=0;i<jstring.length;i++){",
+											"        if(jstring[i][\"node-id\"]===\"R1\"){",
+											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"        if(jstring[i][\"node-id\"]===\"R3\"){",
+											"             pm.expect(jstring[i][\"node-id\"]).to.eql(\"R3\");",
+											"             pm.expect(jstring[i][\"status\"]).to.eql(\"fail\");",
+											"             pm.expect(jstring[i][\"error-message\"]).to.eql(\"Unified mountpoint not found.\");",
+											"             pm.expect(jstring[i][\"error-type\"]).to.eql(\"no-connection\");",
+											"        }",
+											"        ",
+											"    }",
+											"});",
+											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
 											"",
-											"",
+											"tests[\"Body matches string: R3\"] = responseBody.has(\"R3\");",
+											"}",
 											"",
 											"",
 											"",
@@ -2164,10 +2223,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -2222,10 +2277,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -2315,6 +2366,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2458,6 +2510,7 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"pm.test(\"Validate nodes\",function(){",
 											"    var jstring=pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"];",
 											"    for(var i=0;i<jstring.length;i++){",
@@ -2473,7 +2526,30 @@
 											"",
 											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
 											"",
-											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");"
+											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"pm.test(\"Validate nodes\",function(){",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    var jstring=pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for(var i=0;i<jstring.length;i++){",
+											"        if(jstring[i][\"node-id\"]===\"R1\"){",
+											"            pm.expect(jstring[i][\"error-type\"]).to.eql(\"no-connection\");",
+											"            pm.expect(jstring[i][\"error-message\"]).to.eql(\"Unified mountpoint not found.\");",
+											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(jstring[i][\"status\"]).to.eql(\"fail\");",
+											"        }",
+											"        if(jstring[i][\"node-id\"]===\"R2\"){",
+											"             pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"             pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"    }",
+											"});",
+											"",
+											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
+											"",
+											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -2497,7 +2573,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{follower1}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -2545,10 +2621,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -2615,10 +2687,6 @@
 										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/Loopback123",
 									"protocol": "http",
@@ -2708,9 +2776,12 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

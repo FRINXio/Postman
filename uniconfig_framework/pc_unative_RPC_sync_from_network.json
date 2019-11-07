@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "29f5c85a-d51d-4d63-aede-2a13e1b6ccbd",
+		"_postman_id": "e373681a-6e08-40b8-8fed-c9fe1adfd154",
 		"name": "pc_unative_RPC_sync_from_network",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -578,6 +578,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -814,9 +815,11 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Tests",
@@ -898,18 +901,19 @@
 									"listen": "test",
 									"script": {
 										"id": "fd47e0bc-90e5-4d12-a92c-fed3f290f935",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate result\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(\"R1\");",
-											"});",
-											""
-										]
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(\"R1\");",
+											"});"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1131,6 +1135,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1277,7 +1282,6 @@
 									"listen": "test",
 									"script": {
 										"id": "31358e04-53fb-45ee-92ce-e516f2f7fc73",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1286,13 +1290,16 @@
 											"});",
 											"",
 											"pm.test(\"Validate nodes\",function(){",
-											"    var jstring=pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"];",
+											"     pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    var jstring=pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
 											"    for(var i=0;i<jstring.length;i++){",
 											"        if(jstring[i][\"node-id\"]===\"R1\"){",
 											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"        }",
 											"        if(jstring[i][\"node-id\"]===\"R2\"){",
 											"             pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"             pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"        }",
 											"    }",
 											"});",
@@ -1300,7 +1307,8 @@
 											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
 											"",
 											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");"
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1322,7 +1330,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t \n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -1591,6 +1599,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1670,7 +1679,6 @@
 									"listen": "test",
 									"script": {
 										"id": "e7f01277-3c9f-4fba-848e-cb8dd0b94751",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1678,20 +1686,28 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test(\"Validate error message\",function(){",
-											"   pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(\"R3\");",
-											"   pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"error-message\"]).to.eql(\"java.lang.Exception: Unified mountpoint does not exist for node R3\");",
-											"   pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"error-type\"]).to.eql(\"processing-error\");",
-											"   pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][1][\"node-id\"]).to.eql(\"R1\");",
-											"   ",
+											"pm.test(\"Validate nodes\",function(){",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    var jstring=pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for(var i=0;i<jstring.length;i++){",
+											"        if(jstring[i][\"node-id\"]===\"R1\"){",
+											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"        }",
+											"        if(jstring[i][\"node-id\"]===\"R3\"){",
+											"             pm.expect(jstring[i][\"node-id\"]).to.eql(\"R3\");",
+											"             pm.expect(jstring[i][\"status\"]).to.eql(\"fail\");",
+											"             pm.expect(jstring[i][\"error-message\"]).to.eql(\"Unified mountpoint not found.\");",
+											"             pm.expect(jstring[i][\"error-type\"]).to.eql(\"no-connection\");",
+											"        }",
+											"        ",
+											"    }",
 											"});",
+											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
 											"",
-											"",
-											"",
-											"",
-											"",
-											""
-										]
+											"tests[\"Body matches string: R3\"] = responseBody.has(\"R3\");"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1913,6 +1929,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2050,7 +2067,6 @@
 									"listen": "test",
 									"script": {
 										"id": "aeb73eab-47ce-4425-abee-c95ea9f14d16",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2059,14 +2075,18 @@
 											"});",
 											"",
 											"pm.test(\"Validate nodes\",function(){",
-											"    var jstring=pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"];",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    var jstring=pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
 											"    for(var i=0;i<jstring.length;i++){",
 											"        if(jstring[i][\"node-id\"]===\"R1\"){",
-											"            pm.expect(jstring[i][\"error-type\"]).to.eql(\"processing-error\");",
-											"            pm.expect(jstring[i][\"error-message\"]).to.eql(\"java.lang.Exception: Unified mountpoint does not exist for node R1\");",
+											"            pm.expect(jstring[i][\"error-type\"]).to.eql(\"no-connection\");",
+											"            pm.expect(jstring[i][\"error-message\"]).to.eql(\"Unified mountpoint not found.\");",
+											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            pm.expect(jstring[i][\"status\"]).to.eql(\"fail\");",
 											"        }",
 											"        if(jstring[i][\"node-id\"]===\"R2\"){",
 											"             pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"             pm.expect(jstring[i][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"        }",
 											"    }",
 											"});",
@@ -2074,7 +2094,8 @@
 											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
 											"",
 											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");"
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -2096,7 +2117,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -2295,9 +2316,12 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

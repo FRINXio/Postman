@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "aca8b9ba-f664-43f4-b8b3-56f91f7e8d6f",
+		"_postman_id": "c0c0ccb6-3838-4749-8faf-9d35d1a52120",
 		"name": "pc_uniconfig_syslog",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -76,10 +76,11 @@
 									"listen": "test",
 									"script": {
 										"id": "646c09ba-cf3a-47f3-8945-57f7d63e890a",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
+											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") || \"cisco_xr6\" === postman.getEnvironmentVariable(\"env_type\")){",
 											"    ",
 											"    pm.test(\"Status code is 200\", function () {",
@@ -103,19 +104,47 @@
 											"    pm.test('dryrun - contains logging events link-status', function () {",
 											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"logging events link-status\");",
 											"    });",
+											"}",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") || \"cisco_xr6\" === postman.getEnvironmentVariable(\"env_type\")){",
+											"    ",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - node-id\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    pm.test(\"dryrun - not empty configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    pm.test('dryrun - contains interface Bundle-Ether7029', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration\"]).to.include(\"interface Bundle-Ether7029\");",
+											"    });",
+											"    pm.test('dryrun - contains logging events link-status', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration\"]).to.include(\"logging events link-status\");",
+											"    });",
+											"}",
 											"}"
-										]
+										],
+										"type": "text/javascript"
 									}
 								},
 								{
 									"listen": "prerequest",
 									"script": {
 										"id": "af11d9e8-1209-4c48-a272-7f609183da6f",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Here we wait 20 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
 											"setTimeout(function(){}, 20000);"
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -137,7 +166,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
@@ -161,13 +190,16 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "22fb1497-1e91-4cdd-973e-8474fea0123c",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
 											"pm.test(\"Validate overall-configuration-status\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
@@ -177,81 +209,18 @@
 											"pm.test(\"Validate node-id\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
 											"});",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "showPassword",
-											"value": false,
-											"type": "boolean"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"uniconfig-manager:commit"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "sync-from-network",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
-											"",
-											"  }",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											""
+											"pm.test(\"Validate node-id\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -287,7 +256,89 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -342,7 +393,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -404,10 +455,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
 									"protocol": "http",
@@ -498,10 +545,10 @@
 									"listen": "test",
 									"script": {
 										"id": "c742f7fc-0e16-42c8-9a51-6e15b36a7cf7",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") || \"cisco_xr6\" === postman.getEnvironmentVariable(\"env_type\")){",
 											"    pm.test(\"Status code is 200\", function () {",
 											"        pm.response.to.have.status(200);",
@@ -525,19 +572,47 @@
 											"    pm.test('dryrun - contains no logging events link-status', function () {",
 											"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.include(\"no logging events link-status\");",
 											"    });",
+											"}",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"if ( \"cisco_xr5\" === postman.getEnvironmentVariable(\"env_type\") || \"cisco_xr6\" === postman.getEnvironmentVariable(\"env_type\")){",
+											"    pm.test(\"Status code is 200\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - overall-configuration-status complete\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"",
+											"    pm.test(\"dryrun - node-id\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"    });",
+											"    ",
+											"    ",
+											"    pm.test(\"dryrun - not empty configuration\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration\"]).not.to.eql(\"\");",
+											"    });",
+											"    pm.test('dryrun - contains interface Bundle-Ether7029', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration\"]).to.include(\"interface Bundle-Ether7029\");",
+											"    });",
+											"    pm.test('dryrun - contains no logging events link-status', function () {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration\"]).to.include(\"no logging events link-status\");",
+											"    });",
+											"}",
 											"}"
-										]
+										],
+										"type": "text/javascript"
 									}
 								},
 								{
 									"listen": "prerequest",
 									"script": {
 										"id": "95649c61-ea2b-4e9d-bcc7-bc119e9e7e70",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Here we wait 20 seconds - be patient. The reasons is that this update was not able properly configure device.\")",
 											"setTimeout(function(){}, 20000);"
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -559,7 +634,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
@@ -583,13 +658,16 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "a237ea51-bb09-47d7-ac06-be3c4e7623ee",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
 											"pm.test(\"Validate overall-configuration-status\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
@@ -599,81 +677,18 @@
 											"pm.test(\"Validate node-id\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
 											"});",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "showPassword",
-											"value": false,
-											"type": "boolean"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"uniconfig-manager:commit"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "sync-from-network",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
-											"",
-											"  }",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											""
+											"pm.test(\"Validate node-id\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -709,7 +724,89 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -764,7 +861,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -826,10 +923,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
 									"protocol": "http",
@@ -919,13 +1012,16 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "678043b7-5992-4278-8203-f0b804980039",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
 											"pm.test(\"Validate overall-configuration-status\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
@@ -935,81 +1031,18 @@
 											"pm.test(\"Validate node-id\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
 											"});",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "showPassword",
-											"value": false,
-											"type": "boolean"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"uniconfig-manager:commit"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "sync-from-network",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
-											"",
-											"  }",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											""
+											"pm.test(\"Validate node-id\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1045,7 +1078,89 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -1100,7 +1215,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1150,10 +1265,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
 									"protocol": "http",
@@ -1185,18 +1296,30 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "f4e411d9-2ae5-4a02-911a-5be1182c2eab",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate overall-configuration-status\", function() {",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
+											"pm.test(\"Validate result\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											""
-										]
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"       pm.test(\"Validate result\", function() {",
+											"       ",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    }); ",
+											"    ",
+											"}"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1230,7 +1353,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\"target-nodes\": {\n\t\t\t\"node\": [\n\t\t\t\t\"{{node_id}}\"\n\t\t\t]\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
@@ -1249,6 +1372,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1324,7 +1448,7 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"pm.test(\"Validate configuration-status\", function() {",
 											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
@@ -1332,7 +1456,14 @@
 											"",
 											"  }",
 											"});",
-											""
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1368,7 +1499,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -1401,13 +1532,9 @@
 											"  ",
 											"});",
 											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
-											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
-											"    }",
-											"    else{",
-											"        console.warn(\"NO DIFF\" );",
-											"    }"
+											"pm.test(\"Configuration and operational datastore is equal \", function() {",
+											"  pm.expect(pm.response.json()[\"output\"]).to.not.have.property(\"node-with-diff\");",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1427,7 +1554,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1478,10 +1605,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/Bundle-Ether{{lag_inf-id}}",
 									"protocol": "http",
@@ -1543,10 +1666,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces",
 									"protocol": "http",
@@ -1663,10 +1782,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/Bundle-Ether{{lag_inf-id}}",
 									"protocol": "http",
@@ -1761,7 +1876,7 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"pm.test(\"Validate configuration-status\", function() {",
 											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
@@ -1769,7 +1884,14 @@
 											"",
 											"  }",
 											"});",
-											""
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1805,7 +1927,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -1838,13 +1960,9 @@
 											"  ",
 											"});",
 											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"output\") && jsonData.output['node-with-diff'] ) {",
-											"       console.warn(\"Calculate diff failed,Configuration datastore differs from operational\") ;",
-											"    }",
-											"    else{",
-											"        console.warn(\"NO DIFF\" );",
-											"    }"
+											"pm.test(\"Configuration and operational datastore is equal \", function() {",
+											"  pm.expect(pm.response.json()[\"output\"]).to.not.have.property(\"node-with-diff\");",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1864,7 +1982,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -1915,10 +2033,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/Bundle-Ether{{lag_inf-id}}",
 									"protocol": "http",
@@ -2005,9 +2119,11 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "XR5 SYSLOG CRUD",
@@ -2080,13 +2196,16 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "ce0ff195-c3b7-4650-91a5-3e971d7e4887",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
 											"pm.test(\"Validate overall-configuration-status\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
@@ -2096,81 +2215,18 @@
 											"pm.test(\"Validate node-id\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
 											"});",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "showPassword",
-											"value": false,
-											"type": "boolean"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"uniconfig-manager:commit"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "sync-from-network",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
-											"",
-											"  }",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											""
+											"pm.test(\"Validate node-id\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -2206,7 +2262,89 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -2261,7 +2399,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -2328,10 +2466,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
 									"protocol": "http",
@@ -2357,6 +2491,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2552,7 +2687,7 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"pm.test(\"Validate configuration-status\", function() {",
 											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
@@ -2560,7 +2695,14 @@
 											"",
 											"  }",
 											"});",
-											""
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -2596,7 +2738,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -2620,18 +2762,30 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "ce79b8f6-e835-48f4-a898-f4129e147eb9",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
 											"pm.test(\"Validate result\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											""
-										]
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"       pm.test(\"Validate result\", function() {",
+											"       ",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    }); ",
+											"    ",
+											"}"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -2665,7 +2819,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
@@ -2729,10 +2883,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-logging:logging/interfaces/interface/Bundle-Ether{{lag_inf-id}}",
 									"protocol": "http",
@@ -2889,7 +3039,7 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"pm.test(\"Validate configuration-status\", function() {",
 											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
@@ -2897,7 +3047,14 @@
 											"",
 											"  }",
 											"});",
-											""
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -2933,7 +3090,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -2957,18 +3114,30 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "b67d25f2-39a2-438a-b3bc-9a13f4627300",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
 											"pm.test(\"Validate result\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											""
-										]
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"       pm.test(\"Validate result\", function() {",
+											"       ",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    }); ",
+											"    ",
+											"}"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -3002,7 +3171,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
@@ -3047,10 +3216,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/",
 									"protocol": "http",
@@ -3074,6 +3239,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -3143,13 +3309,16 @@
 								{
 									"listen": "test",
 									"script": {
-										"type": "text/javascript",
+										"id": "9e2dea5c-b130-4761-92e6-12116f1050fe",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
 											"pm.test(\"Validate overall-configuration-status\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
@@ -3159,81 +3328,18 @@
 											"pm.test(\"Validate node-id\", function() {",
 											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
 											"});",
-											""
-										]
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "showPassword",
-											"value": false,
-											"type": "boolean"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"uniconfig-manager:commit"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "sync-from-network",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											"",
 											"pm.test(\"Validate configuration-status\", function() {",
-											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
-											"",
-											"  }",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
-											""
+											"pm.test(\"Validate node-id\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -3269,7 +3375,89 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t}\n\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:commit"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "782b7a74-9a16-4a1b-868b-bc903ba16e93",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -3324,7 +3512,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\n\t\t}\n\t}\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:calculate-diff",
@@ -3380,10 +3568,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces",
 									"protocol": "http",
@@ -3439,10 +3623,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lag_prefix}}{{lag_inf-id}}",
 									"protocol": "http",
@@ -3468,9 +3648,12 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

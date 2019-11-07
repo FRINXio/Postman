@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "76fb9c55-62d9-4419-8cee-81df686a6439",
+		"_postman_id": "ec04700d-ab33-4b00-b1d9-8cf4a98338a7",
 		"name": "pc_unative_RPC_commit",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -736,14 +736,14 @@
 									"listen": "test",
 									"script": {
 										"id": "7962ea75-1246-4bb4-9630-14f712bc9df7",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});"
-										]
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -765,7 +765,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": [\n                \t\n                ]\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
@@ -790,17 +790,28 @@
 									"listen": "test",
 									"script": {
 										"id": "17633f9f-f6cb-46ba-b3d4-41691e09b158",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Result complete\", function () {",
-											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(\"complete\");",
-											"});"
-										]
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"    });",
+											"",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"    pm.test(\"Status of all output nodes should be 'complete'\", function() {",
+											"        result.forEach(function(nodeResult, index) {",
+											"            pm.expect(nodeResult[\"node-id\"]).to.be.oneOf([\"R1\", \"R2\"]);",
+											"            pm.expect(nodeResult[\"status\"]).to.eq(\"complete\")",
+											"        });",
+											"    })"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -822,7 +833,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "    {\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
@@ -841,6 +852,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1345,9 +1357,11 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Tests",
@@ -1480,23 +1494,24 @@
 									"listen": "test",
 									"script": {
 										"id": "ba00000c-e2eb-43bd-aef6-31abf93288ec",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"pm.test(\"Status code is 200\", function() {",
+											"    pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Validate overall-configuration-status\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});",
-											"pm.test(\"Validate configuration-status\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});",
-											"pm.test(\"Validate node-id\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(\"R1\");",
-											"});"
-										]
+											"",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    pm.test(\"Validate configuration-status\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    });",
+											"    pm.test(\"Validate node-id\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(\"R1\");",
+											"    });"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -1795,6 +1810,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1932,12 +1948,12 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
+											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function () {",
+											"    pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
 											"});",
 											"",
 											"var results = [];",
-											"var result = pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
+											"var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
 											"    for(var i = 0; i < result.length; i++){",
 											"        results[i] = result[i][\"node-id\"];",
 											"    }",
@@ -1993,7 +2009,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
@@ -2294,6 +2310,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2763,7 +2780,7 @@
 									"script": {
 										"id": "8244745e-748f-4b8e-a8ca-7d92f7fdbb65",
 										"exec": [
-											"console.log(\"Response: \" + responseBody)",
+											"//console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
@@ -2834,7 +2851,7 @@
 									"script": {
 										"id": "8244745e-748f-4b8e-a8ca-7d92f7fdbb65",
 										"exec": [
-											"console.log(\"Response: \" + responseBody);",
+											"//console.log(\"Response: \" + responseBody);",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
@@ -2903,7 +2920,6 @@
 									"listen": "test",
 									"script": {
 										"id": "48e52915-9972-45dc-b64c-a35cd9aff38c",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2911,11 +2927,22 @@
 											"  pm.response.to.have.status(200);",
 											"});",
 											"",
-											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
-											"});",
-											""
-										]
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"    });",
+											"",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"    pm.test(\"Status of all output nodes should be 'complete'\", function() {",
+											"        result.forEach(function(nodeResult, index) {",
+											"            pm.expect(nodeResult[\"node-id\"]).to.be.oneOf([\"R1\", \"R2\"]);",
+											"            pm.expect(nodeResult[\"configuration-status\"]).to.eq(\"complete\")",
+											"        });",
+											"    })"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -2937,7 +2964,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
@@ -2963,7 +2990,7 @@
 									"script": {
 										"id": "8244745e-748f-4b8e-a8ca-7d92f7fdbb65",
 										"exec": [
-											"console.log(\"Response: \" + responseBody);",
+											"//console.log(\"Response: \" + responseBody);",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
@@ -3032,7 +3059,7 @@
 									"script": {
 										"id": "8244745e-748f-4b8e-a8ca-7d92f7fdbb65",
 										"exec": [
-											"console.log(\"Response: \" + responseBody);",
+											"//console.log(\"Response: \" + responseBody);",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
@@ -3194,6 +3221,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -3338,46 +3366,45 @@
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    });",
 											"",
-											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"complete\");",
-											"});",
-											"",
-											"var results = [];",
-											"var result = pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
-											"    for(var i = 0; i < result.length; i++){",
+											"    var results = [];",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for (var i = 0; i < result.length; i++) {",
 											"        results[i] = result[i][\"node-id\"];",
 											"    }",
-											"",
 											"    ",
-											"pm.test(\"Commited node R1 status: complete \", function () {",
-											"    for(var i = 0; i < result.length; i++){",
-											"        if( result[i][\"node-id\"] == \"R1\"){",
-											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
-											"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"complete\");",
-											"            break;",
-											"        }",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(results.length).to.eql(2);",
+											"    })",
+											"",
+											"    pm.test(\"Commited node R1 status: fail\", function() {",
+											"        for (var i = 0; i < result.length; i++) {",
+											"            if (result[i][\"node-id\"] == \"R1\") {",
+											"                pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
+											"                pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
+											"                break;",
+											"            }",
 											"            var found = results.includes('R1');",
 											"            pm.expect(found).to.be.true;",
-											"",
-											"    }",
-											"});",
-											"",
-											"pm.test(\"Commited node R3 status: ignored \", function () {",
-											"    for(var i = 0; i < result.length; i++){",
-											"        if( result[i][\"node-id\"] == \"R3\"){",
-											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R3\");",
-											"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"ignored\");",
-											"            pm.expect(result[i][\"error-type\"]).to.eql(\"processing-error\");",
-											"            pm.expect(result[i][\"error-message\"]).to.eql(\"Node is missing in uniconfig topology CONFIG and OPERATIONAL datastore\");",
-											"            break;",
 											"        }",
+											"    });",
+											"",
+											"    pm.test(\"Commited node R3 status: fail\", function() {",
+											"        for (var i = 0; i < result.length; i++) {",
+											"            if (result[i][\"node-id\"] == \"R3\") {",
+											"                pm.expect(result[i][\"node-id\"]).to.eql(\"R3\");",
+											"                pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
+											"                pm.expect(result[i][\"error-type\"]).to.eql(\"no-connection\");",
+											"                pm.expect(result[i][\"error-message\"]).to.eql(\"Node has not been mounted yet.\");",
+											"                break;",
+											"            }",
 											"            var found = results.includes('R3');",
 											"            pm.expect(found).to.be.true;",
-											"",
-											"    }",
-											"",
-											"});",
+											"        }",
+											"    });",
 											""
 										],
 										"type": "text/javascript"
@@ -3402,7 +3429,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                \t\"node\": [\"R1\", \"R3\"]\n                    }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R3\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
@@ -3421,7 +3448,7 @@
 							"response": []
 						},
 						{
-							"name": "check existing interface on oper R1 bad input",
+							"name": "check nonexisting interface on oper R1 bad input",
 							"event": [
 								{
 									"listen": "test",
@@ -3430,19 +3457,10 @@
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"pm.test(\"Status code 404\", function () {",
+											"  pm.response.to.have.status(404);",
 											"});",
-											"",
-											"pm.test(\"Interface configuration \", function () {",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"active\"]).to.eql(\"act\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"interface-name\"]).to.eql(\"Loopback123\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"description\"]).to.eql(\"description from uniconfig native\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"Cisco-IOS-XR-ipv4-io-cfg:ipv4-network\"][\"addresses\"][\"primary\"][\"address\"]).to.eql(\"1.2.3.4\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"Cisco-IOS-XR-ipv4-io-cfg:ipv4-network\"][\"addresses\"][\"primary\"][\"netmask\"]).to.eql(\"255.255.255.128\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"Cisco-IOS-XR-ipv4-io-cfg:ipv4-network\"][\"addresses\"][\"primary\"][\"route-tag\"]).to.eql(22);",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"interface-virtual\"]).to.eql([ null ]);",
-											"});"
+											""
 										],
 										"type": "text/javascript"
 									}
@@ -3550,7 +3568,7 @@
 							"response": []
 						},
 						{
-							"name": "show interface configuration on R1 bad input",
+							"name": "show no interface configuration on R1 bad input",
 							"event": [
 								{
 									"listen": "test",
@@ -3559,19 +3577,10 @@
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"pm.test(\"Status code 404\", function () {",
+											"  pm.response.to.have.status(404);",
 											"});",
-											"",
-											"pm.test(\"Interface configuration \", function () {",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"active\"]).to.eql(\"act\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"interface-name\"]).to.eql(\"Loopback123\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"description\"]).to.eql(\"description from uniconfig native\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"Cisco-IOS-XR-ipv4-io-cfg:ipv4-network\"][\"addresses\"][\"primary\"][\"address\"]).to.eql(\"1.2.3.4\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"Cisco-IOS-XR-ipv4-io-cfg:ipv4-network\"][\"addresses\"][\"primary\"][\"netmask\"]).to.eql(\"255.255.255.128\");",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"Cisco-IOS-XR-ipv4-io-cfg:ipv4-network\"][\"addresses\"][\"primary\"][\"route-tag\"]).to.eql(22);",
-											"    pm.expect(pm.response.json()[\"interface-configuration\"][0][\"interface-virtual\"]).to.eql([ null ]);",
-											"});"
+											""
 										],
 										"type": "text/javascript"
 									}
@@ -3692,6 +3701,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -3836,48 +3846,46 @@
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    });",
 											"",
-											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
-											"});",
-											"",
-											"var results = [];",
-											"var result = pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
-											"    for(var i = 0; i < result.length; i++){",
+											"    var results = [];",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for (var i = 0; i < result.length; i++) {",
 											"        results[i] = result[i][\"node-id\"];",
 											"    }",
-											"",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(results.length).to.eql(2);",
+											"    })",
 											"    ",
-											"pm.test(\"Commited node R1 status: fail \", function () {",
-											"    for(var i = 0; i < result.length; i++){",
-											"        if( result[i][\"node-id\"] == \"R1\"){",
-											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
-											"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
-											"            pm.expect(result[i][\"error-type\"]).to.eql(\"processing-error\");",
-											"            pm.expect(result[i][\"rollback-status\"]).to.eql(\"complete\");",
-											"            pm.expect(result[i][\"error-message\"]).to.contain(\"RemoteDevice{R1}:RPC during tx failed\");",
-											"            break;",
-											"        }",
+											"    pm.test(\"Commited node R1 status: 'fail'\", function() {",
+											"        for (var i = 0; i < result.length; i++) {",
+											"            if (result[i][\"node-id\"] == \"R1\") {",
+											"                pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
+											"                pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
+											"                pm.expect(result[i][\"error-type\"]).to.eql(\"processing-error\");",
+											"                pm.expect(result[i][\"rollback-status\"]).to.eql(\"complete\");",
+											"                pm.expect(result[i][\"error-message\"]).to.contain(\"RemoteDevice{R1}:RPC during tx failed\");",
+											"                break;",
+											"            }",
 											"            var found = results.includes('R1');",
 											"            pm.expect(found).to.be.true;",
-											"",
-											"    }",
-											"});",
-											"",
-											"pm.test(\"Commited node R2 status:complete \", function () {",
-											"    for(var i = 0; i < result.length; i++){",
-											"        if( result[i][\"node-id\"] == \"R2\"){",
-											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R2\");",
-											"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"complete\");",
-											"            pm.expect(result[i][\"rollback-status\"]).to.eql(\"complete\");",
-											"            break;",
 											"        }",
+											"    });",
+											"",
+											"    pm.test(\"Commited node R2 status: 'complete'\", function() {",
+											"        for (var i = 0; i < result.length; i++) {",
+											"            if (result[i][\"node-id\"] == \"R2\") {",
+											"                pm.expect(result[i][\"node-id\"]).to.eql(\"R2\");",
+											"                pm.expect(result[i][\"configuration-status\"]).to.eql(\"complete\");",
+											"                pm.expect(result[i][\"rollback-status\"]).to.eql(\"complete\");",
+											"                break;",
+											"            }",
 											"            var found = results.includes('R2');",
 											"            pm.expect(found).to.be.true;",
-											"",
-											"    }",
-											"",
-											"});"
+											"        }",
+											"    });"
 										],
 										"type": "text/javascript"
 									}
@@ -3901,7 +3909,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
@@ -4171,6 +4179,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -4359,65 +4368,53 @@
 									"listen": "test",
 									"script": {
 										"id": "1d2bef42-58a5-4a12-8fe3-710593aa6cc8",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"",
-											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
-											"});",
-											"",
-											"",
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-configuration-status\"], function () {",
-											"    pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
-											"});",
-											"",
-											"var results = [];",
-											"var result = pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
-											"    for(var i = 0; i < result.length; i++){",
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    });",
+											"    ",
+											"    var results = [];",
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    for (var i = 0; i < result.length; i++) {",
 											"        results[i] = result[i][\"node-id\"];",
 											"    }",
-											"",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(results.length).to.eql(2);",
+											"    })",
 											"    ",
-											"pm.test(\"Commited node R1 status: FAIL \", function () {",
-											"    for(var i = 0; i < result.length; i++){",
-											"        if( result[i][\"node-id\"] == \"R1\"){",
-											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
-											"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
-											"            pm.expect(result[i][\"error-type\"]).to.eql(\"no-connection\");",
-											"            pm.expect(result[i][\"error-message\"]).to.eql(\"Unified Mountpoint not found.\");",
-											"            break;",
-											"        }",
+											"    pm.test(\"Commited node R1 status: FAIL \", function() {",
+											"        for (var i = 0; i < result.length; i++) {",
+											"            if (result[i][\"node-id\"] == \"R1\") {",
+											"                pm.expect(result[i][\"node-id\"]).to.eql(\"R1\");",
+											"                pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
+											"                pm.expect(result[i][\"error-type\"]).to.eql(\"no-connection\");",
+											"                pm.expect(result[i][\"error-message\"]).to.eql(\"Unified Mountpoint not found.\");",
+											"                break;",
+											"            }",
 											"            var found = results.includes('R1');",
 											"            pm.expect(found).to.be.true;",
-											"",
-											"    }",
-											"});",
-											"",
-											"pm.test(\"Commited node R2 status: complete\" , function () {",
-											"    for(var i = 0; i < result.length; i++){",
-											"        if( result[i][\"node-id\"] == \"R2\"){",
-											"            pm.expect(result[i][\"node-id\"]).to.eql(\"R2\");",
-											"            pm.expect(result[i][\"configuration-status\"]).to.eql(\"complete\");",
-											"            break;",
 											"        }",
+											"    });",
+											"    ",
+											"    pm.test(\"Commited node R2 status: FAIL\", function() {",
+											"        for (var i = 0; i < result.length; i++) {",
+											"            if (result[i][\"node-id\"] == \"R2\") {",
+											"                pm.expect(result[i][\"node-id\"]).to.eql(\"R2\");",
+											"                pm.expect(result[i][\"error-type\"]).to.eql(\"processing-error\");",
+											"                pm.expect(result[i][\"configuration-status\"]).to.eql(\"fail\");",
+											"                break;",
+											"            }",
 											"            var found = results.includes('R2');",
 											"            pm.expect(found).to.be.true;",
-											"",
-											"    }",
-											"",
-											"});"
-										]
+											"        }",
+											"    });"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -4439,7 +4436,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
@@ -4700,6 +4697,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -4834,33 +4832,32 @@
 									"listen": "test",
 									"script": {
 										"id": "b9cd3267-b995-4496-877b-f05007b03f29",
-										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"",
-											"pm.test(\"Validate overall-configuration-status\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(\"fail\");",
-											"});",
-											"pm.test(\"Validate configuration-status\", function() {",
-											"    var jstring=pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"];",
-											"    for(var i=0;i<jstring.length;i++){",
-											"        if(jstring[i][\"node-id\"]===\"xe\"){",
-											"            pm.expect(jstring[i][\"configuration-status\"]).to.eql(\"complete\");",
-											"            pm.expect(jstring[i][\"node-id\"]).to.eql(\"xe\");",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"fail\");",
+											"    });",
+											"    pm.test(\"Validate configuration-status\", function() {",
+											"        var jstring = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"        for (var i = 0; i < jstring.length; i++) {",
+											"            if (jstring[i][\"node-id\"] === \"R1\") {",
+											"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"                pm.expect(jstring[i][\"configuration-status\"]).to.eql(\"fail\");",
+											"                pm.expect(jstring[i][\"error-type\"]).to.eql(\"processing-error\");",
+											"                pm.expect(jstring[i][\"rollback-status\"]).to.eql(\"complete\");",
+											"            }",
+											"            if (jstring[i][\"node-id\"] === \"R2\") {",
+											"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"                pm.expect(jstring[i][\"configuration-status\"]).to.eql(\"complete\");",
+											"            }",
 											"        }",
-											"        if(jstring[i][\"node-id\"]===postman.getEnvironmentVariable(\"node_id\")){",
-											"            pm.expect(jstring[i][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"            pm.expect(jstring[i][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_fail\"));",
-											"            pm.expect(jstring[i][\"rollback-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"            pm.expect(jstring[i][\"error-type\"]).to.eql(\"processing-error\");",
-											"        }",
-											"    }",
-											"});"
-										]
+											"    });"
+										],
+										"type": "text/javascript"
 									}
 								}
 							],
@@ -4883,7 +4880,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\": {\n    \"do-rollback\": false\n  }\n}"
+									"raw": "{\n            \"input\": {\n            \t\"do-rollback\": false,\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
@@ -5168,9 +5165,12 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

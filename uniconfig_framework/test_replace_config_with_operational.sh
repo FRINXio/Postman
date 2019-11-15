@@ -15,7 +15,8 @@ odl_ip=$1
 first_device=$2
 device_number=$3
 logfile=$4
-
+peak=`expr $first_device + $device_number`
+device_peak=`expr $peak - 1`
 
 rm_file () {
     local _file=$1
@@ -34,6 +35,44 @@ do
 done
 
 
+
+#commit and replace config with oper body 
+body="{
+    \"input\" : {
+      \"target-nodes\" : {
+        \"node\" :
+     
+    ["
+
+
+for (( dev=$first_device; dev<=device_peak; dev++ ))
+do
+   node_id=$device_prefix$dev
+  node_body="
+            \"$device_prefix$dev\""
+
+  
+      node_body="$node_body
+                 "
+
+      body="$body
+        $node_body
+        "
+
+  if [ "$dev" -ne "$device_peak" ]; then
+   body="$body ,";
+  fi
+done
+
+body="$body
+    ]
+}}}"
+
+#echo $body
+
+#save body as json and use in postman thru variable " --env-var "data=$body" "
+echo $body > body.json
+
 ## since the devices simulated with netconf-testtool are without configuration
 ## in order to test the replace-config-with-operational is necessary to have some configuration inside the datastore
 ## before the test execution add some configuration for each of the <device_number> devices
@@ -49,7 +88,7 @@ unbuffer newman run "$collection" --bail folder -n "$device_number" --folder "$f
 folder="commit"
 _test_id="collection: $collection folder: $folder"
 echo $_test_id
-unbuffer newman run "$collection" --bail folder -n 1 --folder "$folder" --env-var "odl_ip=$odl_ip" --reporters cli,junit --reporter-junit-export "./junit_results/$folder.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $logfile; fi
+unbuffer newman run "$collection" --bail folder -n 1 --folder "$folder" --env-var "odl_ip=$odl_ip" --env-var "data=$body" --reporters cli,junit --reporter-junit-export "./junit_results/$folder.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $logfile; fi
 
 
 ## once the devices
@@ -63,7 +102,7 @@ do
   folder="replace_config_with_operational"
   _test_id="iteration: $iteration collection: $collection folder: $folder"
   echo $_test_id
-  unbuffer newman run "$collection" --bail folder -n 1 --folder "$folder" --env-var "odl_ip=$odl_ip" --reporters cli,junit --reporter-junit-export "./junit_results/$folder.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $logfile; fi
+  unbuffer newman run "$collection" --bail folder -n 1 --folder "$folder" --env-var "odl_ip=$odl_ip" --env-var "data=$body" --reporters cli,junit --reporter-junit-export "./junit_results/$folder.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $logfile; fi
 
   replace_config_with_operational_duration=`cat "./junit_results/replace_config_with_operational.xml" | grep "test_replace_config_with_operational" | grep -E -o 'time="[0-9]+.[0-9]+"' | grep -E -o '[0-9]+.[0-9]+'`
   echo "replace_config_with_operational for $device_number devices duration: $replace_config_with_operational_duration sec"

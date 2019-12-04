@@ -598,6 +598,34 @@ then
     # clean karaf
     clean_karaf "$odl_ip"
 
+    # rm daexim config file
+    rm_daexim_config_file "$odl_ip"
+
+    # add a sleep to wait a bit everything is cleaned
+    sleep 30
+
+    echo "############################################################################"
+    # test_case_4
+    #  immediate import without body
+    folder="daexim_uniconfig_empty_immediate_import_carbon"
+    echo "######### test_case_4: $folder"
+
+    # start karaf
+    start_karaf "$odl_ip"
+
+    # check karaf ready
+    cd $WORKSPACE/scripts/scripts/; ./check_uniconfig_ready.sh $odl_ip uniconfig
+    cd -;
+
+    # run postman collection to check if is imported
+    run_folder "$collection_file" "$env_file" "$folder" "$odl_ip" "$logfile"
+
+    # kill and get log
+    kill_and_get_log "$odl_ip" "$folder"
+
+    # clean karaf
+    clean_karaf "$odl_ip"
+
     # rm daexim folder
     rm_daexim_folder "$odl_ip"
 

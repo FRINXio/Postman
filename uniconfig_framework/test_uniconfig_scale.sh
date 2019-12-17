@@ -20,6 +20,8 @@ device_prefix="cli-"
 odl_ip=$1
 first_device=$2
 device_number=$3
+peak=`expr $first_device + $device_number`
+device_peak=`expr $peak - 1`
 
 
 rm_file () {
@@ -90,7 +92,7 @@ run_all_nodes () {
 
     local _test_id="collection: $_collection folder: $_folder device_number: $_device_number"
     echo $_test_id
-    unbuffer newman run "$_collection" --bail folder -n 1  --folder "$_folder" --env-var "odl_ip=$_odl_ip" --env-var "device_number=$_device_number" --reporters cli,junit --reporter-junit-export "./junit_results/$_folder.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $_file; fi
+    unbuffer newman run "$_collection" --bail folder -n 1  --folder "$_folder" --env-var "odl_ip=$_odl_ip" --env-var "data=$body" --env-var "device_number=$_device_number" --reporters cli,junit --reporter-junit-export "./junit_results/$_folder.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $_file; fi
 
 }
 
@@ -118,6 +120,42 @@ do
     echo "$node_id" >> $nodes_file
 done
 
+#commit/calculate diff/dry-run/sync body 
+body="{
+    \"input\" : {
+      \"target-nodes\" : {
+        \"node\" :
+     
+    ["
+
+
+for (( dev=$first_device; dev<=device_peak; dev++ ))
+do
+   node_id=$device_prefix$dev
+  node_body="
+            \"$device_prefix$dev\""
+
+  
+      node_body="$node_body
+                 "
+
+      body="$body
+        $node_body
+        "
+
+  if [ "$dev" -ne "$device_peak" ]; then
+   body="$body ,";
+  fi
+done
+
+body="$body
+    ]
+}}}"
+
+#echo $body
+
+#save body as json and use in postman thru variable " --env-var "data=$body" "
+echo $body > body.json
 
 # put configurations on all devices
 folder="put_configuration"

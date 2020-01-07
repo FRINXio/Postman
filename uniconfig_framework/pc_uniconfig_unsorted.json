@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "dd0da293-81e0-427a-9b3d-426820da8759",
+		"_postman_id": "cc4dedb2-8c65-4583-9b04-01f89bf9e176",
 		"name": "FRINX Uniconfig Unsorted",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -8329,6 +8329,863 @@
 										"{{topology_id_cli}}",
 										"node",
 										"xr62"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "FRHD-458",
+					"item": [
+						{
+							"name": "configure with embedded sections",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "840cf0f2-4352-47f2-99f5-d7183468402f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\n ipv4 access-list 190\n 10 deny ipv4 any any\n!\nipv4 access-list Ingress_Acl\n 10 deny ipv4 any any\n!\ninterface Bundle-Ether103\n description cede\n!\ninterface Bundle-Ether103.100\n description TOOL_TEST\n service-policy input REWRITE_TOS2_in\n service-policy output 100M-Policing-BE\n ipv4 address 1.1.1.1 255.255.255.252\n arp timeout 300\n shutdown\n load-interval 30\n ethernet cfm\n  mep domain DML3 service 500 mep-id 1\n   cos 6\n  !\n !\n encapsulation dot1q 100\n ipv4 access-group Ingress_Acl ingress\n ipv4 access-group 190 egress\n!\ncommit\nend\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"cli",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "6a0b6fd5-eb3a-42c3-b757-6961562cea31",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "98337603-8f30-4241-877a-abf6fea47cbb",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "replace-config-with-operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cd21eb05-cbc5-4900-a894-ed6984e9134a",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"       pm.test(\"Validate result\", function() {",
+											"       ",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    }); ",
+											"    ",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check acl list",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "1b418c7f-9c3b-4c89-a690-7eb8c1585de8",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"//type",
+											"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+											"});",
+											"",
+											"//set-name",
+											"pm.test(\"Validate set-name = Ingress_Acl\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(\"Ingress_Acl\");",
+											"});",
+											"",
+											"//type",
+											"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+											"});",
+											"",
+											"//set-name",
+											"pm.test(\"Validate set-name = Ingress_Acl\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"ingress-acl-sets\"][\"ingress-acl-set\"][0][\"set-name\"]).to.eql(\"Ingress_Acl\");",
+											"});",
+											"",
+											"//id",
+											"pm.test(\"Validate id = Bundle-Ether103.100\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"config\"][\"id\"]).to.eql(\"Bundle-Ether103.100\");",
+											"});",
+											"",
+											"//id",
+											"pm.test(\"Validate id = Bundle-Ether103.100\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"id\"]).to.eql(\"Bundle-Ether103.100\");",
+											"});",
+											"",
+											"//type",
+											"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+											"});",
+											"",
+											"//set-name",
+											"pm.test(\"Validate set-name = 190\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"set-name\"]).to.eql(\"190\");",
+											"});",
+											"",
+											"//type",
+											"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+											"});",
+											"",
+											"//set-name",
+											"pm.test(\"Validate set-name = 190\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:interface\"][0][\"egress-acl-sets\"][\"egress-acl-set\"][0][\"set-name\"]).to.eql(\"190\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "ed949348-2dcc-40c6-a2b0-f74af1b8a794",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl/interfaces/interface/Bundle-Ether103.100",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-acl:acl",
+										"interfaces",
+										"interface",
+										"Bundle-Ether103.100"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "restore 6.6 configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "e46c4a61-b0e5-4116-a51b-0c0b98d3b0cc",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+											"});",
+											"",
+											"pm.test(\"Config replaced\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"(config)#load \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"Loading.\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"This commit will replace or remove the entire running configuration.\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nload {{conf_file_stored}}\ncommit replace\nyes\nend\n\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "FRHD-455",
+					"item": [
+						{
+							"name": "configure acl",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "840cf0f2-4352-47f2-99f5-d7183468402f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\nset chassis fpc 0 lite-mode\nset chassis auto-image-upgrade\nset protocols ospf overload\nset protocols ospf area 192.168.10.1 interface ge-0/0/1.0\nset firewall family inet filter management-filter term APTN-VS from source-address 10.10.33.0/24\nset firewall family inet filter management-filter term APTN-VS from destination-port 22\nset firewall family inet filter management-filter term APTN-VS then accept\ncommit\nexit\"\n  }\n}\n\n"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/cli/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"cli",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "sync-from-network",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "6a0b6fd5-eb3a-42c3-b757-6961562cea31",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
+											"",
+											"  }",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "98337603-8f30-4241-877a-abf6fea47cbb",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "replace-config-with-operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cd21eb05-cbc5-4900-a894-ed6984e9134a",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"       pm.test(\"Validate result\", function() {",
+											"       ",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    }); ",
+											"    ",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check acl parsing",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "1b418c7f-9c3b-4c89-a690-7eb8c1585de8",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"//frinx-acl-extension:term-name",
+											"pm.test(\"Validate frinx-acl-extension:term-name = APTN-VS\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"frinx-acl-extension:term-name\"]).to.eql(\"APTN-VS\");",
+											"});",
+											"",
+											"//sequence-id",
+											"pm.test(\"Validate sequence-id = 1\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"config\"][\"sequence-id\"]).to.eql(1);",
+											"});",
+											"",
+											"//forwarding-action",
+											"pm.test(\"Validate forwarding-action = frinx-openconfig-acl:ACCEPT\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"actions\"][\"config\"][\"forwarding-action\"]).to.eql(\"frinx-openconfig-acl:ACCEPT\");",
+											"});",
+											"",
+											"//sequence-id",
+											"pm.test(\"Validate sequence-id = 1\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"sequence-id\"]).to.eql(1);",
+											"});",
+											"",
+											"//destination-address",
+											"pm.test(\"Validate destination-address = 0.0.0.0/0\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"destination-address\"]).to.eql(\"0.0.0.0/0\");",
+											"});",
+											"",
+											"//source-address",
+											"pm.test(\"Validate source-address = 10.10.33.0/24\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"ipv4\"][\"config\"][\"source-address\"]).to.eql(\"10.10.33.0/24\");",
+											"});",
+											"",
+											"//destination-port",
+											"pm.test(\"Validate destination-port = 22\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"destination-port\"]).to.eql(22);",
+											"});",
+											"",
+											"//source-port",
+											"pm.test(\"Validate source-port = ANY\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"acl-entries\"][\"acl-entry\"][0][\"transport\"][\"config\"][\"source-port\"]).to.eql(\"ANY\");",
+											"});",
+											"",
+											"//type",
+											"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"config\"][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+											"});",
+											"",
+											"//name",
+											"pm.test(\"Validate name = management-filter\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"config\"][\"name\"]).to.eql(\"management-filter\");",
+											"});",
+											"",
+											"//type",
+											"pm.test(\"Validate type = frinx-openconfig-acl:ACL_IPV4\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"type\"]).to.eql(\"frinx-openconfig-acl:ACL_IPV4\");",
+											"});",
+											"",
+											"//name",
+											"pm.test(\"Validate name = management-filter\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-acl:acl\"][\"acl-sets\"][\"acl-set\"][0][\"name\"]).to.eql(\"management-filter\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "ed949348-2dcc-40c6-a2b0-f74af1b8a794",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-acl:acl",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"uniconfig",
+										"node",
+										"{{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-acl:acl"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "restore empty config junos",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cc7469df-e2dc-4dce-a857-80daf834273e",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+											"});",
+											"",
+											"pm.test(\"Config replaced\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"root# load override \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\nload override {{conf_file_stored}}\ncommit\nexit\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_cli}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
 									]
 								}
 							},

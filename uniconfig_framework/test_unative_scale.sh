@@ -34,6 +34,8 @@ first_device=$2
 device_number=$3
 iter_number=$4
 test_scenario=$5
+peak=`expr $first_device + $device_number`
+device_peak=`expr $peak - 1`
 
 # check iter_number
 if [[ "$iter_number" < 1 ]] ; then
@@ -83,6 +85,43 @@ do
     node_id=$device_prefix$dev
     echo "$node_id" >> $nodes_file
 done
+
+#commit/calculate diff/dry-run/sync body 
+body="{
+    \"input\" : {
+      \"target-nodes\" : {
+        \"node\" :
+     
+    ["
+
+
+for (( dev=$first_device; dev<=device_peak; dev++ ))
+do
+   node_id=$device_prefix$dev
+  node_body="
+            \"$device_prefix$dev\""
+
+  
+      node_body="$node_body
+                 "
+
+      body="$body
+        $node_body
+        "
+
+  if [ "$dev" -ne "$device_peak" ]; then
+   body="$body ,";
+  fi
+done
+
+body="$body
+    ]
+}}}"
+
+#echo $body
+
+#save body as json and use in postman thru variable " --env-var "data=$body" "
+echo $body > body.json
 
 
 ### setup testtool devices

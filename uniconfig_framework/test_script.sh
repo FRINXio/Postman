@@ -40,8 +40,10 @@ elif [ "$env_file" == "xrv6.1.2-cli5.3.4_env.json" ] ; then
   dev_pref="XR5"
 elif [ "$env_file" == "asr_env.json" ] ; then
   dev_pref="ASR"
-elif [ "$env_file" == "xrv6.2.3_env.json" ] ; then
+elif [ "$env_file" == "xrv6.2.3-cli5.3.4_env.json" ] ; then
   dev_pref="XR5"
+elif [ "$env_file" == "xrv6.2.3_env.json" ] ; then
+  dev_pref="XRV6.2.3"
 elif [ "$env_file" == "xrv7.0.1_env.json" ] ; then
   dev_pref="XR5"
 elif [ "$env_file" == "xrv6.6.1_env.json" ] ; then

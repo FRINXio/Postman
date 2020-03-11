@@ -92,7 +92,7 @@ run_all_nodes () {
 
     local _test_id="collection: $_collection folder: $_folder device_number: $_device_number"
     echo $_test_id
-    unbuffer newman run "$_collection" --bail folder -n 1  --folder "$_folder" --env-var "odl_ip=$_odl_ip" --env-var "data=$body" --env-var "device_number=$_device_number" --reporters cli,junit --reporter-junit-export "./junit_results/$_folder.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $_file; fi
+    unbuffer newman run "$_collection"  --bail folder -n 1  --folder "$_folder" --env-var "odl_ip=$_odl_ip" --env-var "data=$body" --env-var "device_number=$_device_number" --reporters cli,junit --reporter-junit-export "./junit_results/$_folder.xml"; if [ "$?" != "0" ]; then echo "$_test_id FAILED" >> $_file; fi
 
 }
 

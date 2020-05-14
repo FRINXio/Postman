@@ -63,7 +63,9 @@ elif [ "$env_file" == "sros16_env.json" ] ; then
 elif [ "$env_file" == "testtool_env.json" ] ; then
   dev_pref="TESTTOOL"
 elif [ "$env_file" == "vnf20_env.json" ] ; then
-  dev_pref="VNF"
+  dev_pref="VNF20"
+elif [ "$env_file" == "vnf16_env.json" ] ; then
+  dev_pref="VNF16"
 else
   echo "Unsupported env file: $env_file"
   exit 1

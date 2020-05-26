@@ -1,10 +1,237 @@
 {
 	"info": {
-		"_postman_id": "b720b156-e2ad-4ab9-9c1f-3f7aa7bfc93d",
-		"name": "Learning_Lab_part7",
+		"_postman_id": "1af6e12c-5c6a-4fd9-9798-ea93632437c0",
+		"name": "LAB7_NEW",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
+		{
+			"name": "Mount IOS XR cli",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8dee9c93-9526-46af-9c2a-1dc19c78a8a2",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"pm.test(\"Status code\", function () {",
+							"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{xr_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"{{version_device}}\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      \n      \"node-extension:reconcile\": false\n    }\n  }"
+				},
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"rests",
+						"data",
+						"network-topology:network-topology",
+						"topology=uniconfig",
+						"node={{node_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check status connected CLI",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "adcf58eb-76ac-46cc-9721-06e431179ccd",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+							"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('Check status connected CLI');",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "a08551d7-c07a-4457-8e4c-9311fa3d66ac",
+						"exec": [
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"rests",
+						"data",
+						"network-topology:network-topology",
+						"topology=uniconfig",
+						"node=R1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check uniconfig available",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4379812d-c1ec-433e-922f-0651d17a9bca",
+						"exec": [
+							"console.log(\"Response: \" + responseBody)",
+							"",
+							"// attempts counter",
+							"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"if (pm.response.code === 200) {",
+							"    tests[\"Is connected\"] = true;",
+							"    // Reset attempt counter",
+							"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"} else {",
+							"    // If too many attempts, abort",
+							"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+							"        console.log(\"Not connected yet ! Too many attempts !\")",
+							"        // Reset attempt counter",
+							"        tests[\"Unable to connect\"] = false",
+							"    } else {",
+							"        // Schedule next check attempt",
+							"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
+							"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+							"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+							"        postman.setNextRequest('Check uniconfig available');",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "3fb91cc2-5a2c-46dc-926c-128254949038",
+						"exec": [
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4="
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}/frinx-uniconfig-topology:configuration",
+					"protocol": "http",
+					"host": [
+						"{{odl_ip}}"
+					],
+					"port": "8181",
+					"path": [
+						"rests",
+						"data",
+						"network-topology:network-topology",
+						"topology=uniconfig",
+						"node={{node_id}}",
+						"frinx-uniconfig-topology:configuration"
+					]
+				}
+			},
+			"response": []
+		},
 		{
 			"name": "create ospf",
 			"request": {
@@ -22,293 +249,23 @@
 					"raw": "{\n    \"protocol\": [\n        {\n            \"name\": \"{{ospf}}\",\n            \"identifier\": \"frinx-openconfig-policy-types:OSPF\",\n            \"config\": {\n                \"name\": \"{{ospf}}\",\n                \"identifier\": \"frinx-openconfig-policy-types:OSPF\"\n            },\n            \"ospfv2\": {\n                \"global\": {\n                    \"timers\": {\n                        \"max-metric-timers\": {\n                            \"max-metric-timer\": [\n                                {\n                                    \"trigger\": \"frinx-openconfig-ospf-types:MAX_METRIC_ON_SYSTEM_BOOT\",\n                                    \"config\": {\n                                        \"trigger\": \"frinx-openconfig-ospf-types:MAX_METRIC_ON_SYSTEM_BOOT\",\n                                        \"timeout\": \"{{ospf_timeout}}\",\n                                        \"include\": [\n                                            \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_STUB\",\n                                            \"frinx-openconfig-ospf-types:MAX_METRIC_INCLUDE_TYPE2_EXTERNAL\",\n                                            \"frinx-cisco-ospf-extension:MAX_METRIC_SUMMARY_LSA\"\n                                        ]\n                                    }\n                                }\n                            ]\n                        }\n                    }\n                },\n                \"areas\": {\n                    \"area\": [\n                        {\n                            \"identifier\": \"{{ospf_area_id}}\",\n                            \"config\": {\n                                \"identifier\": \"{{ospf_area_id}}\"\n                            },\n                            \"interfaces\": {\n                                \"interface\": [\n                                    {\n                                        \"id\": \"{{test_interface}}\",\n                                        \"config\": {\n                                            \"metric\": \"{{ospf_cost}}\",\n                                            \"id\": \"{{test_interface}}\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            }\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/default/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+					"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance=default/protocols/protocol=frinx-openconfig-policy-types%3AOSPF,{{ospf}}",
 					"protocol": "http",
 					"host": [
 						"{{odl_ip}}"
 					],
 					"port": "8181",
 					"path": [
-						"restconf",
-						"config",
+						"rests",
+						"data",
 						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
+						"topology=uniconfig",
+						"node={{node_id}}",
 						"frinx-uniconfig-topology:configuration",
 						"frinx-openconfig-network-instance:network-instances",
-						"network-instance",
-						"default",
+						"network-instance=default",
 						"protocols",
-						"protocol",
-						"frinx-openconfig-policy-types:OSPF",
-						"{{ospf}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "dry run",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "21e55706-8942-496b-bb39-fc6570fab351",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"pm.test(\"dryrun - overall-configuration-status complete\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});",
-							"pm.test(\"dryrun - node-id\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-							"});",
-							"pm.test(\"dryrun - configuration status\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});",
-							"pm.test(\"dryrun - operation delete interface name\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.contain(postman.getEnvironmentVariable(\"lag_inf-id\"));",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.contain(\"a:operation=\\\"delete\\\"\");",
-							"",
-							"});",
-							"",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"{{node_id}}\"\n            ]\n        }\n    }\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"dryrun-manager:dryrun-commit"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "commit",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "2caf21de-6da4-4e86-bdbc-8221eb5701a2",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"pm.test(\"dryrun - overall-configuration-status complete\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});",
-							"pm.test(\"dryrun - node-id\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-							"});",
-							"pm.test(\"dryrun - configuration status\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"{{node_id}}\"\n            ]\n        }\n    }\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:commit"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "sync from network",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "a55c4890-4d46-494b-a510-7f045d81eced",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Validate configuration-status\", function() {",
-							"  if ( \"node-sync-result\" in pm.response.json()[\"output\"] ){",
-							"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-							"    pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
-							"  }",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "basic",
-					"basic": [
-						{
-							"key": "username",
-							"value": "admin",
-							"type": "string"
-						},
-						{
-							"key": "password",
-							"value": "admin",
-							"type": "string"
-						},
-						{
-							"key": "showPassword",
-							"value": false,
-							"type": "boolean"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"{{node_id}}\"\n            ]\n        }\n    }\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:sync-from-network"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "replace config with operational",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "1be6f510-e7f5-4f59-8698-1c7f4960db5d",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"pm.test(\"Validate result\", function() {",
-							"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "basic",
-					"basic": [
-						{
-							"key": "username",
-							"value": "admin",
-							"type": "string"
-						},
-						{
-							"key": "password",
-							"value": "admin",
-							"type": "string"
-						},
-						{
-							"key": "showPassword",
-							"value": false,
-							"type": "boolean"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"{{node_id}}\"\n            ]\n        }\n    }\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:replace-config-with-operational"
+						"protocol=frinx-openconfig-policy-types%3AOSPF,{{ospf}}"
 					]
 				}
 			},
@@ -316,98 +273,34 @@
 		},
 		{
 			"name": "show ospf",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "c7def286-d7f9-44fc-bd9c-56f9d678293d",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"pm.test(\"Validate config name\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(postman.getEnvironmentVariable(\"ospf\"));",
-							"});",
-							"pm.test(\"Validate name\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(postman.getEnvironmentVariable(\"ospf\"));",
-							"});",
-							"",
-							"",
-							"//timeout",
-							"pm.test(\"Validate timeout = \" + pm.environment.get(\"ospf_timeout\"), function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"global\"][\"timers\"][\"frinx-cisco-ospf-extension:max-metric-timers\"][\"max-metric-timer\"][0][\"config\"][\"timeout\"]).to.eql(JSON.parse(pm.environment.get(\"ospf_timeout\")));",
-							"});",
-							"",
-							"//pm.test(\"Validate interface\", function() {",
-							"//  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"interface-ref\"][\"config\"][\"interface\"]).to.eql(postman.getEnvironmentVariable(\"test_interface\"));",
-							"//});",
-							"pm.test(\"Validate interface\", function() {",
-							"   pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0]).to.not.have.property(\"interface-ref\");",
-							"});",
-							"",
-							"pm.test(\"Validate metric\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"config\"][\"metric\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"ospf_cost\")));",
-							"});",
-							"pm.test(\"Validate id\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"id\"]).to.eql(postman.getEnvironmentVariable(\"test_interface\"));",
-							"});",
-							"pm.test(\"Validate identifier\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"identifier\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"ospf_area_id\")));",
-							"});",
-							"pm.test(\"Validate identifier config \", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"config\"][\"identifier\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"ospf_area_id\")));",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"request": {
 				"method": "GET",
 				"header": [
 					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
 						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
 						"value": "application/json"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
+					"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance=default/protocols/protocol=frinx-openconfig-policy-types%3AOSPF,{{ospf}}",
 					"protocol": "http",
 					"host": [
 						"{{odl_ip}}"
 					],
 					"port": "8181",
 					"path": [
-						"restconf",
-						"operational",
+						"rests",
+						"data",
 						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
+						"topology=uniconfig",
+						"node={{node_id}}",
 						"frinx-uniconfig-topology:configuration",
 						"frinx-openconfig-network-instance:network-instances",
-						"network-instance",
-						"{{ospf_ni-name}}",
+						"network-instance=default",
 						"protocols",
-						"protocol",
-						"frinx-openconfig-policy-types:OSPF",
-						"{{ospf}}"
+						"protocol=frinx-openconfig-policy-types%3AOSPF,{{ospf}}"
 					]
 				}
 			},
@@ -415,125 +308,34 @@
 		},
 		{
 			"name": "delete ospf",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "d211c505-8d6a-44b0-9240-b6d936128c2a",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"request": {
 				"method": "DELETE",
 				"header": [
 					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"config",
-						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
-						"frinx-uniconfig-topology:configuration",
-						"frinx-openconfig-network-instance:network-instances",
-						"network-instance",
-						"{{ospf_ni-name}}",
-						"protocols",
-						"protocol",
-						"frinx-openconfig-policy-types:OSPF",
-						"{{ospf}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "dry run",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "21e55706-8942-496b-bb39-fc6570fab351",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"pm.test(\"dryrun - overall-configuration-status complete\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});",
-							"pm.test(\"dryrun - node-id\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-							"});",
-							"pm.test(\"dryrun - configuration status\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});",
-							"pm.test(\"dryrun - operation delete interface name\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.contain(postman.getEnvironmentVariable(\"lag_inf-id\"));",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration\"]).to.contain(\"a:operation=\\\"delete\\\"\");",
-							"",
-							"});",
-							"",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
 						"key": "Content-Type",
 						"name": "Content-Type",
-						"type": "text",
-						"value": "application/json"
+						"value": "application/json",
+						"type": "text"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"{{node_id}}\"\n            ]\n        }\n    }\n}"
-				},
 				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/dryrun-manager:dryrun-commit",
+					"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance=default/protocols/protocol=frinx-openconfig-policy-types%3AOSPF,{{ospf}}",
 					"protocol": "http",
 					"host": [
 						"{{odl_ip}}"
 					],
 					"port": "8181",
 					"path": [
-						"restconf",
-						"operations",
-						"dryrun-manager:dryrun-commit"
+						"rests",
+						"data",
+						"network-topology:network-topology",
+						"topology=uniconfig",
+						"node={{node_id}}",
+						"frinx-uniconfig-topology:configuration",
+						"frinx-openconfig-network-instance:network-instances",
+						"network-instance=default",
+						"protocols",
+						"protocol=frinx-openconfig-policy-types%3AOSPF,{{ospf}}"
 					]
 				}
 			},
@@ -545,299 +347,76 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "2caf21de-6da4-4e86-bdbc-8221eb5701a2",
+						"id": "5d10b6b2-68ab-47e0-802a-a99c7585f043",
 						"exec": [
 							"console.log(\"Response: \" + responseBody)",
 							"",
 							"pm.test(\"Status code is 200\", function () {",
 							"  pm.response.to.have.status(200);",
 							"});",
-							"pm.test(\"dryrun - overall-configuration-status complete\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+							"pm.test(\"Validate overall-configuration-status\", function() {",
+							"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 							"});",
-							"pm.test(\"dryrun - node-id\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+							"pm.test(\"Validate configuration-status\", function() {",
+							"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 							"});",
-							"pm.test(\"dryrun - configuration status\", function() {",
-							"        pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});"
+							"pm.test(\"Validate nodeId\", function() {",
+							"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"nodeId\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+							"});",
+							""
 						],
 						"type": "text/javascript"
 					}
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "showPassword",
+							"value": false,
+							"type": "boolean"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
-						"name": "Content-Type",
-						"type": "text",
 						"value": "application/json"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"{{node_id}}\"\n            ]\n        }\n    }\n}"
+					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"R1\"\n            ]\n        }\n    }\n}"
 				},
 				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+					"raw": "http://{{odl_ip}}:8181/rests/operations/uniconfig-manager:commit",
 					"protocol": "http",
 					"host": [
 						"{{odl_ip}}"
 					],
 					"port": "8181",
 					"path": [
-						"restconf",
+						"rests",
 						"operations",
 						"uniconfig-manager:commit"
 					]
 				}
 			},
 			"response": []
-		},
-		{
-			"name": "sync from network",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "a55c4890-4d46-494b-a510-7f045d81eced",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Validate configuration-status\", function() {",
-							"  if ( \"node-sync-result\" in pm.response.json()[\"output\"] ){",
-							"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-							"    pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
-							"  }",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "basic",
-					"basic": [
-						{
-							"key": "username",
-							"value": "admin",
-							"type": "string"
-						},
-						{
-							"key": "password",
-							"value": "admin",
-							"type": "string"
-						},
-						{
-							"key": "showPassword",
-							"value": false,
-							"type": "boolean"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"{{node_id}}\"\n            ]\n        }\n    }\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:sync-from-network"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "replace config with operational",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "1be6f510-e7f5-4f59-8698-1c7f4960db5d",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"pm.test(\"Validate result\", function() {",
-							"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "basic",
-					"basic": [
-						{
-							"key": "username",
-							"value": "admin",
-							"type": "string"
-						},
-						{
-							"key": "password",
-							"value": "admin",
-							"type": "string"
-						},
-						{
-							"key": "showPassword",
-							"value": false,
-							"type": "boolean"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"input\": {\n        \"target-nodes\": {\n            \"node\": [\n                \"{{node_id}}\"\n            ]\n        }\n    }\n}"
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operations",
-						"uniconfig-manager:replace-config-with-operational"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "show ospf",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "c7def286-d7f9-44fc-bd9c-56f9d678293d",
-						"exec": [
-							"console.log(\"Response: \" + responseBody)",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"pm.test(\"Validate config name\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"config\"][\"name\"]).to.eql(postman.getEnvironmentVariable(\"ospf\"));",
-							"});",
-							"pm.test(\"Validate name\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"name\"]).to.eql(postman.getEnvironmentVariable(\"ospf\"));",
-							"});",
-							"",
-							"",
-							"//timeout",
-							"pm.test(\"Validate timeout = \" + pm.environment.get(\"ospf_timeout\"), function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"global\"][\"timers\"][\"frinx-cisco-ospf-extension:max-metric-timers\"][\"max-metric-timer\"][0][\"config\"][\"timeout\"]).to.eql(JSON.parse(pm.environment.get(\"ospf_timeout\")));",
-							"});",
-							"",
-							"//pm.test(\"Validate interface\", function() {",
-							"//  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"interface-ref\"][\"config\"][\"interface\"]).to.eql(postman.getEnvironmentVariable(\"test_interface\"));",
-							"//});",
-							"pm.test(\"Validate interface\", function() {",
-							"   pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0]).to.not.have.property(\"interface-ref\");",
-							"});",
-							"",
-							"pm.test(\"Validate metric\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"config\"][\"metric\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"ospf_cost\")));",
-							"});",
-							"pm.test(\"Validate id\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"interfaces\"][\"interface\"][0][\"id\"]).to.eql(postman.getEnvironmentVariable(\"test_interface\"));",
-							"});",
-							"pm.test(\"Validate identifier\", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"identifier\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"ospf_area_id\")));",
-							"});",
-							"pm.test(\"Validate identifier config \", function() {",
-							"  pm.expect(pm.response.json()[\"frinx-openconfig-network-instance:protocol\"][0][\"ospfv2\"][\"areas\"][\"area\"][0][\"config\"][\"identifier\"]).to.eql(JSON.parse(postman.getEnvironmentVariable(\"ospf_area_id\")));",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Basic YWRtaW46YWRtaW4="
-					},
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/uniconfig/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-network-instance:network-instances/network-instance/{{ospf_ni-name}}/protocols/protocol/frinx-openconfig-policy-types:OSPF/{{ospf}}",
-					"protocol": "http",
-					"host": [
-						"{{odl_ip}}"
-					],
-					"port": "8181",
-					"path": [
-						"restconf",
-						"operational",
-						"network-topology:network-topology",
-						"topology",
-						"uniconfig",
-						"node",
-						"{{node_id}}",
-						"frinx-uniconfig-topology:configuration",
-						"frinx-openconfig-network-instance:network-instances",
-						"network-instance",
-						"{{ospf_ni-name}}",
-						"protocols",
-						"protocol",
-						"frinx-openconfig-policy-types:OSPF",
-						"{{ospf}}"
-					]
-				}
-			},
-			"response": []
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

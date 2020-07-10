@@ -48,6 +48,12 @@ elif [ "$env_file" == "xrv7.0.1_env.json" ] ; then
   dev_pref="XR5"
 elif [ "$env_file" == "xrv6.6.1_env.json" ] ; then
   dev_pref="XR6"
+elif [ "$env_file" == "sros13_env.json" ] ; then
+  dev_pref="SROS13"
+elif [ "$env_file" == "sros14_env.json" ] ; then
+  dev_pref="SROS14"
+elif [ "$env_file" == "sros16_env.json" ] ; then
+  dev_pref="SROS16"
 else
   echo "Unsupported env file: $env_file"
   exit 1

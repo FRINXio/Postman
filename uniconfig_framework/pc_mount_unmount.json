@@ -1406,6 +1406,579 @@
 			"protocolProfileBehavior": {}
 		},
 		{
+			"name": "TESTTOOL-netconf",
+			"item": [
+				{
+					"name": "TESTTOOL-netconf Mount unified",
+					"item": [
+						{
+							"name": "Mount TESTTOOL",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d035d73b-85b5-4803-957f-edc88acc140e",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/xml"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<node xmlns=\"urn:TBD:params:xml:ns:yang:network-topology\">\n  <node-id>{{node_id}}</node-id>\n  <host xmlns=\"urn:opendaylight:netconf-node-topology\">{{testtool_ip}}</host>\n  <port xmlns=\"urn:opendaylight:netconf-node-topology\">{{testtool_port}}</port>\n  <username xmlns=\"urn:opendaylight:netconf-node-topology\">{{username}}</username>\n  <password xmlns=\"urn:opendaylight:netconf-node-topology\">{{password}}</password>\n  <tcp-only xmlns=\"urn:opendaylight:netconf-node-topology\">false</tcp-only>\n  <keepalive-delay xmlns=\"urn:opendaylight:netconf-node-topology\">0</keepalive-delay>\n</node>",
+									"options": {
+										"raw": {
+											"language": "xml"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"{{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check TESTTOOL connected",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2d85d715-620e-4bfd-9440-12f3c3b6594e",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('Check TESTTOOL connected');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "94879136-58a2-4b12-b4c9-59225688f606",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"{{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Put data to testtool",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3049cc3f-4dea-4a83-ab8a-a1f6b9b8b3ad",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "0f2effe5-10ee-456c-a7c3-58c20a158bd3",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/xml"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<cars xmlns=\"urn:opendaylight:params:xml:ns:yang:controller:config:sal-clustering-it:car\">\n  <car-entry>\n    <id>KEEP</id>\n  </car-entry>\n</cars>",
+									"options": {
+										"raw": {
+											"language": "xml"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check TESTTOOL netconf point exists",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "529f14a2-4cff-4f97-9bc3-453cbd220ae3",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"//router-name",
+											"pm.test(\"Validate router-name = Base\", function() {",
+											"  pm.expect(pm.response.json()[\"car:cars\"][\"car-entry\"][0][\"id\"]).to.eql(\"KEEP\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "daca011e-f4e6-421c-a0bf-1f16e0a091ac",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check TESTTOOL netconf operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "e528635a-e6d3-4895-9d2a-5531c6d280a2",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"//id",
+											"pm.test(\"Validate id = KEEP\", function() {",
+											"  pm.expect(pm.response.json()[\"car:cars\"][\"car-entry\"][0][\"id\"]).to.eql(\"KEEP\");",
+											"});",
+											"pm.test(\"Body matches available schemas\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"ietf-netconf-monitoring:netconf-state\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "562964a9-ab0e-4808-b0bd-f60480ce25d4",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/yang-ext:mount",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"{{node_id}}",
+										"yang-ext:mount"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check TESTTOOL capabilities",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "96c89ef6-c6e0-4864-a060-eeaceee2a65e",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body matches available-capabilities\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"netconf-node-topology:available-capabilities\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "e2a765d4-879a-47dd-b47c-7dbc49d4d00c",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/?prettyPrint=true",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										""
+									],
+									"query": [
+										{
+											"key": "prettyPrint",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "TESTTOOL-netconf Unmount unified",
+					"item": [
+						{
+							"name": "Unmount TESTTOOL",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "1e69292a-a541-4e6d-8073-319894a24437",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"{{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check unmounted",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2356cd87-fc55-4d96-80ec-801f418d2d0e",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "45cd39e9-9154-47af-bf14-bda1edb74fd6",
+										"exec": [
+											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operational",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"{{node_id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "IOS XR6-netconf",
 			"item": [
 				{

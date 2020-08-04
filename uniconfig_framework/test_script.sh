@@ -34,6 +34,8 @@ elif [ "$env_file" == "junos173virt_env.json" ] ; then
   dev_pref="Junos"
 elif [ "$env_file" == "junos14virt_env.json" ] ; then
   dev_pref="Junos"
+elif [ "$env_file" == "junos182virt_env.json" ] ; then
+  dev_pref="Junos"
 elif [ "$env_file" == "asr-version5.3.4_env.json" ] ; then
   dev_pref="ASR"
 elif [ "$env_file" == "xrv6.1.2-cli5.3.4_env.json" ] ; then

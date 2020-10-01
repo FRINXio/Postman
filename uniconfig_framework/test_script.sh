@@ -19,6 +19,10 @@ layer="uniconfig"
 if [ "$3" == "unified" ]; then
     layer="unified"
 fi
+if [ "$3" == "uniconfig-native" ]; then
+    layer="uniconfig-native"
+fi
+
 mount_type=$4
 
 mount_collection=pc_mount_unmount.json

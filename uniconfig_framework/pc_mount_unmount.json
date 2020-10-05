@@ -17365,211 +17365,6 @@
 							"response": []
 						},
 						{
-							"name": "Mount Junos cli",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "4149ec43-f6d4-4a68-b280-ce7f3607c3ff",
-										"exec": [
-											"console.log(\"Request data: \" + request.data.toString());",
-											"pm.test(\"Successful PUT request\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{junos_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"junos\",\n      \"cli-topology:device-version\" : \"{{version_device}}\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150\n    }\n  }",
-									"options": {
-										"raw": {}
-									}
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_cli}}/node={{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_cli}}",
-										"node={{node_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Check junos ua cli status",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "460ccac4-7838-4be2-9644-e6bdcf189713",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('Check junos ua cli status');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "366c6a36-9fd3-499d-8dff-7a57d35190ea",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_cli}}/node={{node_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_cli}}",
-										"node={{node_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Restore empty config junos",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "86c168ef-ba36-475a-b034-1c79758a447e",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200]);",
-											"});",
-											"",
-											"pm.test(\"Config replaced\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"root# load override \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\nload override {{conf_file_stored}}\ncommit\nexit\"\n  }\n}",
-									"options": {
-										"raw": {}
-									}
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/operations/network-topology:network-topology/topology={{topology_id_cli}}/node={{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"operations",
-										"network-topology:network-topology",
-										"topology={{topology_id_cli}}",
-										"node={{node_id}}",
-										"yang-ext:mount",
-										"cli-unit-generic:execute-and-read"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "Mount Junos netconf",
 							"event": [
 								{
@@ -17870,6 +17665,211 @@
 										"topology=uniconfig",
 										"node={{node_id}}",
 										"frinx-uniconfig-topology:configuration"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Mount Junos cli",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "4149ec43-f6d4-4a68-b280-ce7f3607c3ff",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"pm.test(\"Successful PUT request\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"{{node_id}}\",\n      \n      \"cli-topology:host\" : \"{{junos_ip}}\",\n      \"cli-topology:port\" : \"{{topology_port}}\",\n      \"cli-topology:transport-type\" : \"{{protocol}}\",\n      \n      \"cli-topology:device-type\" : \"junos\",\n      \"cli-topology:device-version\" : \"{{version_device}}\",\n      \n      \"cli-topology:username\" : \"{{username}}\",\n      \"cli-topology:password\" : \"{{password}}\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"uniconfig-config:uniconfig-native-enabled\": true\n    }\n  }",
+									"options": {
+										"raw": {}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_cli}}/node={{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology={{topology_id_cli}}",
+										"node={{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check junos ua cli status",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "460ccac4-7838-4be2-9644-e6bdcf189713",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('Check junos ua cli status');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "366c6a36-9fd3-499d-8dff-7a57d35190ea",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_cli}}/node={{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology={{topology_id_cli}}",
+										"node={{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Restore empty config junos",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "86c168ef-ba36-475a-b034-1c79758a447e",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+											"});",
+											"",
+											"pm.test(\"Config replaced\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"root# load override \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\nload override {{conf_file_stored}}\ncommit\nexit\"\n  }\n}",
+									"options": {
+										"raw": {}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/operations/network-topology:network-topology/topology={{topology_id_cli}}/node={{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"operations",
+										"network-topology:network-topology",
+										"topology={{topology_id_cli}}",
+										"node={{node_id}}",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
 									]
 								}
 							},

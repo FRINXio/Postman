@@ -19602,6 +19602,522 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "VNF-netconf",
+			"item": [
+				{
+					"name": "VNF-netconf Mount uniconfig",
+					"item": [
+						{
+							"name": "Mount VNF netconf",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "27ef003c-169e-43ea-9598-45fc856623d3",
+										"exec": [
+											"console.log(\"Request data: \" + request.data.toString());",
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \n    \"node\": [\n        {\n            \"node-id\": \"{{node_id}}\",\n            \"netconf-node-topology:host\": \"{{VNF20_ip}}\",\n            \"netconf-node-topology:port\": {{topology_port}},\n            \"netconf-node-topology:keepalive-delay\": 5,\n            \"netconf-node-topology:max-connection-attempts\": 100,\n            \"netconf-node-topology:connection-timeout-millis\": 60000,\n            \"netconf-node-topology:default-request-timeout-millis\": 60000,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"netconf-node-topology:sleep-factor\": 1.0,\n\t\t\t\"uniconfig-config:uniconfig-native-enabled\": true,\n            \"netconf-node-topology:edit-config-test-option\": \"set\",\n \t\t\t\"uniconfig-config:blacklist\": {\n\t           \"extension\": [\n\t\t\t\t\t\"tailf:display-when false\"\n\t           ]\n            }\n        }\n    ]\n}\n"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology={{topology_id_netconf}}",
+										"node={{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check VNF status connected",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "2a9da8c1-5eb8-4661-8b0a-99e413fbad1c",
+										"exec": [
+											"// attempts counter",
+											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
+											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
+											"    pm.test(\"Validate capability = tailf-netconf-with-transaction-id\", function() {",
+											"    pm.expect(pm.response.json()[\"node\"][0][\"netconf-node-topology:unavailable-capabilities\"][\"unavailable-capability\"][0][\"capability\"]).to.eql(\"(http://tail-f.com/ns/netconf/with-transaction-id?revision=2018-11-23)tailf-netconf-with-transaction-id\");",
+											"    });",
+											"    // Reset attempt counter",
+											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"} else {",
+											"    // If too many attempts, abort",
+											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
+											"        console.log(\"Not connected yet ! Too many attempts !\")",
+											"        // Reset attempt counter",
+											"        tests[\"Unable to connect\"] = false",
+											"    } else {",
+											"        // Schedule next check attempt",
+											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
+											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
+											"        postman.setNextRequest('Check VNF status connected');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c9137f17-176d-4964-b9a7-642dcc482ce7",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node_id}}?content=nonconfig",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology={{topology_id_netconf}}",
+										"node={{node_id}}"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check all layers connected",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d70c0d12-c0ba-4acc-ab9e-51e104e08038",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"//overall-status",
+											"pm.test(\"Validate overall-status = \" + pm.environment.get(\"operations_result_complete\"), function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(pm.environment.get(\"operations_result_complete\"));",
+											"});",
+											"//status-message",
+											"pm.test(\"Validate status-message = Success\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"southbound-layer\"][\"status-message\"]).to.eql(\"Success\");",
+											"});",
+											"//protocol",
+											"pm.test(\"Validate protocol = netconf\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"southbound-layer\"][\"protocol\"]).to.eql(\"netconf\");",
+											"});",
+											"//connection-status",
+											"pm.test(\"Validate connection-status = connected\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"southbound-layer\"][\"connection-status\"]).to.eql(\"connected\");",
+											"});",
+											"//status-message",
+											"pm.test(\"Validate status-message = created unified mountpoint\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"unified-layer\"][\"status-message\"]).to.eql(\"created unified mountpoint\");",
+											"});",
+											"//connection-status",
+											"pm.test(\"Validate connection-status = installed\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"unified-layer\"][\"connection-status\"]).to.eql(\"installed\");",
+											"});",
+											"//node-id",
+											"pm.test(\"Validate node-id = \" + pm.environment.get(\"node_id\"), function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\"));",
+											"});",
+											"//status-message",
+											"pm.test(\"Validate status-message = installed uniconfig node\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"uniconfig-layer\"][\"status-message\"]).to.eql(\"installed uniconfig node\");",
+											"});",
+											"//connection-status",
+											"pm.test(\"Validate connection-status = installed \", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"uniconfig-layer\"][\"connection-status\"]).to.eql(\"installed\");",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "01f2010c-4c1d-49b7-aa02-d3a2711da686",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\"node\": [\"{{node_id}}\"]\n\t\t}\n\n\t}\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/operations/uniconfig-manager:show-connection-status",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"operations",
+										"uniconfig-manager:show-connection-status"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Restore empty config VNF",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "be4ce783-29ef-49d1-9cf6-0b30997d99af",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"setTimeout(function(){}, 60000);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"input\": {\n        \"file\": \"/home/admin/start_config.cfg\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node_id}}/yang-ext:mount/system:erase/running-config-then/load",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology={{topology_id_netconf}}",
+										"node={{node_id}}",
+										"yang-ext:mount",
+										"system:erase",
+										"running-config-then",
+										"load"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "VNF-netconf Unmount uniconfig",
+					"item": [
+						{
+							"name": "Restore empty config VNF",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3f0f2232-d5a1-4653-9c82-6286d4f4237f",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"setTimeout(function(){}, 60000);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"input\": {\n        \"file\": \"/home/admin/start_config.cfg\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node_id}}/yang-ext:mount/system:erase/running-config-then/load",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology={{topology_id_netconf}}",
+										"node={{node_id}}",
+										"yang-ext:mount",
+										"system:erase",
+										"running-config-then",
+										"load"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Unmount VNF",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "a308bf2d-058f-40e9-81f0-4dc24ae0de59",
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node_id}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology={{topology_id_netconf}}",
+										"node={{node_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check VNF netconf unmounted",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "af7896e4-b426-47e5-8e2f-2c1ae3e1deee",
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"No data expected\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "e8b3c310-5676-45b1-b830-2cb15e752d46",
+										"exec": [
+											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node_id}}?content=nonconfig",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology={{topology_id_netconf}}",
+										"node={{node_id}}"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
 		}
 	],
 	"protocolProfileBehavior": {}

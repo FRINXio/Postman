@@ -24,7 +24,7 @@ tests_input_file=$2
 
 if [ "$env_file" == "xrv6.1.2_env.json" ] ; then
   dev_pref="XR6"
-elif [ "$env_file" == "xrv5_env.json" ] ; then
+elif [ "$env_file" == "xrv5.3.4_env.json" ] ; then
   dev_pref="XR5"
 else
   echo "Unsupported env file: $env_file"

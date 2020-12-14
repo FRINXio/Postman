@@ -9,7 +9,7 @@
 # 2) to run it do:
 # ./test_script env_file json_input_file layer
 # where layer = uniconfig | unified
-
+# 3) Check if package.json is intializied before running Unsorted
 #set -exu
 set +x
 
@@ -114,9 +114,16 @@ do
     sfolder="$dev_pref ${coll_arr[@]:0:${ll}} Setup"
     echo "Performing $sfolder from file $collection"
     unbuffer newman run $collection -e $device -n 1 --folder "$sfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$sfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $sfolder $mount_type FAILED" >> $file; fi
-    echo "Performing $folder from file $collection"
-    unbuffer newman run $collection -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/$folder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $folder $mount_type FAILED" >> $file; fi
-
+    if [ $folder == "FRHD-506" ]; then 
+       echo "Performing $folder from file $collection"
+       npm init -y > /dev/null   #remove > /dev/null for further information about init 
+       npm i --silent async newman path
+       node pc_uniconfig_parallel_tests.js
+       if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $folder $mount_type FAILED" >> $file; fi
+    else
+       echo "Performing $folder from file $collection"
+       unbuffer newman run $collection -e $device -n 1 --folder "$folder" --reporters cli,junit --reporter-junit-export "./junit_results/$folder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $folder $mount_type FAILED" >> $file; fi
+    fi
     tfolder="$dev_pref ${coll_arr[@]:0:${ll}} Teardown"
     echo "Performing $tfolder from file $collection"
     unbuffer newman run $collection -e $device -n 1 --folder "$tfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$tfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $tfolder $mount_type FAILED" >> $file; fi
@@ -131,4 +138,10 @@ unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" 
 if [ -f $file ] ; then
     cat $file
     rm $file
+elif [ -d "node_modules" ];then
+    rm -rf node_modules
+    rm package.json
+    rm package-lock.json
 fi
+
+

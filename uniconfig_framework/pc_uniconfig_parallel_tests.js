@@ -14,21 +14,21 @@ require('csv-parse/lib/es5')
 parametersForTestRun = {
 	collection: path.join(__dirname, 'pc_uniconfig_unsorted.json'),
 	folder:'FRHD-506 Setup', // name or ID of item group in postman collection or folder
-	environment: path.join(__dirname, 'xrv6.2.3-cli5.3.4_env.json'), //your env
+	environment: path.join(__dirname, 'xrv6.2.3_env.json'), //your env
 	reporters: ['cli','junit' ],
 	reporter : {junit : { export : './junit_results/FRHD-506 Setup.xml' }}
 };
 parametersForRequestA = {
 	collection: path.join(__dirname, 'pc_uniconfig_unsorted.json'),
 	folder:'FRHD-506-parallelA',
-	environment: path.join(__dirname, 'xrv6.2.3-cli5.3.4_env.json'), //your env
+	environment: path.join(__dirname, 'xrv6.2.3_env.json'), //your env
 	reporters: ['cli','junit'],
 	reporter : {junit : { export : './junit_results/FRHD-506-parallelA.xml' }}
 };
 parametersForRequestB = {
 	collection: path.join(__dirname, 'pc_uniconfig_unsorted.json'),
 	folder:'FRHD-506-parallelB',
-	environment: path.join(__dirname, 'xrv6.2.3-cli5.3.4_env.json'), //your env
+	environment: path.join(__dirname, 'xrv6.2.3_env.json'), //your env
 	reporters: ['cli','junit' ],
 	reporter :{junit : { export : './junit_results/FRHD-506-parallelB.xml' }}
 };

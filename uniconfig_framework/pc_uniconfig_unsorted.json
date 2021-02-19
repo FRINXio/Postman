@@ -31202,7 +31202,7 @@
 					"name": "FRHD-533",
 					"item": [
 						{
-							"name": "configure LACP",
+							"name": "configure LACP period 200",
 							"event": [
 								{
 									"listen": "test",
@@ -31263,119 +31263,81 @@
 							"response": []
 						},
 						{
-							"name": "Get lacp period short",
+							"name": "sync-from-network",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"console.log(\"Request data: \" + request.data.toString());",
 											"console.log(\"Response: \" + responseBody)",
+											"",
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
+											"pm.test(\"Validate configuration-status\", function() {",
+											"  if ( \"node-sync-result\" in pm.response.json()[\"output\"][\"node-sync-results\"] ){",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-sync-results\"][\"node-sync-result\"][0]).to.not.have.own.property(\"error-type\");",
 											"",
-											"pm.test(\"Validate lacp interval\", function() {",
-											"    // not sure if get would contain 200 or slow - delete this after patch retested",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-lacp:config\"][\"interval\"]).to.eql(\"200\");",
-											"});"
+											"  }",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
+											"    pm.test(\"Validate overall-status\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"});",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
 										],
 										"type": "text/javascript"
 									}
 								}
 							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
 							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"type": "text",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lacp_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_active}}\",\n                    \"interval\": \"{{lacp_interval_slow}}\"\n\t\t\t\t}\n            }\n}",
-									"options": {
-										"raw": {
-											"language": "json"
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
 										}
-									}
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-lacp:lacp/interfaces/interface/{{lacp_bundle_id}}/config",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-lacp:lacp",
-										"interfaces",
-										"interface",
-										"{{lacp_bundle_id}}",
-										"config"
 									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Restore empty config",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200]);",
-											"});",
-											"",
-											"pm.test(\"Config replaced\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"(config)#load \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
-											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"Loading.\");",
-											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"This commit will replace or remove the entire running configuration.\");",
-											"});"
-										]
-									}
-								}
-							],
-							"request": {
+								},
 								"method": "POST",
 								"header": [
 									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
 										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Accept",
 										"value": "application/json"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nload {{conf_file_stored}}\ncommit replace\nyes\nend\n\"\n  }\n}"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/network-topology:network-topology/topology/{{topology_id_cli}}/node/{{node_id}}/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -31384,142 +31346,14 @@
 									"path": [
 										"restconf",
 										"operations",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_cli}}",
-										"node",
-										"{{node_id}}",
-										"yang-ext:mount",
-										"cli-unit-generic:execute-and-read"
+										"uniconfig-manager:sync-from-network"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "create empty lag interface",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 201\", function () {",
-											"  pm.response.to.have.status(201);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"interface\": [\n        {\n            \"name\": \"{{lacp_bundle_id}}\",\n            \"config\": {\n                \"type\": \"iana-if-type:ieee8023adLag\",\n                \"enabled\": {{lag_enabled}},\n                \"description\": \"{{lag_description}}\",\n                \"name\": \"{{lacp_bundle_id}}\"\n            }\n        }\n    ]\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_bundle_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"{{lacp_bundle_id}}"
-									]
-								},
-								"description": "At first we try to update all values via openconfig - no change in comparing with previous values."
-							},
-							"response": []
-						},
-						{
-							"name": "Put lacp period short",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"console.log(\"Request data: \" + request.data.toString());",
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Validate no error\", function() {",
-											"  pm.expect(pm.response.json()[\"errors\"][\"error\"][0][\"error-message\"]).to.not.exist;",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4=",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n            \"frinx-openconfig-if-ethernet:ethernet\": {\n                \"config\": {\n                    \"frinx-openconfig-if-aggregate:aggregate-id\": \"{{lacp_bundle_id}}\",\n                    \"lacp-mode\": \"{{lacp_mode_active}}\",\n                    \"interval\": 200\n\t\t\t\t}\n            }\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/{{node_id}}/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface/{{lacp_url_intf-id}}/frinx-openconfig-if-ethernet:ethernet",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"{{node_id}}",
-										"frinx-uniconfig-topology:configuration",
-										"frinx-openconfig-interfaces:interfaces",
-										"interface",
-										"{{lacp_url_intf-id}}",
-										"frinx-openconfig-if-ethernet:ethernet"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Commit",
+							"name": "replace-config-with-operational",
 							"event": [
 								{
 									"listen": "test",
@@ -31530,29 +31364,20 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"  pm.response.to.have.status(200);",
 											"});",
-											"",
 											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"",
-											"pm.test(\"Validate overall-configuration-status\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"overall-configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});",
-											"pm.test(\"Validate configuration-status\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});",
-											"pm.test(\"Validate node-id\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-config-results\"][\"node-config-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});",
 											"}",
 											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\"){",
-											"    pm.test(\"Validate overall-status\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});",
-											"pm.test(\"Validate configuration-status\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});",
-											"pm.test(\"Validate node-id\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
-											"});",
+											"       pm.test(\"Validate result\", function() {",
+											"       ",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(postman.getEnvironmentVariable(\"node_id\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"     pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"    }); ",
+											"    ",
 											"}"
 										],
 										"type": "text/javascript"
@@ -31560,26 +31385,39 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "showPassword",
+											"value": false,
+											"type": "boolean"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
 										"key": "Content-Type",
-										"name": "Content-Type",
-										"type": "text",
 										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"type": "text",
-										"value": "Basic YWRtaW46YWRtaW4="
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"{{node_id}}\"]\n                }\n            }\n        }"
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                    \"node\": [\"{{node_id}}\"]\n                }\n            }\n }"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:commit",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -31588,14 +31426,14 @@
 									"path": [
 										"restconf",
 										"operations",
-										"uniconfig-manager:commit"
+										"uniconfig-manager:replace-config-with-operational"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "Get lacp period short",
+							"name": "show LACP without 200",
 							"event": [
 								{
 									"listen": "test",
@@ -31608,7 +31446,6 @@
 											"});",
 											"",
 											"pm.test(\"Validate overall-configuration-status\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-if-ethernet:ethernet\"][ \"config\"][\"frinx-lacp-lag-member:interval\"]).to.eql(\"200\");",
 											"  pm.expect(pm.response.json()[\"frinx-openconfig-if-ethernet:ethernet\"][ \"config\"][\"frinx-lacp-lag-member:lacp-mode\"]).to.eql(\"ACTIVE\");",
 											"  pm.expect(pm.response.json()[\"frinx-openconfig-if-ethernet:ethernet\"][ \"config\"][\"frinx-openconfig-if-aggregate:aggregate-id\"]).to.eql(\"Bundle-Ether191\");",
 											"});"

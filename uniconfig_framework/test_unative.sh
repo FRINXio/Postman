@@ -26,6 +26,9 @@ if [ "$env_file" == "xrv6.1.2_env.json" ] ; then
   dev_pref="XR6"
 elif [ "$env_file" == "xrv5.3.4_env.json" ] ; then
   dev_pref="XR5"
+# For purpose: template version drop testing
+elif [ "$env_file" == "vnf20_env.json" ] || [ "$env_file" == "vnf16_env.json" ] ; then
+  dev_pref="VNF"
 else
   echo "Unsupported env file: $env_file"
   exit 1

@@ -94,7 +94,7 @@ unbuffer newman run $mount_collection --bail -e $device -n 1 --folder "$folder" 
     exit 1
 fi
 
-txt_collections="`cat $tests_input_file | jq -c keys[]`"
+txt_collections="`cat $tests_input_file | jq -c keys_unsorted[]`"
 echo $txt_collections
 declare -a "collections=($txt_collections)"
 echo ${collections[@]}
@@ -116,7 +116,7 @@ do
     sfolder="$dev_pref ${coll_arr[@]:0:${ll}} Setup"
     echo "Performing $sfolder from file $collection"
     unbuffer newman run $collection -e $device -n 1 --folder "$sfolder" --reporters cli,junit --reporter-junit-export "./junit_results/$sfolder$i.xml"; if [ "$?" != "0" ]; then echo "Collection $collection with environment $device testing ($dev_pref) $sfolder $mount_type FAILED" >> $file; fi
-    if [ $folder == "FRHD-506" ]; then 
+    if [ "$folder" == "FRHD-506" ]; then
        echo "Performing $folder from file $collection"
        npm init -y > /dev/null   #remove > /dev/null for further information about init 
        npm i --silent async newman path

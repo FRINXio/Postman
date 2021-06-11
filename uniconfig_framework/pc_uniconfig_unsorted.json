@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3388a619-9da4-40d4-83f2-34c3eeefa9e7",
+		"_postman_id": "599050bf-7d23-4ee5-9792-2b514c928bc4",
 		"name": "FRINX Uniconfig Unsorted",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -8059,24 +8059,36 @@
 							"response": []
 						},
 						{
-							"name": "mount device 6.2 netconf",
+							"name": "Install device 6.2 netconf",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"//console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
 										],
 										"type": "text/javascript"
 									}
 								}
 							],
 							"request": {
-								"method": "PUT",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
@@ -8093,10 +8105,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"xr62\",\n      \"netconf-node-topology:host\": \"192.168.1.216\",\n      \"netconf-node-topology:port\": 830,\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"cisco\",\n      \"netconf-node-topology:password\": \"cisco\",\n\t  \"netconf-node-topology:dry-run-journal-size\": 180\n    }\n  ]\n}"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"xr62\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"192.168.1.216\",\n            \"netconf-node-topology:port\": 830,\n            \"netconf-node-topology:keepalive-delay\": 0,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"cisco\",\n            \"netconf-node-topology:password\": \"cisco\",\n            \"netconf-node-topology:dry-run-journal-size\": 180\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/xr62",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:install-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -8104,111 +8116,27 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"xr62"
+										"operations",
+										"connection-manager:install-node"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "check netconf connected",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"//console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check netconf connected');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/xr62",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"xr62"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "mount device 6.2 cli",
+							"name": "Install device 6.2 cli",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"//console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code\", function () {",
-											"  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -8230,7 +8158,7 @@
 								}
 							],
 							"request": {
-								"method": "PUT",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
@@ -8247,10 +8175,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network-topology:node\" :\n    {\n      \"network-topology:node-id\" : \"xr62\",\n      \n      \"cli-topology:host\" : \"192.168.1.216\",\n      \"cli-topology:port\" : \"22\",\n      \"cli-topology:transport-type\" : \"ssh\",\n      \n      \"cli-topology:device-type\" : \"ios xr\",\n      \"cli-topology:device-version\" : \"*\",\n      \n      \"cli-topology:username\" : \"cisco\",\n      \"cli-topology:password\" : \"cisco\",\n      \n      \"cli-topology:journal-size\": 150,\n      \"cli-topology:dry-run-journal-size\": 150,\n      {{install_uniconfig}}\n      \"node-extension:reconcile\": false\n    }\n  }"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"xr62\",\n        \"cli\": {\n            \"cli-topology:host\": \"192.168.1.216\",\n            \"cli-topology:port\": \"22\",\n            \"cli-topology:transport-type\": \"ssh\",\n            \"cli-topology:device-type\": \"ios xr\",\n            \"cli-topology:device-version\": \"*\",\n            \"cli-topology:username\": \"cisco\",\n            \"cli-topology:password\": \"cisco\",\n            \"cli-topology:journal-size\": 150,\n            \"cli-topology:dry-run-journal-size\": 150,\n            {{install_uniconfig}}\n            \"uniconfig-config:install-uniconfig-node-enabled\": false,\n            \"node-extension:reconcile\": false\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/xr62",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:install-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -8258,94 +8186,8 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_cli}}",
-										"node",
-										"xr62"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check cli connected",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"//console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['cli-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['cli-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check cli connected');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_cli}}/node/xr62",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_cli}}",
-										"node",
-										"xr62"
+										"operations",
+										"connection-manager:install-node"
 									]
 								}
 							},
@@ -8567,7 +8409,7 @@
 							"response": []
 						},
 						{
-							"name": "unmount device 6.2 netconf",
+							"name": "Uninstall device 6.2 netconf",
 							"event": [
 								{
 									"listen": "test",
@@ -8575,6 +8417,9 @@
 										"exec": [
 											"pm.test(\"Status code is 200\", function () {",
 											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -8582,27 +8427,27 @@
 								}
 							],
 							"request": {
-								"method": "DELETE",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
 									},
 									{
-										"key": "Accept",
+										"key": "Content-Type",
 										"value": "application/json"
 									},
 									{
-										"key": "Content-Type",
+										"key": "Accept",
 										"value": "application/json"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"xr62\",\n        \"connection-type\": \"netconf\"\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/xr62",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:uninstall-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -8610,28 +8455,25 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"xr62"
+										"operations",
+										"connection-manager:uninstall-node"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "unmount device 6.2 cli",
+							"name": "Uninstall device 6.2 cli",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"//console.log(\"Response: \" + responseBody)",
-											"",
 											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -8639,27 +8481,27 @@
 								}
 							],
 							"request": {
-								"method": "DELETE",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
 									},
 									{
-										"key": "Accept",
+										"key": "Content-Type",
 										"value": "application/json"
 									},
 									{
-										"key": "Content-Type",
+										"key": "Accept",
 										"value": "application/json"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"xr62\",\n        \"connection-type\": \"cli\"\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_cli}}/node/xr62",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:uninstall-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -8667,12 +8509,8 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_cli}}",
-										"node",
-										"xr62"
+										"operations",
+										"connection-manager:uninstall-node"
 									]
 								}
 							},
@@ -18312,14 +18150,11 @@
 											"            pm.expect(jstring[i][\"configuration-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_fail\"));",
 											"            pm.expect(jstring[i][\"rollback-status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"            pm.expect(jstring[i][\"error-type\"]).to.eql(\"processing-error\");",
-											"      //       UNI-748",
-											"      //      pm.expect(jstring[i][\"error-type\"]).to.eql(\"This operation is not supported\");",
+											"            // UNI-748",
+											"            //  pm.expect(jstring[i][\"error-type\"]).to.eql(\"This operation is not supported\");",
 											"        }",
 											"    }",
 											"});",
-											"",
-											"",
-											"",
 											"tests[\"Body matches string:\"+ pm.environment.get(\"node_id\")] = responseBody.has(String(postman.getEnvironmentVariable(\"node_id\")));",
 											"}"
 										],

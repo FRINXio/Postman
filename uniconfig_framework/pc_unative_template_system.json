@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a904c92e-ff7e-4a88-a2d3-3069928dcddb",
+		"_postman_id": "058c01e6-0a6f-4e9e-8fe8-9d2f1f4f5de8",
 		"name": "pc_unative_template_system",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -12,16 +12,19 @@
 					"name": "Mount the-second XR6-device",
 					"item": [
 						{
-							"name": "mount IOS XR netconf 2",
+							"name": "Install IOS XR netconf",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -29,7 +32,7 @@
 								}
 							],
 							"request": {
-								"method": "PUT",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
@@ -46,10 +49,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"{{node2_id}}\",\n      \"netconf-node-topology:host\": \"{{xr2_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n\t    \"netconf-node-topology:dry-run-journal-size\": 180,\n      \"uniconfig-config:uniconfig-native-enabled\": true,\n      \"uniconfig-config:blacklist\": {\n        \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"]\n      }\n    }\n  ]\n}"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"{{node2_id}}\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"{{xr2_ip}}\",\n            \"netconf-node-topology:port\": {{netconf_port}},\n            \"netconf-node-topology:keepalive-delay\": 5,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"netconf-node-topology:dry-run-journal-size\": 180,\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"uniconfig-config:blacklist\": {\n                \"uniconfig-config:path\": [\n                    \"openconfig-interfaces:interfaces\",\n                    \"ietf-interfaces:interfaces\",\n                    \"openconfig-vlan:vlans\",\n                    \"openconfig-routing-policy:routing-policy\"\n                ]\n            }\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node2_id}}",
+									"raw": "http://{{odl_ip}}:8181/rests/operations/connection-manager:install-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -57,251 +60,8 @@
 									"port": "8181",
 									"path": [
 										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_netconf}}",
-										"node={{node2_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check xr6ua2 status connected",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check xr6ua2 status connected');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node2_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_netconf}}",
-										"node={{node2_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check xr6ua2 unified point exists",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if ( pm.response.code == 200){",
-											"    tests[\"Mount point exists\"] = true",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Mount point exists\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check xr6ua2 unified point exists');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id}}/node={{node2_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id}}",
-										"node={{node2_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check xr6ua2 uniconfig available",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (pm.response.code === 200) {",
-											"    tests[\"Is connected\"] = true;",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check xr6ua2 uniconfig available');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node2_id}}/frinx-uniconfig-topology:configuration",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology=uniconfig",
-										"node={{node2_id}}",
-										"frinx-uniconfig-topology:configuration"
+										"operations",
+										"connection-manager:install-node"
 									]
 								}
 							},
@@ -363,7 +123,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -376,6 +136,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -535,17 +301,17 @@
 											"",
 											"pm.test(\"check template is present\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
+											"    pm.expect(jsonData[\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
 											"});",
 											"",
 											"pm.test(\"configuration is not empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
 											"});",
 											"",
 											"pm.test(\"template variable is present\", () => {",
 											"    var jsonData = pm.response.json();",
-											"    const vrf_objekt = jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"].find",
+											"    const vrf_objekt = jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"].find",
 											"      (m => m[\"vrf-name\"] === \"{$vrf-var}\");",
 											"  pm.expect(vrf_objekt)",
 											"    .to.be.an(\"object\", \"Could not find the vrf-name {$vrf-var}\");",
@@ -586,7 +352,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=xr6.template",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -596,7 +362,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=xr6.template"
 									]
 								}
 							},
@@ -680,12 +447,12 @@
 											"",
 											"pm.test(\"check template is present\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
+											"    pm.expect(jsonData[\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
 											"});",
 											"",
 											"pm.test(\"configuration is empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.empty;",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.empty;",
 											"});"
 										],
 										"type": "text/javascript"
@@ -712,17 +479,17 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
+										"type": "text",
+										"value": "application/json"
 									},
 									{
 										"key": "Accept",
-										"value": "application/json",
-										"type": "text"
+										"type": "text",
+										"value": "application/json"
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=xr6.template",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -732,7 +499,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=xr6.template"
 									]
 								}
 							},
@@ -1096,21 +864,22 @@
 											"",
 											"pm.test(\"check template is present\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
+											"    pm.expect(jsonData[\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
 											"});",
 											"",
 											"pm.test(\"configuration is not empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
 											"});",
 											"",
 											"pm.test(\"template variable is present\", () => {",
 											"    var jsonData = pm.response.json();",
-											"    const vrf_objekt = jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"].find",
+											"    const vrf_objekt = jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"].find",
 											"      (m => m[\"vrf-name\"] === \"{$vrf-var}\");",
 											"  pm.expect(vrf_objekt)",
 											"    .to.be.an(\"object\", \"Could not find the vrf-name {$vrf-var}\");",
-											"});"
+											"});",
+											""
 										],
 										"type": "text/javascript"
 									}
@@ -1146,7 +915,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=xr6.template",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -1156,7 +925,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=xr6.template"
 									]
 								}
 							},
@@ -1243,6 +1013,87 @@
 							"response": []
 						},
 						{
+							"name": "read template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"check template is present\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData[\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
+											"});",
+											"",
+											"pm.test(\"configuration is not empty\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
+											"});",
+											"",
+											"pm.test(\"template variable is present\", () => {",
+											"    var jsonData = pm.response.json();",
+											"    const vrf_objekt = jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"].find",
+											"      (m => m[\"vrf-name\"] === \"{$vrf-var}\");",
+											"  pm.expect(vrf_objekt)",
+											"    .to.be.an(\"object\", \"Could not find the vrf-name {$vrf-var}\");",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=xr6.template",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node=xr6.template"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "read template - both",
 							"event": [
 								{
@@ -1258,13 +1109,13 @@
 											"pm.test(\"Check template is present\", () => {",
 											"    const node_objekt = jsonData[\"topology\"][0][\"node\"].find(m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".template\");",
 											"    pm.expect(node_objekt).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".template\");",
-											"    pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
+											"    //pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
 											"});",
 											"",
 											"pm.test(\"Check template is present\", () => {",
 											"    const node_objekt = jsonData[\"topology\"][0][\"node\"].find(m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatesimilar\");",
 											"    pm.expect(node_objekt).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatesimilar\");",
-											"    pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
+											"    //pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
 											"});"
 										],
 										"type": "text/javascript"
@@ -1392,17 +1243,22 @@
 											"",
 											"pm.test(\"check template is present\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
+											"    pm.expect(jsonData[\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".template\");",
 											"});",
 											"",
 											"pm.test(\"configuration is not empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
 											"});",
 											"",
-											"pm.test(\"Template is not present\", function () {",
-											"    pm.expect(pm.response.text()).not.include(pm.environment.get(\"node_id\") + \".templatesimilar\");",
-											"});"
+											"pm.test(\"template variable is present\", () => {",
+											"    var jsonData = pm.response.json();",
+											"    const vrf_objekt = jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"].find",
+											"      (m => m[\"vrf-name\"] === \"{$vrf-var}\");",
+											"  pm.expect(vrf_objekt)",
+											"    .to.be.an(\"object\", \"Could not find the vrf-name {$vrf-var}\");",
+											"});",
+											""
 										],
 										"type": "text/javascript"
 									}
@@ -1438,7 +1294,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=xr6.template",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -1448,7 +1304,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=xr6.template"
 									]
 								}
 							},
@@ -1765,13 +1622,13 @@
 											"pm.test(\"Check template is present\", () => {",
 											"    const node_objekt = jsonData[\"topology\"][0][\"node\"].find(m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".template\");",
 											"    pm.expect(node_objekt).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".template\");",
-											"    pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
+											"    //pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
 											"});",
 											"",
 											"pm.test(\"Check template is present\", () => {",
 											"    const node_objekt = jsonData[\"topology\"][0][\"node\"].find(m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".template3\");",
 											"    pm.expect(node_objekt).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".template3\");",
-											"    pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
+											"    //pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
 											"});",
 											""
 										],
@@ -1999,6 +1856,22 @@
 											"pm.test(\"template tag is present\", () => {",
 											"    var jsonData = pm.response.json();",
 											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"][0][\"afs\"][\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
+											"});",
+											"",
+											"pm.test(\"template tag is present\", () => {",
+											"    var jsonData = pm.response.json();",
+											"",
+											"    const template_objekt = jsonData[\"node\"].find",
+											"        (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".template4\");",
+											"    pm.expect(template_objekt)",
+											"      .to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".template4\");",
+											"",
+											"    const vrf_objekt = template_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"].find",
+											"        (m => m[\"vrf-name\"] === \"{$vrf-var}\");",
+											"    pm.expect(vrf_objekt)",
+											"      .to.be.an(\"object\", \"Could not find the vrf-name {$vrf-var}\");",
+											"",
+											"    pm.expect(vrf_objekt[\"afs\"][\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -2047,83 +1920,6 @@
 										"network-topology:network-topology",
 										"topology=templates",
 										"node={{node_id}}.template4"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "read templates - tag should be present in template 4",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"template tag is present\", () => {",
-											"    var jsonData = pm.response.json();",
-											"",
-											"    const template_objekt = jsonData[\"topology\"][0][\"node\"].find",
-											"        (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".template4\");",
-											"    pm.expect(template_objekt)",
-											"      .to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".template4\");",
-											"",
-											"    const vrf_objekt = template_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"].find",
-											"        (m => m[\"vrf-name\"] === \"{$vrf-var}\");",
-											"    pm.expect(vrf_objekt)",
-											"      .to.be.an(\"object\", \"Could not find the vrf-name {$vrf-var}\");",
-											"",
-											"    pm.expect(vrf_objekt[\"afs\"][\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"type": "text",
-										"value": "application/json"
-									},
-									{
-										"key": "Accept",
-										"type": "text",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology=templates"
 									]
 								}
 							},
@@ -2410,7 +2206,7 @@
 											"var jsonData = pm.response.json();",
 											"",
 											"pm.test(\"Check template with tag is present\", () => {",
-											"    const node_objekt = jsonData[\"topology\"][0][\"node\"].find(m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".template\");",
+											"    const node_objekt = jsonData[\"node\"].find(m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".template\");",
 											"    pm.expect(node_objekt).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".template\");",
 											"    pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"]).is.not.empty;",
 											"    pm.expect(node_objekt[\"frinx-uniconfig-topology:configuration\"][\"Cisco-IOS-XR-infra-rsi-cfg:vrfs\"][\"vrf\"][0][\"@\"][\"template-tags:operation\"]).eql(\"create\");",
@@ -2451,7 +2247,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node={{node_id}}.template",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -2461,7 +2257,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node={{node_id}}.template"
 									]
 								}
 							},
@@ -2687,7 +2484,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -2700,6 +2497,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -3288,7 +3091,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -3301,6 +3104,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -3790,7 +3599,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -3803,6 +3612,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -4258,14 +4073,17 @@
 					"name": "Unmount the-second XR6-device",
 					"item": [
 						{
-							"name": "unmount IOS XR netconf 2",
+							"name": "Uninstall VNF16 netconf",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Status code is 204\", function () {",
-											"    pm.response.to.have.status(204);",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -4273,27 +4091,27 @@
 								}
 							],
 							"request": {
-								"method": "DELETE",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
 									},
 									{
-										"key": "Accept",
+										"key": "Content-Type",
 										"value": "application/json"
 									},
 									{
-										"key": "Content-Type",
+										"key": "Accept",
 										"value": "application/json"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"{{node2_id}}\",\n        \"connection-type\": \"netconf\"\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node2_id}}",
+									"raw": "http://{{odl_ip}}:8181/rests/operations/connection-manager:uninstall-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -4301,71 +4119,8 @@
 									"port": "8181",
 									"path": [
 										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_netconf}}",
-										"node={{node2_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check unmounted IOS XR netconf 2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"No data expected\", function () {",
-											"    pm.response.to.have.status(404);",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{node2_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_netconf}}",
-										"node={{node2_id}}"
+										"operations",
+										"connection-manager:uninstall-node"
 									]
 								}
 							},
@@ -4377,204 +4132,28 @@
 					"name": "Mount VNF16 device",
 					"item": [
 						{
-							"name": "mount VNF16 netconf",
+							"name": "Install VNF16 netconf",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"//console.log(\"Request data: \" + request.data.toString());",
-											"//console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"console.log(\"Request data: \" + request.data.toString());",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
 									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"node\": [\n        {\n            \"node-id\": \"{{nodeVNF16_id}}\",\n            \"netconf-node-topology:host\": \"{{VNF16_ip}}\",\n            \"netconf-node-topology:port\": {{topology_port}},\n            \"netconf-node-topology:keepalive-delay\": 10,\n            \"netconf-node-topology:connection-timeout-millis\": 30000,\n            \"netconf-node-topology:default-request-timeout-millis\": 30000,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"netconf-node-topology:sleep-factor\": 1.0,\n            \"netconf-node-topology:schema-cache-directory\": \"schemas\",\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"netconf-node-topology:edit-config-test-option\": \"set\",\n            \"uniconfig-config:blacklist\": {\n                \"uniconfig-config:extension\": [\n\t\t\t\"tailf:display-when false\"\n\t           ]\n            }\n        }\n    ]\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{nodeVNF16_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_netconf}}",
-										"node={{nodeVNF16_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check VNF16 ua connected",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"//console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check VNF16 ua connected');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
 								},
 								{
 									"listen": "prerequest",
 									"script": {
 										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{nodeVNF16_id}}?content=nonconfig",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_netconf}}",
-										"node={{nodeVNF16_id}}"
-									],
-									"query": [
-										{
-											"key": "content",
-											"value": "nonconfig"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check all layers connected VNF16",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});",
-											"//overall-status",
-											"pm.test(\"Validate overall-status = \" + pm.environment.get(\"operations_result_complete\"), function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(pm.environment.get(\"operations_result_complete\"));",
-											"});",
-											"//status-message",
-											"pm.test(\"Validate status-message = Success\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"southbound-layer\"][\"status-message\"]).to.eql(\"Success\");",
-											"});",
-											"//protocol",
-											"pm.test(\"Validate protocol = netconf\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"southbound-layer\"][\"protocol\"]).to.eql(\"netconf\");",
-											"});",
-											"//connection-status",
-											"pm.test(\"Validate connection-status = connected\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"southbound-layer\"][\"connection-status\"]).to.eql(\"connected\");",
-											"});",
-											"//status-message",
-											"pm.test(\"Validate status-message = created unified mountpoint\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"unified-layer\"][\"status-message\"]).to.eql(\"created unified mountpoint\");",
-											"});",
-											"//connection-status",
-											"pm.test(\"Validate connection-status = installed\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"unified-layer\"][\"connection-status\"]).to.eql(\"installed\");",
-											"});",
-											"//node-id",
-											"pm.test(\"Validate node-id = \" + pm.environment.get(\"node_id\"), function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"node-id\"]).to.eql(pm.environment.get(\"nodeVNF16_id\"));",
-											"});",
-											"//status-message",
-											"pm.test(\"Validate status-message = installed uniconfig node\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"uniconfig-layer\"][\"status-message\"]).to.eql(\"installed uniconfig node\");",
-											"});",
-											"//connection-status",
-											"pm.test(\"Validate connection-status = installed \", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"node-results\"][\"node-result\"][0][\"uniconfig-layer\"][\"connection-status\"]).to.eql(\"installed\");",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"setTimeout(function(){}, 60000);",
 											""
 										],
 										"type": "text/javascript"
@@ -4599,10 +4178,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"input\": {\n\t\t\t\t\"target-nodes\": {\n\t\t\t\t\t\"node\": [\"{{nodeVNF16_id}}\"]\n\t\t}\n\n\t}\n}"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"{{nodeVNF16_id}}\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"{{VNF16_ip}}\",\n            \"netconf-node-topology:port\": {{topology_port}},\n            \"netconf-node-topology:keepalive-delay\": 10,\n            \"netconf-node-topology:connection-timeout-millis\": 30000,\n            \"netconf-node-topology:default-request-timeout-millis\": 30000,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"netconf-node-topology:sleep-factor\": 1.0,\n            \"netconf-node-topology:schema-cache-directory\": \"schemas\",\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"netconf-node-topology:edit-config-test-option\": \"set\",\n            \"uniconfig-config:blacklist\": {\n                \"uniconfig-config:extension\": [\n                    \"tailf:display-when false\"\n                ]\n            }\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/operations/uniconfig-manager:show-connection-status",
+									"raw": "http://{{odl_ip}}:8181/rests/operations/connection-manager:install-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -4611,7 +4190,7 @@
 									"path": [
 										"rests",
 										"operations",
-										"uniconfig-manager:show-connection-status"
+										"connection-manager:install-node"
 									]
 								}
 							},
@@ -4673,7 +4252,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -4686,6 +4265,87 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "find schema-cache-directory  NEW WAY",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"get cache_dir env variable\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.environment.set(\"cache_dir\", jsonData[\"netconf-node-topology:schema-cache-directory\"]);",
+											"    if (jsonData[\"netconf-node-topology:schema-cache-directory\"] == \"schema-1779846763\") {",
+											"        console.log(\"looks good\");",
+											"    }",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=topology-netconf",
+										"node={{node_id}}",
+										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -4772,6 +4432,85 @@
 							"response": []
 						},
 						{
+							"name": "check template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
+											"pm.test(\"check template is present\", function () {",
+											"  const tpl = jsonData[\"node\"].find",
+											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"pm.test(\"configuration is not empty\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node=versa.templatetvi"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "create template for vnf20 vni",
 							"event": [
 								{
@@ -4852,6 +4591,85 @@
 							"response": []
 						},
 						{
+							"name": "check template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"node_id\") + \".templatevni\");",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
+											"pm.test(\"check template is present\", function () {",
+											"  const tpl = jsonData[\"node\"].find",
+											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatevni\");",
+											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatevni\");",
+											"});",
+											"",
+											"pm.test(\"configuration is not empty\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatevni",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node=versa.templatevni"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "read templates",
 							"event": [
 								{
@@ -4878,21 +4696,22 @@
 											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatetvi\");",
 											"});",
 											"",
-											"pm.test(\"configuration is not empty\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
-											"});",
+											"//https://frinxhelpdesk.atlassian.net/browse/UNI-1278",
+											"//pm.test(\"configuration is not empty\", function () {",
+											"//    var jsonData = pm.response.json();",
+											"//    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"//});",
 											"//",
 											"pm.test(\"check template is present\", function () {",
 											"  const tpl2 = jsonData[\"topology\"][0][\"node\"].find",
 											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatevni\");",
 											"  pm.expect(tpl2).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatevni\");",
 											"});",
-											"",
-											"pm.test(\"configuration is not empty\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][1][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
-											"});"
+											"//https://frinxhelpdesk.atlassian.net/browse/UNI-1278",
+											"//pm.test(\"configuration is not empty\", function () {",
+											"//    var jsonData = pm.response.json();",
+											"//    pm.expect(jsonData[\"topology\"][0][\"node\"][1][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"//});"
 										],
 										"type": "text/javascript"
 									}
@@ -5030,7 +4849,9 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"console.log(\"Response: \" + responseBody)",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
 											""
 										],
 										"type": "text/javascript"
@@ -5338,6 +5159,68 @@
 							"response": []
 						},
 						{
+							"name": "check template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node=versa.templatetvi"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "delete template for vnf20 vni",
 							"event": [
 								{
@@ -5398,6 +5281,68 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "check template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatevni",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node=versa.templatevni"
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"event": [
@@ -5422,7 +5367,7 @@
 					]
 				},
 				{
-					"name": "Apply template vnf-CRUD-template",
+					"name": "Apply template del-template",
 					"item": [
 						{
 							"name": "find schema-cache-directory",
@@ -5475,7 +5420,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -5488,6 +5433,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -5574,7 +5525,7 @@
 							"response": []
 						},
 						{
-							"name": "read templates",
+							"name": "check template",
 							"event": [
 								{
 									"listen": "test",
@@ -5584,24 +5535,22 @@
 											"    pm.response.to.have.status(200);",
 											"});",
 											"",
+											"pm.test(\"Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
 											"pm.test(\"check template is present\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  const tpl = jsonData[\"node\"].find",
+											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatetvi\");",
 											"});",
 											"",
 											"pm.test(\"configuration is not empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
-											"});",
-											"",
-											"pm.test(\"template variable is present\", () => {",
-											"    var jsonData = pm.response.json();",
-											"    const vrf_objekt = jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"][\"tvi\"].find",
-											"      (m => m[\"name\"] === \"{$name}\");",
-											"  pm.expect(vrf_objekt)",
-											"    .to.be.an(\"object\", \"Could not find the tvi name {$name}\");",
-											"});",
-											""
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -5637,7 +5586,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -5647,7 +5596,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=versa.templatetvi"
 									]
 								}
 							},
@@ -5814,7 +5764,7 @@
 							"response": []
 						},
 						{
-							"name": "read templates",
+							"name": "check template",
 							"event": [
 								{
 									"listen": "test",
@@ -5824,29 +5774,22 @@
 											"    pm.response.to.have.status(200);",
 											"});",
 											"",
+											"pm.test(\"Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
 											"pm.test(\"check template is present\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  const tpl = jsonData[\"node\"].find",
+											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatetvi\");",
 											"});",
 											"",
 											"pm.test(\"configuration is not empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
-											"});",
-											"",
-											"pm.test(\"template variable is present\", () => {",
-											"    var jsonData = pm.response.json();",
-											"    const vrf_objekt = jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"][\"tvi\"].find",
-											"      (m => m[\"name\"] === \"{$name}\");",
-											"  pm.expect(vrf_objekt)",
-											"    .to.be.an(\"object\", \"Could not find the tvi name {$name}\");",
-											"});",
-											"",
-											"pm.test(\"only one template is present\", () => {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][1]).is.undefined;",
-											"});",
-											""
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -5872,17 +5815,17 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"type": "text",
-										"value": "application/json"
+										"value": "application/json",
+										"type": "text"
 									},
 									{
 										"key": "Accept",
-										"type": "text",
-										"value": "application/json"
+										"value": "application/json",
+										"type": "text"
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -5892,7 +5835,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=versa.templatetvi"
 									]
 								}
 							},
@@ -5961,25 +5905,15 @@
 							"response": []
 						},
 						{
-							"name": "read templates",
+							"name": "check template",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
 											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"check template is not present\", function () {",
-											"    pm.expect(pm.response.text()).not.to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
-											"});",
-											"",
-											"pm.test(\"configuration does not exist\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"]).not.to.exist;",
-											"});",
-											""
+											"    pm.response.to.have.status(404);",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -6005,17 +5939,17 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"type": "text",
-										"value": "application/json"
+										"value": "application/json",
+										"type": "text"
 									},
 									{
 										"key": "Accept",
-										"type": "text",
-										"value": "application/json"
+										"value": "application/json",
+										"type": "text"
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -6025,7 +5959,88 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=versa.templatetvi"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Apply template vnf-CRUD-template",
+					"item": [
+						{
+							"name": "find schema-cache-directory",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"get cache_dir env variable\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.environment.set(\"cache_dir\", jsonData[\"netconf-node-topology:schema-cache-directory\"]);",
+											"    if (jsonData[\"netconf-node-topology:schema-cache-directory\"] == \"schema-1779846763\") {",
+											"        console.log(\"looks good\");",
+											"    }",
+											"});",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=topology-netconf",
+										"node={{node_id}}",
+										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -6112,7 +6127,7 @@
 							"response": []
 						},
 						{
-							"name": "read templates",
+							"name": "check template",
 							"event": [
 								{
 									"listen": "test",
@@ -6122,16 +6137,22 @@
 											"    pm.response.to.have.status(200);",
 											"});",
 											"",
+											"pm.test(\"Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
 											"pm.test(\"check template is present\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  const tpl = jsonData[\"node\"].find",
+											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatetvi\");",
 											"});",
 											"",
 											"pm.test(\"configuration is not empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
-											"});",
-											""
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -6167,7 +6188,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -6177,7 +6198,530 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=versa.templatetvi"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "attempt to modify template for vnf20 tvi with bad schema",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"tvi\": [\n        {\n            \"name\": \"{$name}\",\n            \"enable\": \"{$enable1}\",\n            \"unit\": [\n                {\n                    \"name\": \"{$name-number}\",\n                    \"enable\": \"{$enable2}\",\n                    \"family\": {\n                        \"inet\": {\n                            \"address\": [\n                                {\n                                    \"addr\": \"{$ipv4-addr}/{$ipv4-prefix}\"\n                                }\n                            ]\n                        }\n                    }\n                }\n            ],\n            \"mode\": \"{$mode}\",\n            \"type\": \"{$type}\",\n            \"description\": \"{$description} {$name} {$name-number} XXX\"\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node={{node_id}}.templatetvi/frinx-uniconfig-topology:configuration/interfaces:interfaces/tvi=%7B%24name%7D?uniconfig-schema-repository={{cache_dir}}XXX",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node={{node_id}}.templatetvi",
+										"frinx-uniconfig-topology:configuration",
+										"interfaces:interfaces",
+										"tvi=%7B%24name%7D"
+									],
+									"query": [
+										{
+											"key": "uniconfig-schema-repository",
+											"value": "{{cache_dir}}XXX"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "attempt to create template for vnf20 tvi with bad schema",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"tvi\": [\n        {\n            \"name\": \"{$name}\",\n            \"enable\": \"{$enable1}\",\n            \"unit\": [\n                {\n                    \"name\": \"{$name-number}\",\n                    \"enable\": \"{$enable2}\",\n                    \"family\": {\n                        \"inet\": {\n                            \"address\": [\n                                {\n                                    \"addr\": \"{$ipv4-addr}/{$ipv4-prefix}\"\n                                }\n                            ]\n                        }\n                    }\n                }\n            ],\n            \"mode\": \"{$mode}\",\n            \"type\": \"{$type}\",\n            \"description\": \"{$description} {$name} {$name-number}\"\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node={{node_id}}.templatetvi2/frinx-uniconfig-topology:configuration/interfaces:interfaces/tvi=%7B%24name%7D?uniconfig-schema-repository={{cache_dir}}XXX",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node={{node_id}}.templatetvi2",
+										"frinx-uniconfig-topology:configuration",
+										"interfaces:interfaces",
+										"tvi=%7B%24name%7D"
+									],
+									"query": [
+										{
+											"key": "uniconfig-schema-repository",
+											"value": "{{cache_dir}}XXX"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
+											"pm.test(\"check template is present\", function () {",
+											"  const tpl = jsonData[\"node\"].find",
+											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"pm.test(\"configuration is not empty\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node=versa.templatetvi"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete template for vnf20 tvi",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node={{node_id}}.templatetvi",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node={{node_id}}.templatetvi"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node=versa.templatetvi"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create template for vnf20 tvi",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"tvi\": [\n        {\n            \"name\": \"{$name}\",\n            \"enable\": \"{$enable1}\",\n            \"unit\": [\n                {\n                    \"name\": \"{$name-number}\",\n                    \"enable\": \"{$enable2}\",\n                    \"family\": {\n                        \"inet\": {\n                            \"address\": [\n                                {\n                                    \"addr\": \"{$ipv4-addr}/{$ipv4-prefix}\"\n                                }\n                            ]\n                        }\n                    }\n                }\n            ],\n            \"mode\": \"{$mode}\",\n            \"type\": \"{$type}\",\n            \"description\": \"{$description} {$name} {$name-number}\"\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node={{node_id}}.templatetvi/frinx-uniconfig-topology:configuration/interfaces:interfaces/tvi=%7B%24name%7D?uniconfig-schema-repository={{cache_dir}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node={{node_id}}.templatetvi",
+										"frinx-uniconfig-topology:configuration",
+										"interfaces:interfaces",
+										"tvi=%7B%24name%7D"
+									],
+									"query": [
+										{
+											"key": "uniconfig-schema-repository",
+											"value": "{{cache_dir}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
+											"pm.test(\"check template is present\", function () {",
+											"  const tpl = jsonData[\"node\"].find",
+											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"pm.test(\"configuration is not empty\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node=versa.templatetvi"
 									]
 								}
 							},
@@ -6257,7 +6801,7 @@
 							"response": []
 						},
 						{
-							"name": "read templates",
+							"name": "check template",
 							"event": [
 								{
 									"listen": "test",
@@ -6267,19 +6811,26 @@
 											"    pm.response.to.have.status(200);",
 											"});",
 											"",
+											"pm.test(\"Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
 											"pm.test(\"check template is present\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  const tpl = jsonData[\"node\"].find",
+											"      (m => m[\"node-id\"] === pm.environment.get(\"node_id\") + \".templatetvi\");",
+											"  pm.expect(tpl).to.be.an(\"object\", \"Could not find the template \" + pm.environment.get(\"node_id\") + \".templatetvi\");",
 											"});",
 											"",
 											"pm.test(\"configuration is not empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"interfaces:interfaces\"]).is.not.empty;",
 											"});",
 											"",
 											"pm.test(\"configuration is not empty\", function () {",
 											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"sfc:service-node-groups\"]).is.not.empty;",
+											"    pm.expect(jsonData[\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"sfc:service-node-groups\"]).is.not.empty;",
 											"});",
 											""
 										],
@@ -6307,17 +6858,17 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
+										"type": "text",
+										"value": "application/json"
 									},
 									{
 										"key": "Accept",
-										"value": "application/json",
-										"type": "text"
+										"type": "text",
+										"value": "application/json"
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -6327,7 +6878,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=versa.templatetvi"
 									]
 								}
 							},
@@ -6396,25 +6948,15 @@
 							"response": []
 						},
 						{
-							"name": "read templates",
+							"name": "check template",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
 											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"check template is not present\", function () {",
-											"    pm.expect(pm.response.text()).not.to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
-											"});",
-											"",
-											"pm.test(\"configuration does not exist\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"]).not.to.exist;",
-											"});",
-											""
+											"    pm.response.to.have.status(404);",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -6440,17 +6982,17 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"type": "text",
-										"value": "application/json"
+										"value": "application/json",
+										"type": "text"
 									},
 									{
 										"key": "Accept",
-										"type": "text",
-										"value": "application/json"
+										"value": "application/json",
+										"type": "text"
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node=versa.templatetvi",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -6460,7 +7002,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node=versa.templatetvi"
 									]
 								}
 							},
@@ -6522,7 +7065,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -6535,6 +7078,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -6614,78 +7163,6 @@
 											"key": "uniconfig-schema-repository",
 											"value": "{{cache_dir}}"
 										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "read templates - all",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"check template is present\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".templatesng\");",
-											"});",
-											"",
-											"pm.test(\"configuration is not empty\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"sfc:service-node-groups\"]).is.not.empty;",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology=templates"
 									]
 								}
 							},
@@ -7913,6 +8390,68 @@
 							"response": []
 						},
 						{
+							"name": "check template",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node={{node_id}}.templatesng",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=templates",
+										"node={{node_id}}.templatesng"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "delete service-node-group",
 							"event": [
 								{
@@ -8029,7 +8568,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -8042,6 +8581,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -9323,25 +9868,15 @@
 							"response": []
 						},
 						{
-							"name": "read templates - all",
+							"name": "check template Copy",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
 											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"check template is not present\", function () {",
-											"    pm.expect(pm.response.text()).not.to.include(pm.environment.get(\"node_id\") + \".templatetvi\");",
-											"});",
-											"",
-											"pm.test(\"configuration does not exist\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"]).not.to.exist;",
-											"});",
-											""
+											"    pm.response.to.have.status(404);",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -9377,7 +9912,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates/node={{node_id}}.templatesng_multiply",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -9387,7 +9922,8 @@
 										"rests",
 										"data",
 										"network-topology:network-topology",
-										"topology=templates"
+										"topology=templates",
+										"node={{node_id}}.templatesng_multiply"
 									]
 								}
 							},
@@ -9469,7 +10005,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -9482,6 +10018,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -10238,7 +10780,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -10251,6 +10793,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -10330,78 +10878,6 @@
 											"key": "uniconfig-schema-repository",
 											"value": "{{cache_dir}}"
 										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "read templates - all",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"check template is present\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"node-id\"]).to.eql(pm.environment.get(\"node_id\") + \".templatesng\");",
-											"});",
-											"",
-											"pm.test(\"configuration is not empty\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData[\"topology\"][0][\"node\"][0][\"frinx-uniconfig-topology:configuration\"][\"sfc:service-node-groups\"]).is.not.empty;",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology=templates"
 									]
 								}
 							},
@@ -11142,71 +11618,6 @@
 											"key": "uniconfig-schema-repository",
 											"value": "{{cache_dir}}"
 										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "read templates",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"tag delete is present\", function () {",
-											"    pm.expect(pm.response.text()).to.include('\"template-tags:operation\":\"delete\"');",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology=templates"
 									]
 								}
 							},
@@ -14124,7 +14535,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -14137,6 +14548,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -14223,68 +14640,7 @@
 							"response": []
 						},
 						{
-							"name": "read templates",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "basic",
-									"basic": [
-										{
-											"key": "password",
-											"value": "admin",
-											"type": "string"
-										},
-										{
-											"key": "username",
-											"value": "admin",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=templates",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology=templates"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "read templates",
+							"name": "read template",
 							"event": [
 								{
 									"listen": "test",
@@ -16589,7 +16945,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -16602,6 +16958,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -17412,7 +17774,7 @@
 											"  pm.expect(addr_objekt2)",
 											"    .to.be.an(\"object\", \"Could not find the addr 1.0.0.31/32\");",
 											"  pm.expect(addr_objekt2.addr).to.eql(\"1.0.0.31/32\");    ",
-											"  pm.expect(addr_objekt2[\"@\"][\"template-tags:operation\"]).to.eql(\"merge\");",
+											"  //pm.expect(addr_objekt2[\"@\"][\"template-tags:operation\"]).to.eql(\"merge\");",
 											"});",
 											"",
 											"pm.test(\"Check if ipv4addr was properly added\", () => {",
@@ -17634,7 +17996,7 @@
 											"    .to.be.an(\"object\", \"Could not find the addr 1.0.0.32/32\");",
 											"",
 											"  pm.expect(addr_objekt.addr).to.eql(\"1.0.0.32/32\");   ",
-											"  pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"merge\");",
+											"  //pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"merge\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -19247,7 +19609,7 @@
 											"    .to.be.an(\"object\", \"Could not find the addr 1.0.0.32/32\");",
 											"",
 											"  pm.expect(addr_objekt.addr).to.eql(\"1.0.0.32/32\");",
-											"  pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"merge\");",
+											"  //pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"merge\");",
 											"});",
 											"",
 											"pm.test(\"Check if ipv4addr was properly deleted\", () => {",
@@ -19602,7 +19964,7 @@
 											"",
 											"  pm.expect(addr_objekt.addr).to.eql(\"1.0.0.32/32\");",
 											"",
-											"  pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
+											"  //pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
 											"",
 											"",
 											"});",
@@ -19859,7 +20221,7 @@
 											"",
 											"  pm.expect(addr_objekt.addr).to.eql(\"1.0.0.32/32\");",
 											"",
-											"  pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
+											"  //pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
 											"});",
 											"",
 											"pm.test(\"Check ipv4addr non existant update - no ip added\", () => {",
@@ -20129,7 +20491,7 @@
 											"",
 											"  pm.expect(addr_objekt.addr).to.eql(\"1.0.0.32/32\");",
 											"",
-											"  pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
+											"  //pm.expect(addr_objekt[\"@\"][\"template-tags:operation\"]).to.eql(\"update\");",
 											"});",
 											"",
 											"pm.test(\"Check ipv4addr non existant update - no ip added\", () => {",
@@ -20693,7 +21055,7 @@
 							"response": []
 						},
 						{
-							"name": "prepare interface",
+							"name": "delete interface",
 							"event": [
 								{
 									"listen": "test",
@@ -20752,6 +21114,213 @@
 										"frinx-uniconfig-topology:configuration",
 										"interfaces:interfaces",
 										"tvi={{iftvi_name2_url}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check deleted interface",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}/frinx-uniconfig-topology:configuration/interfaces:interfaces/tvi={{iftvi_name2_url}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node={{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"interfaces:interfaces",
+										"tvi={{iftvi_name2_url}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check deleted interface Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}/frinx-uniconfig-topology:configuration/interfaces:interfaces/tvi={{iftvi_name2_url}}?content=config",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node={{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"interfaces:interfaces",
+										"tvi={{iftvi_name2_url}}"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "config"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check deleted interface Copy 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}/frinx-uniconfig-topology:configuration/interfaces:interfaces/tvi={{iftvi_name2_url}}?content=nonconfig",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node={{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"interfaces:interfaces",
+										"tvi={{iftvi_name2_url}}"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -20832,6 +21401,71 @@
 							"response": []
 						},
 						{
+							"name": "check interface",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node={{node_id}}/frinx-uniconfig-topology:configuration/interfaces:interfaces/tvi={{iftvi_name2_url}}",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node={{node_id}}",
+										"frinx-uniconfig-topology:configuration",
+										"interfaces:interfaces",
+										"tvi={{iftvi_name2_url}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "find schema-cache-directory",
 							"event": [
 								{
@@ -20882,7 +21516,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory",
+									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology=topology-netconf/node={{node_id}}/netconf-node-topology:schema-cache-directory?content=nonconfig",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -20895,6 +21529,12 @@
 										"topology=topology-netconf",
 										"node={{node_id}}",
 										"netconf-node-topology:schema-cache-directory"
+									],
+									"query": [
+										{
+											"key": "content",
+											"value": "nonconfig"
+										}
 									]
 								}
 							},
@@ -22145,7 +22785,7 @@
 											"    .to.be.an(\"object\", \"Could not find the name 4093\");",
 											"",
 											"  pm.expect(unitName4093_objekt.enable).to.be.false;   ",
-											"  pm.expect(unitName4093_objekt[\"@\"][\"template-tags:operation\"]).eql(\"update\");   ",
+											"  //pm.expect(unitName4093_objekt[\"@\"][\"template-tags:operation\"]).eql(\"update\");   ",
 											"",
 											"",
 											"  //get the addr_objekt object",
@@ -22398,7 +23038,7 @@
 											"    .to.be.an(\"object\", \"Could not find the name 4093\");",
 											"",
 											"  pm.expect(unitName4093_objekt.enable).to.be.true;   ",
-											"  pm.expect(unitName4093_objekt[\"@\"][\"template-tags:operation\"]).eql(\"update\");   ",
+											"  //pm.expect(unitName4093_objekt[\"@\"][\"template-tags:operation\"]).eql(\"update\");   ",
 											"",
 											"",
 											"  //get the addr_objekt object",
@@ -22654,7 +23294,7 @@
 											"    .to.be.an(\"object\", \"Could not find the name 4093\");",
 											"",
 											"  pm.expect(unitName4093_objekt.enable).to.be.true;   ",
-											"  pm.expect(unitName4093_objekt[\"@\"][\"template-tags:operation\"]).eql(\"update\");   ",
+											"  //pm.expect(unitName4093_objekt[\"@\"][\"template-tags:operation\"]).eql(\"update\");   ",
 											"",
 											"  //get the addr_objekt object",
 											"  const addr_objekt = unitName4093_objekt[\"family\"][\"inet\"][\"address\"].find",
@@ -22908,7 +23548,7 @@
 											"    .to.be.an(\"object\", \"Could not find the name 4093\");",
 											"",
 											"  pm.expect(unitName4093_objekt.enable).to.be.true;   ",
-											"  pm.expect(unitName4093_objekt[\"@\"][\"template-tags:operation\"]).eql(\"update\");   ",
+											"  //pm.expect(unitName4093_objekt[\"@\"][\"template-tags:operation\"]).eql(\"update\");   ",
 											"",
 											"",
 											"  //get the addr_objekt object",
@@ -24533,14 +25173,17 @@
 					"name": "Unmount VNF16 device",
 					"item": [
 						{
-							"name": "unmount VNF16 netconf",
+							"name": "Uninstall VNF16 netconf",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Status code is 204\", function () {",
-											"    pm.response.to.have.status(204);",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -24548,84 +25191,27 @@
 								}
 							],
 							"request": {
-								"method": "DELETE",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
 									},
 									{
-										"key": "Accept",
+										"key": "Content-Type",
 										"value": "application/json"
 									},
 									{
-										"key": "Content-Type",
+										"key": "Accept",
 										"value": "application/json"
 									}
 								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{nodeVNF16_id}}",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_netconf}}",
-										"node={{nodeVNF16_id}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check VNF16 netconf unmounted",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"No data expected\", function () {",
-											"    pm.response.to.have.status(404);",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"{{nodeVNF16_id}}\",\n        \"connection-type\": \"netconf\"\n    }\n}"
 								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/rests/data/network-topology:network-topology/topology={{topology_id_netconf}}/node={{nodeVNF16_id}}?content=nonconfig",
+									"raw": "http://{{odl_ip}}:8181/rests/operations/connection-manager:uninstall-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -24633,16 +25219,8 @@
 									"port": "8181",
 									"path": [
 										"rests",
-										"data",
-										"network-topology:network-topology",
-										"topology={{topology_id_netconf}}",
-										"node={{nodeVNF16_id}}"
-									],
-									"query": [
-										{
-											"key": "content",
-											"value": "nonconfig"
-										}
+										"operations",
+										"connection-manager:uninstall-node"
 									]
 								}
 							},

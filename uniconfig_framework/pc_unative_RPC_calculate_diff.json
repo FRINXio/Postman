@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "217cdcc5-a3db-4c0f-a897-d252678e67c1",
+		"_postman_id": "a502b75b-b6bd-42b7-a6c9-5eef6738e4a1",
 		"name": "pc_unative_RPC_calculate_diff",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -9,20 +9,22 @@
 			"name": "XR6 Calculate diff",
 			"item": [
 				{
-					"name": "XR6 Calculate diff Setup",
+					"name": "XR6 Checked Commit Setup",
 					"item": [
 						{
-							"name": "mount IOS XR netconf R1",
+							"name": "install XR6 cli R1",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "a040165c-b693-45e0-8c18-cc0289c6b83c",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -30,7 +32,7 @@
 								}
 							],
 							"request": {
-								"method": "PUT",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
@@ -47,10 +49,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"R1\",\n      \"netconf-node-topology:host\": \"{{xr_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n      \"uniconfig-config:uniconfig-native-enabled\": true,\n      \"uniconfig-config:blacklist\": {\n          \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"]\n      }\n    }\n  ]\n}"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"R1\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"{{xr_ip}}\",\n            \"netconf-node-topology:port\": {{topology_port}},\n            \"netconf-node-topology:keepalive-delay\": 5,\n            \"netconf-node-topology:max-connection-attempts\": 1,\n            \"netconf-node-topology:connection-timeout-millis\": 60000,\n            \"netconf-node-topology:default-request-timeout-millis\": 60000,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"netconf-node-topology:sleep-factor\": 1.0,\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"netconf-node-topology:edit-config-test-option\": \"set\",\n            \"uniconfig-config:blacklist\": {\n                \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"],\n                \"extension\": [\n                    \"tailf:display-when false\"\n                ]\n            }\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R1",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:install-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -58,199 +60,27 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R1"
+										"operations",
+										"connection-manager:install-node"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "check status connected R1",
+							"name": "install XR6 cli R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "79b78d30-e6d9-46b8-a461-1779ef8f7e4c",
-										"exec": [
-											"//console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check status connected R1');",
-											"    }",
-											"}",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "8879968a-45d5-4304-a57a-ae0c98905e70",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R1",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R1"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check uniconfig available R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "3becb8ec-9bbc-4207-9cb6-68b9449a0197",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (pm.response.code === 200) {",
-											"    tests[\"Is connected\"] = true;",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check uniconfig available R1');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "8e709953-8a81-46b5-8304-fba3b92a27c6",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "mount IOS XR netconf R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "d6bfd814-2ba6-4c6d-a920-76cc23ce1c26",
 										"exec": [
 											"console.log(\"Request data: \" + request.data.toString());",
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -258,7 +88,7 @@
 								}
 							],
 							"request": {
-								"method": "PUT",
+								"method": "POST",
 								"header": [
 									{
 										"key": "Authorization",
@@ -275,10 +105,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"node\": [\n    {\n      \"node-id\": \"R2\",\n      \"netconf-node-topology:host\": \"{{xr2_ip}}\",\n      \"netconf-node-topology:port\": {{netconf_port}},\n      \"netconf-node-topology:keepalive-delay\": 0,\n      \"netconf-node-topology:tcp-only\": false,\n      \"netconf-node-topology:username\": \"{{username}}\",\n      \"netconf-node-topology:password\": \"{{password}}\",\n      \"uniconfig-config:uniconfig-native-enabled\": true,\n      \"uniconfig-config:blacklist\": {\n          \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"]\n      }\n    }\n  ]\n}"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"R2\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"{{xr2_ip}}\",\n            \"netconf-node-topology:port\": {{topology_port}},\n            \"netconf-node-topology:keepalive-delay\": 5,\n            \"netconf-node-topology:max-connection-attempts\": 1,\n            \"netconf-node-topology:connection-timeout-millis\": 60000,\n            \"netconf-node-topology:default-request-timeout-millis\": 60000,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"netconf-node-topology:sleep-factor\": 1.0,\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"netconf-node-topology:edit-config-test-option\": \"set\",\n            \"uniconfig-config:blacklist\": {\n            \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"],\n\n                \"extension\": [\n                    \"tailf:display-when false\"\n                ]\n            }\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R2",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:install-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -286,182 +116,8 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R2"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check status connected R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "b24f2106-0409-43b4-b29b-0270dfe70d7d",
-										"exec": [
-											"//console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (responseBody.has(\"node\") && jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\") {",
-											"    tests[\"Is connected\"] = jsonData.node[0]['netconf-node-topology:connection-status'] === \"connected\";",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Not connected yet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check status connected R2');",
-											"    }",
-											"}",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "5fdacd2b-1410-49dc-bde9-da362d1ff42a",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R2",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R2"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check uniconfig available R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "00a400a6-0b86-4761-8ea0-4f332b885f14",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"// attempts counter",
-											"var attempt = JSON.parse(postman.getEnvironmentVariable(\"attempt\"));",
-											"",
-											"var jsonData = JSON.parse(responseBody);",
-											"if (pm.response.code === 200) {",
-											"    tests[\"Is connected\"] = true;",
-											"    // Reset attempt counter",
-											"    postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"} else {",
-											"    // If too many attempts, abort",
-											"    if (attempt > JSON.parse(postman.getEnvironmentVariable(\"connect_attempts\"))) {",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(1));",
-											"        console.log(\"Not connected yet ! Too many attempts !\")",
-											"        // Reset attempt counter",
-											"        tests[\"Unable to connect\"] = false",
-											"    } else {",
-											"        // Schedule next check attempt",
-											"        console.log(\"Uniconfig for node not availableyet ! Waiting, attempt : \" + attempt)",
-											"        setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											"        postman.setEnvironmentVariable(\"attempt\", JSON.stringify(attempt + 1));",
-											"        postman.setNextRequest('check uniconfig available R2');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "49bd100b-affc-47ca-b402-071253599e57",
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration"
+										"operations",
+										"connection-manager:install-node"
 									]
 								}
 							},
@@ -473,7 +129,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "9de10432-dee1-4051-95d3-0bde7786832a",
 										"exec": [
 											"pm.test(\"Success\", function () {",
 											"    pm.expect(pm.response.code).to.be.oneOf([201,200]);",
@@ -534,7 +189,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "fa569e8d-f0fb-40b9-afe0-74ff3132ad53",
 										"exec": [
 											"pm.test(\"Success\", function () {",
 											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
@@ -595,7 +249,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "78356040-717e-4f64-a3bf-7833776f9cbd",
 										"exec": [
 											"pm.test(\"Success\", function () {",
 											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
@@ -651,22 +304,143 @@
 							"response": []
 						},
 						{
-							"name": "show nonexisting interface on R1",
+							"name": "sync from network",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "d0e93d81-0a6c-4f3e-87bb-245070a92d48",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code 404\", function () {",
-											"   pm.response.to.have.status(404);",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:sync-from-network"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "replace config with operational",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
 											"});",
+											"if (postman.getEnvironmentVariable(\"release\") == \"carbon\"){",
 											"",
+											"pm.test(\"Validate result\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"result\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});",
+											"}",
+											"else if (postman.getEnvironmentVariable(\"release\") == \"oxygen\") {",
+											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
+											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
+											"    });",
 											"",
-											"",
-											""
+											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
+											"    pm.test(\"Number of nodes in output should be 2\", function() {",
+											"        pm.expect(result.length).to.eql(2);",
+											"    })",
+											"    pm.test(\"Status of all output nodes should be 'complete'\", function() {",
+											"        result.forEach(function(nodeResult, index) {",
+											"            pm.expect(nodeResult[\"node-id\"]).to.be.oneOf([\"R1\", \"R2\"]);",
+											"            pm.expect(nodeResult[\"status\"]).to.eq(\"complete\")",
+											"        });",
+											"    })",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"uniconfig-manager:replace-config-with-operational"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted loopback from R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -721,22 +495,270 @@
 							"response": []
 						},
 						{
-							"name": "show nonexisting interface on R2",
+							"name": "show deleted loopback from R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "d127fd25-e69f-43f9-b004-e27cb8cb4d6d",
+										"exec": [
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R2/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"R2",
+										"yang-ext:mount",
+										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
+										"interface-configuration",
+										"act",
+										"Loopback123"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "XR6 Checked Commit Teardown",
+					"item": [
+						{
+							"name": "delete loopback from R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Status code 404\", function () {",
-											"   pm.response.to.have.status(404);",
-											"});",
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R1/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"R1",
+										"yang-ext:mount",
+										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
+										"interface-configuration",
+										"act",
+										"Loopback123"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete loopback from R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
 											"",
-											"",
-											"",
-											""
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R2/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"R2",
+										"yang-ext:mount",
+										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
+										"interface-configuration",
+										"act",
+										"Loopback123"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted loopback from R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R1/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"config",
+										"network-topology:network-topology",
+										"topology",
+										"{{topology_id_netconf}}",
+										"node",
+										"R1",
+										"yang-ext:mount",
+										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
+										"interface-configuration",
+										"act",
+										"Loopback123"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "show deleted loopback from R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -791,19 +813,18 @@
 							"response": []
 						},
 						{
-							"name": "sync-from-network",
+							"name": "uninstall XR6 cli R1",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "dd6ae61e-a3df-41bb-8e4f-5f5be438e95e",
 										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
 											"});",
-											""
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -813,12 +834,12 @@
 								"method": "POST",
 								"header": [
 									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
 									},
 									{
 										"key": "Accept",
@@ -827,10 +848,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"R1\",\n        \"connection-type\": \"netconf\"\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:sync-from-network",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:uninstall-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -839,39 +860,25 @@
 									"path": [
 										"restconf",
 										"operations",
-										"uniconfig-manager:sync-from-network"
+										"connection-manager:uninstall-node"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "replace config with operational",
+							"name": "uninstall XR5 cli R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
-										"id": "da7209ba-e99b-47ae-b22e-210416ff0a66",
 										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
 											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
+											"    pm.response.to.have.status(200);",
 											"});",
-											"    pm.test(\"Overall status: \" + pm.response.json()[\"output\"][\"overall-status\"], function() {",
-											"        pm.expect(pm.response.json()[\"output\"][\"overall-status\"]).to.eql(\"complete\");",
-											"    });",
-											"",
-											"    var result = pm.response.json()[\"output\"][\"node-results\"][\"node-result\"];",
-											"    pm.test(\"Number of nodes in output should be 2\", function() {",
-											"        pm.expect(result.length).to.eql(2);",
-											"    })",
-											"    pm.test(\"Status of all output nodes should be 'complete'\", function() {",
-											"        result.forEach(function(nodeResult, index) {",
-											"            pm.expect(nodeResult[\"node-id\"]).to.be.oneOf([\"R1\", \"R2\"]);",
-											"            pm.expect(nodeResult[\"status\"]).to.eq(\"complete\")",
-											"        });",
-											"    })"
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -881,20 +888,24 @@
 								"method": "POST",
 								"header": [
 									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
 										"key": "Content-Type",
 										"value": "application/json"
 									},
 									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
+										"key": "Accept",
+										"value": "application/json"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"R2\",\n        \"connection-type\": \"netconf\"\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/uniconfig-manager:replace-config-with-operational",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:uninstall-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -903,365 +914,15 @@
 									"path": [
 										"restconf",
 										"operations",
-										"uniconfig-manager:replace-config-with-operational"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "3eb442d7-e4e2-4af0-958b-ec36d66d2adb",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R1/frinx-uniconfig-topology:configuration/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R1",
-										"frinx-uniconfig-topology:configuration",
-										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
-										"interface-configuration",
-										"act",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check nonexisting interface R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "1decdf84-e36d-425e-bad4-95007f687625",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 404\", function () {",
-											"  pm.response.to.have.status(404);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/uniconfig/node/R2/frinx-uniconfig-topology:configuration/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"uniconfig",
-										"node",
-										"R2",
-										"frinx-uniconfig-topology:configuration",
-										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
-										"interface-configuration",
-										"act",
-										"Loopback123"
+										"connection-manager:uninstall-node"
 									]
 								}
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "XR6 Calculate diff Teardown",
-					"item": [
-						{
-							"name": "unmount R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "99cec969-2a1b-429a-aaf2-2edc1d1bee82",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R1",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R1"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check unmounted netconf R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "d4892a7a-7c17-4d1b-85ac-7e6698c46543",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"No data expected\", function () {",
-											"    pm.response.to.have.status(404);",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "9d389ed7-f7d0-4c47-a33b-4a7be339af34",
-										"exec": [
-											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R1",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R1"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "unmount R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "8c9f19d5-b5c9-4d6d-9615-53334b8bc12b",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"  pm.response.to.have.status(200);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R2",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R2"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "check unmounted netconf R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "821cb8ad-78a5-448d-973b-f5e68d75534f",
-										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"pm.test(\"No data expected\", function () {",
-											"    pm.response.to.have.status(404);",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"id": "66335ee5-cb58-465b-99c1-11ea83e23aa5",
-										"exec": [
-											"setTimeout(function(){}, JSON.parse(postman.getEnvironmentVariable(\"connect_attempt_delay\")));",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operational/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R2",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operational",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R2"
-									]
-								}
-							},
-							"response": []
-						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Tests",
@@ -1275,7 +936,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "785a4780-9962-4f47-9884-4a55e2843de9",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1334,7 +994,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "087ddb47-d15e-443e-a510-fa11f70634f8",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1393,7 +1052,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "4ddddd44-c61a-4581-9f24-db7ad40fc9a2",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1450,7 +1108,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "54fb84ba-0dca-402e-974b-135edae69b8b",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1529,9 +1186,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Calculate diff no-change",
@@ -1542,7 +1197,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "495afe6e-52ff-4bef-aff7-d13a50ae2fa7",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1602,9 +1256,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Calculate diff bad-input",
@@ -1615,7 +1267,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "ca4bb144-8ff9-47a2-964e-3a080d983e7f",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1675,7 +1326,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "b93ac854-81d5-459d-9d7f-c7b9053a5a74",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1735,7 +1385,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "55dbfbda-6664-43d6-b2cf-b30560b6935b",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1814,9 +1463,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Calculate diff create-leaf",
@@ -1827,7 +1474,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "c891f08f-b864-4a4f-b450-275b71ada7c3",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1886,7 +1532,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "755faab0-22a7-458b-adfc-05a71b1b69a4",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -1941,9 +1586,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Calculate diff update-leaf",
@@ -1954,7 +1597,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "d9cac0cd-bf82-4f59-99f2-2483723b9dce",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2013,7 +1655,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "ea051703-6b5b-437b-a98b-14370c6b68f3",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2067,9 +1708,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Calculate diff remove-leaf",
@@ -2080,7 +1719,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "43d4cd51-5dfc-4081-bf6d-618961046c50",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2139,7 +1777,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "9b61ef93-11f5-483f-bdf7-62d4aa830b5e",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2193,9 +1830,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Calculate diff create-leafs",
@@ -2206,7 +1841,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "acd20e74-edb4-4dfd-b9dd-9e9848fc1ebd",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2265,7 +1899,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "24e5cf80-6eeb-4507-b82b-e5b2a7891e26",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2343,9 +1976,7 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				},
 				{
 					"name": "Calculate diff request-combination",
@@ -2356,7 +1987,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "d4edabbe-a889-499c-bd5a-2b79ad906301",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2415,7 +2045,6 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "5dd5dff7-f2fb-469b-808a-b82b5dbc39c8",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
@@ -2471,13 +2100,9 @@
 							},
 							"response": []
 						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
+					]
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

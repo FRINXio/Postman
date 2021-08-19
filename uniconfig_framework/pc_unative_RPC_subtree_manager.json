@@ -1,15 +1,15 @@
 {
 	"info": {
-		"_postman_id": "920f9200-e623-4e4c-9755-bc692f8daede",
+		"_postman_id": "f168fc6d-06a4-456a-8157-ae8e9b960f17",
 		"name": "pc_unative_RPC_subtree_manager",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "XR5 RPC subtree_manager",
+			"name": "XR5 RPC subtree",
 			"item": [
 				{
-					"name": "XR5 Commit Setup",
+					"name": "XR5 RPC subtree Setup",
 					"item": [
 						{
 							"name": "install XR5 cli R1",
@@ -161,10 +161,10 @@
 									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
-									"raw": "http://{{follower2}}:8181/rests/operations/uniconfig-manager:sync-from-network",
+									"raw": "http://{{odl_ip}}:8181/rests/operations/uniconfig-manager:sync-from-network",
 									"protocol": "http",
 									"host": [
-										"{{follower2}}"
+										"{{odl_ip}}"
 									],
 									"port": "8181",
 									"path": [
@@ -236,10 +236,10 @@
 									"raw": "{\n            \"input\": {\n                \"target-nodes\": {\n                     \"node\": [\"R1\",\"R2\"]\n\n                }\n            }\n        }"
 								},
 								"url": {
-									"raw": "http://{{follower1}}:8181/rests/operations/uniconfig-manager:replace-config-with-operational",
+									"raw": "http://{{odl_ip}}:8181/rests/operations/uniconfig-manager:replace-config-with-operational",
 									"protocol": "http",
 									"host": [
-										"{{follower1}}"
+										"{{odl_ip}}"
 									],
 									"port": "8181",
 									"path": [
@@ -252,7 +252,7 @@
 							"response": []
 						},
 						{
-							"name": "Restore empty config",
+							"name": "restore empty config R1",
 							"event": [
 								{
 									"listen": "test",
@@ -265,7 +265,9 @@
 											"});",
 											"",
 											"pm.test(\"Config replaced\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"root# load override \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"(config)#load \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"Loading.\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"This commit will replace or remove the entire running configuration.\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -290,7 +292,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"configure\nload override {{conf_file_stored}}\ncommit replace\nyes\nend\"\n  }\n}"
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nload {{conf_file_stored}}\ncommit replace\nyes\nend\n\"\n  }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/rests/operations/network-topology:network-topology/topology={{topology_id_cli}}/node=R1/yang-ext:mount/cli-unit-generic:execute-and-read",
@@ -311,11 +313,74 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "restore empty config R2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"//console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Success\", function () {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200]);",
+											"});",
+											"",
+											"pm.test(\"Config replaced\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"(config)#load \"+postman.getEnvironmentVariable(\"conf_file_stored\"));",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"Loading.\");",
+											"  pm.expect(pm.response.json()[\"output\"][\"output\"]).to.include(\"This commit will replace or remove the entire running configuration.\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"input\" :\n  {\n     \"ios-cli:command\" : \"conf t\nload {{conf_file_stored}}\ncommit replace\nyes\nend\n\"\n  }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/rests/operations/network-topology:network-topology/topology={{topology_id_cli}}/node=R2/yang-ext:mount/cli-unit-generic:execute-and-read",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"operations",
+										"network-topology:network-topology",
+										"topology={{topology_id_cli}}",
+										"node=R2",
+										"yang-ext:mount",
+										"cli-unit-generic:execute-and-read"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
 				{
-					"name": "XR5 Commit Teardown",
+					"name": "XR5 RPC subtree Teardown",
 					"item": [
 						{
 							"name": "uninstall XR5 cli R1",
@@ -433,8 +498,154 @@
 			"name": "Tests",
 			"item": [
 				{
-					"name": "RPC calculate-subtree-diff",
+					"name": "RPC subtree calculate-subtree-diff",
 					"item": [
+						{
+							"name": "configure Gig1 description on R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([201,204]);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"frinx-openconfig:interfaces:description\": \"temp description\"\n}"
+								},
+								"url": {
+									"raw": "http://{{follower1}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
+									"protocol": "http",
+									"host": [
+										"{{follower1}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F1",
+										"config",
+										"description"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check interface description exists on config R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate interface description\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:description\"]).to.eql(\"temp description\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F1",
+										"config",
+										"description"
+									]
+								}
+							},
+							"response": []
+						},
 						{
 							"name": "configure Gig1 status on R1",
 							"event": [
@@ -509,7 +720,7 @@
 							"response": []
 						},
 						{
-							"name": "check interface description exists on config R1",
+							"name": "check interface status on config R1",
 							"event": [
 								{
 									"listen": "test",
@@ -522,7 +733,7 @@
 											"});",
 											"",
 											"pm.test(\"Validate interface description\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:config\"][\"enabled\"]).to.be.true;",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:enabled\"]).to.eql(true);",
 											"});"
 										],
 										"type": "text/javascript"
@@ -559,7 +770,7 @@
 									}
 								],
 								"url": {
-									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config",
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/enabled",
 									"protocol": "http",
 									"host": [
 										"{{follower2}}"
@@ -574,7 +785,8 @@
 										"frinx-uniconfig-topology:configuration",
 										"frinx-openconfig-interfaces:interfaces",
 										"interface=GigabitEthernet0%2F0%2F0%2F1",
-										"config"
+										"config",
+										"enabled"
 									]
 								}
 							},
@@ -636,7 +848,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"input\" : {\n        \"operation\" : \"merge\",\n        \"source-paths\": [\"/network-topology:network-topology/network-topology:topology=uniconfig/network-topology:node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/frinx-openconfig-interfaces:interface=GigabitEthernet0%2F0%2F0%2F1/frinx-openconfig-interfaces:config/frinx-openconfig-interfaces:enabled\",\"/network-topology:network-topology/network-topology:topology=uniconfig/network-topology:node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/frinx-openconfig-interfaces:interface=GigabitEthernet0%2F0%2F0%2F1/frinx-openconfig-interfaces:config/frinx-openconfig-interfaces:enabled\"],\n        \"target-path\": [\"/network-topology:network-topology/network-topology:topology=uniconfig/network-topology:node=R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/frinx-openconfig-interfaces:interface=GigabitEthernet0%2F0%2F0%2F1/frinx-openconfig-interfaces:config\"],\n        \"source-datastore\": \"CONFIGURATION\",\n        \"target-datastore\": \"CONFIGURATION\"\n    }\n}"
+									"raw": "{\n    \"input\" : {\n        \"operation\" : \"merge\",\n        \"source-paths\": [\"/network-topology:network-topology/network-topology:topology=uniconfig/network-topology:node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/frinx-openconfig-interfaces:interface=GigabitEthernet0%2F0%2F0%2F1/frinx-openconfig-interfaces:config/frinx-openconfig-interfaces:description\",\"/network-topology:network-topology/network-topology:topology=uniconfig/network-topology:node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/frinx-openconfig-interfaces:interface=GigabitEthernet0%2F0%2F0%2F1/frinx-openconfig-interfaces:config/frinx-openconfig-interfaces:enabled\"],\n        \"target-path\": [\"/network-topology:network-topology/network-topology:topology=uniconfig/network-topology:node=R2/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/frinx-openconfig-interfaces:interface=GigabitEthernet0%2F0%2F0%2F1/frinx-openconfig-interfaces:config\"],\n        \"source-datastore\": \"CONFIGURATION\",\n        \"target-datastore\": \"CONFIGURATION\"\n    }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/rests/operations/subtree-manager:copy-many-to-one",
@@ -668,7 +880,8 @@
 											"});",
 											"",
 											"pm.test(\"Validate interface config\", function() {",
-											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:config\"][\"enabled\"]).to.be.true;",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:config\"][\"enabled\"]).to.eql(true);",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:config\"][\"description\"]).to.eql(\"temp description\");",
 											"});"
 										],
 										"type": "text/javascript"
@@ -948,8 +1161,300 @@
 					]
 				},
 				{
-					"name": "RPC copy-many-to-one success",
+					"name": "RPC subtree copy-many-to-one-success",
 					"item": [
+						{
+							"name": "configure Gig1 description on R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([201,204]);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"frinx-openconfig:interfaces:description\": \"temp description\"\n}"
+								},
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F1",
+										"config",
+										"description"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check interface description exists on config R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate interface description\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:description\"]).to.eql(\"temp description\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F1",
+										"config",
+										"description"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "configure Gig2 status on R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([201,204]);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"frinx-openconfig:interfaces:enabled\": \"true\"\n}"
+								},
+								"url": {
+									"raw": "http://{{follower1}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F2/config/enabled",
+									"protocol": "http",
+									"host": [
+										"{{follower1}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F2",
+										"config",
+										"enabled"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check interface status on config R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate interface description\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:enabled\"]).to.eql(true);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F2/config/enabled",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F2",
+										"config",
+										"enabled"
+									]
+								}
+							},
+							"response": []
+						},
 						{
 							"name": "copy R1 Gig1 description and R1 Gig2 satus to R2 Gig0",
 							"event": [
@@ -1085,6 +1590,157 @@
 								}
 							},
 							"response": []
+						}
+					]
+				},
+				{
+					"name": "RPC subtree copy-many-to-one-failed",
+					"item": [
+						{
+							"name": "configure Gig1 description on R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code\", function () {",
+											"  pm.expect(pm.response.code).to.be.oneOf([201,204]);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"frinx-openconfig:interfaces:description\": \"temp description\"\n}"
+								},
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F1",
+										"config",
+										"description"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check interface description exists on config R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate interface description\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:description\"]).to.eql(\"temp description\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F1",
+										"config",
+										"description"
+									]
+								}
+							},
+							"response": []
 						},
 						{
 							"name": "configure Gig2 status on R1",
@@ -1158,12 +1814,80 @@
 								}
 							},
 							"response": []
-						}
-					]
-				},
-				{
-					"name": "RPC copy-many-to-one failed",
-					"item": [
+						},
+						{
+							"name": "check interface status on config R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate interface description\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:enabled\"]).to.eql(true);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F2/config/enabled",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F2",
+										"config",
+										"enabled"
+									]
+								}
+							},
+							"response": []
+						},
 						{
 							"name": "copy R1 Gig1 description and status to R2 Gig0 (wrong target path)",
 							"event": [
@@ -1315,7 +2039,7 @@
 					]
 				},
 				{
-					"name": "RPC copy-one-to-many success",
+					"name": "RPC subtree copy-one-to-many-success",
 					"item": [
 						{
 							"name": "configure interface description on R1",
@@ -1330,6 +2054,88 @@
 											"  pm.response.to.have.status(201);",
 											"});",
 											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"frinx-openconfig:interfaces:description\": \"temp description\"\n}"
+								},
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F1",
+										"config",
+										"description"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check interface description exists on config R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate interface description\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:description\"]).to.eql(\"temp description\");",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1351,11 +2157,12 @@
 										}
 									]
 								},
-								"method": "PUT",
+								"method": "GET",
 								"header": [
 									{
 										"key": "Content-Type",
-										"value": "application/json"
+										"value": "application/json",
+										"type": "text"
 									},
 									{
 										"key": "Accept",
@@ -1363,10 +2170,6 @@
 										"type": "text"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"frinx-openconfig:interfaces:description\": \"temp description\"\n}"
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
 									"protocol": "http",
@@ -1615,7 +2418,7 @@
 					]
 				},
 				{
-					"name": "RPC copy-one-to-many failed",
+					"name": "RPC subtree copy-one-to-many-failed",
 					"item": [
 						{
 							"name": "configure interface description on R1",
@@ -1630,6 +2433,88 @@
 											"  pm.response.to.have.status(201);",
 											"});",
 											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-type": true
+								}
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"frinx-openconfig:interfaces:description\": \"temp description\"\n}"
+								},
+								"url": {
+									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
+									"protocol": "http",
+									"host": [
+										"{{follower2}}"
+									],
+									"port": "8181",
+									"path": [
+										"rests",
+										"data",
+										"network-topology:network-topology",
+										"topology=uniconfig",
+										"node=R1",
+										"frinx-uniconfig-topology:configuration",
+										"frinx-openconfig-interfaces:interfaces",
+										"interface=GigabitEthernet0%2F0%2F0%2F1",
+										"config",
+										"description"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "check interface description exists on config R1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(\"Response: \" + responseBody)",
+											"",
+											"pm.test(\"Status code is 200\", function () {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate interface description\", function() {",
+											"  pm.expect(pm.response.json()[\"frinx-openconfig-interfaces:description\"]).to.eql(\"temp description\");",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1651,11 +2536,12 @@
 										}
 									]
 								},
-								"method": "PUT",
+								"method": "GET",
 								"header": [
 									{
 										"key": "Content-Type",
-										"value": "application/json"
+										"value": "application/json",
+										"type": "text"
 									},
 									{
 										"key": "Accept",
@@ -1663,10 +2549,6 @@
 										"type": "text"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"frinx-openconfig:interfaces:description\": \"temp description\"\n}"
-								},
 								"url": {
 									"raw": "http://{{follower2}}:8181/rests/data/network-topology:network-topology/topology=uniconfig/node=R1/frinx-uniconfig-topology:configuration/frinx-openconfig-interfaces:interfaces/interface=GigabitEthernet0%2F0%2F0%2F1/config/description",
 									"protocol": "http",
@@ -1919,7 +2801,7 @@
 					]
 				},
 				{
-					"name": "RPC copy-one-to-one success",
+					"name": "RPC subtree copy-one-to-one-success",
 					"item": [
 						{
 							"name": "configure interface description on R1",
@@ -2214,7 +3096,7 @@
 					]
 				},
 				{
-					"name": "RPC copy-one-to-one failed",
+					"name": "RPC subtree copy-one-to-one-failed",
 					"item": [
 						{
 							"name": "configure interface description on R1",
@@ -2290,7 +3172,7 @@
 							"response": []
 						},
 						{
-							"name": "check interface description exists on config R1 Copy",
+							"name": "check interface description exists on config R1",
 							"event": [
 								{
 									"listen": "test",

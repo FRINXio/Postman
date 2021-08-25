@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "340d6487-8403-4f51-8383-c8fcc8fa5d71",
+		"_postman_id": "c1c8dfe8-7c87-434b-b69d-0d104e283c26",
 		"name": "pc_unative_RPC_delete_snapshot",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -9,7 +9,7 @@
 			"name": "XR6 Delete snapshot",
 			"item": [
 				{
-					"name": "XR6 Delete Snapshot Setup",
+					"name": "XR6 Delete snapshot Setup",
 					"item": [
 						{
 							"name": "install XR6 cli R1",
@@ -49,7 +49,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"input\": {\n        \"node-id\": \"R1\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"{{xr_ip}}\",\n            \"netconf-node-topology:port\": {{topology_port}},\n            \"netconf-node-topology:keepalive-delay\": 5,\n            \"netconf-node-topology:max-connection-attempts\": 1,\n            \"netconf-node-topology:connection-timeout-millis\": 60000,\n            \"netconf-node-topology:default-request-timeout-millis\": 60000,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"netconf-node-topology:sleep-factor\": 1.0,\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"netconf-node-topology:edit-config-test-option\": \"set\",\n            \"uniconfig-config:blacklist\": {\n                \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"],\n                \"extension\": [\n                    \"tailf:display-when false\"\n                ]\n            }\n        }\n    }\n}"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"R1\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"{{xr_ip}}\",\n            \"netconf-node-topology:port\": {{netconf_port}},\n            \"netconf-node-topology:keepalive-delay\": 0,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"uniconfig-config:blacklist\": {\n            \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"]\n      }\n    }\n    }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:install-node",
@@ -105,7 +105,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"input\": {\n        \"node-id\": \"R2\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"{{xr2_ip}}\",\n            \"netconf-node-topology:port\": {{topology_port}},\n            \"netconf-node-topology:keepalive-delay\": 5,\n            \"netconf-node-topology:max-connection-attempts\": 1,\n            \"netconf-node-topology:connection-timeout-millis\": 60000,\n            \"netconf-node-topology:default-request-timeout-millis\": 60000,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"netconf-node-topology:sleep-factor\": 1.0,\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"netconf-node-topology:edit-config-test-option\": \"set\",\n            \"uniconfig-config:blacklist\": {\n            \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"],\n\n                \"extension\": [\n                    \"tailf:display-when false\"\n                ]\n            }\n        }\n    }\n}"
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"R2\",\n        \"netconf\": {\n            \"netconf-node-topology:host\": \"{{xr2_ip}}\",\n            \"netconf-node-topology:port\": {{netconf_port}},\n            \"netconf-node-topology:keepalive-delay\": 0,\n            \"netconf-node-topology:tcp-only\": false,\n            \"netconf-node-topology:username\": \"{{username}}\",\n            \"netconf-node-topology:password\": \"{{password}}\",\n            \"uniconfig-config:uniconfig-native-enabled\": true,\n            \"uniconfig-config:blacklist\": {\n            \"uniconfig-config:path\": [\"openconfig-interfaces:interfaces\", \"ietf-interfaces:interfaces\", \"openconfig-vlan:vlans\", \"openconfig-routing-policy:routing-policy\"]\n      }\n    }\n    }\n}"
 								},
 								"url": {
 									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:install-node",
@@ -337,51 +337,57 @@
 								}
 							},
 							"response": []
-						}
-					]
-				},
-				{
-					"name": "XR6 Delete Snapshot Teardown",
-					"item": [
+						},
 						{
-							"name": "delete loopback from R1",
+							"name": "check topology exists R1 and R2",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"type": "text/javascript",
 										"exec": [
 											"console.log(\"Response: \" + responseBody)",
 											"",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
-											"});"
-										],
-										"type": "text/javascript"
+											"pm.test(\"Status code is 200\", function () {",
+											" pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Validate topology id\", function() {",
+											" pm.expect(pm.response.json()[\"topology\"][0][\"topology-id\"]).to.eql(\"snapshot1\");",
+											"});",
+											"pm.test(\"Validate topology\", function() {",
+											"    var jstring=pm.response.json()[\"topology\"][0][\"node\"];",
+											"        for (var i =0;i<jstring.length;i++){",
+											"            if (jstring[i][\"node-id\"]===\"R1\"){",
+											"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R1\");",
+											"            }",
+											"            if (jstring[i][\"node-id\"]===\"R2\"){",
+											"                pm.expect(jstring[i][\"node-id\"]).to.eql(\"R2\");",
+											"            }",
+											"        }",
+											"});",
+											"",
+											"tests[\"Body matches string: R1\"] = responseBody.has(\"R1\");",
+											"",
+											"tests[\"Body matches string: R2\"] = responseBody.has(\"R2\");"
+										]
 									}
 								}
 							],
 							"request": {
-								"method": "DELETE",
+								"method": "GET",
 								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
 									},
 									{
-										"key": "Accept",
+										"key": "Content-Type",
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R1/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/snapshot1",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -392,30 +398,83 @@
 										"config",
 										"network-topology:network-topology",
 										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R1",
-										"yang-ext:mount",
-										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
-										"interface-configuration",
-										"act",
-										"Loopback123"
+										"snapshot1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "XR6 Delete snapshot Teardown",
+					"item": [
+						{
+							"name": "uninstall R1 netconf",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"R1\",\n        \"connection-type\": \"netconf\"\n    }\n}"
+								},
+								"url": {
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:uninstall-node",
+									"protocol": "http",
+									"host": [
+										"{{odl_ip}}"
+									],
+									"port": "8181",
+									"path": [
+										"restconf",
+										"operations",
+										"connection-manager:uninstall-node"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "delete loopback from R2",
+							"name": "uninstall R2 netconf",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"console.log(\"Response: \" + responseBody)",
-											"",
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Validate complete\", function() {",
+											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
 											"});"
 										],
 										"type": "text/javascript"
@@ -423,15 +482,15 @@
 								}
 							],
 							"request": {
-								"method": "DELETE",
+								"method": "POST",
 								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
 									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
 									},
 									{
 										"key": "Accept",
@@ -440,10 +499,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": ""
+									"raw": "{\n    \"input\": {\n        \"node-id\": \"R2\",\n        \"connection-type\": \"netconf\"\n    }\n}"
 								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R2/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
+									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:uninstall-node",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -451,17 +510,8 @@
 									"port": "8181",
 									"path": [
 										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R2",
-										"yang-ext:mount",
-										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
-										"interface-configuration",
-										"act",
-										"Loopback123"
+										"operations",
+										"connection-manager:uninstall-node"
 									]
 								}
 							},
@@ -516,45 +566,32 @@
 							"response": []
 						},
 						{
-							"name": "show deleted loopback from R1",
+							"name": "check nonexisting snapshot 1",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
+										"type": "text/javascript",
 										"exec": [
+											"console.log(\"Response: \" + responseBody);",
+											"",
 											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
+											"    pm.response.to.have.status(404);",
 											"});"
-										],
-										"type": "text/javascript"
+										]
 									}
 								}
 							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
 							"request": {
 								"method": "GET",
 								"header": [
 									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
 										"key": "Authorization",
 										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R1/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
+									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/snapshot1/node/R1",
 									"protocol": "http",
 									"host": [
 										"{{odl_ip}}"
@@ -565,185 +602,9 @@
 										"config",
 										"network-topology:network-topology",
 										"topology",
-										"{{topology_id_netconf}}",
+										"snapshot1",
 										"node",
-										"R1",
-										"yang-ext:mount",
-										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
-										"interface-configuration",
-										"act",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "show deleted loopback from R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Success\", function () {",
-											"    pm.expect(pm.response.code).to.be.oneOf([404,200]);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/config/network-topology:network-topology/topology/{{topology_id_netconf}}/node/R2/yang-ext:mount/Cisco-IOS-XR-ifmgr-cfg:interface-configurations/interface-configuration/act/Loopback123",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"config",
-										"network-topology:network-topology",
-										"topology",
-										"{{topology_id_netconf}}",
-										"node",
-										"R2",
-										"yang-ext:mount",
-										"Cisco-IOS-XR-ifmgr-cfg:interface-configurations",
-										"interface-configuration",
-										"act",
-										"Loopback123"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "uninstall XR6 cli R1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate complete\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"input\": {\n        \"node-id\": \"R1\",\n        \"connection-type\": \"netconf\"\n    }\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:uninstall-node",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"connection-manager:uninstall-node"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "uninstall XR5 cli R2",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"pm.test(\"Validate complete\", function() {",
-											"  pm.expect(pm.response.json()[\"output\"][\"status\"]).to.eql(postman.getEnvironmentVariable(\"operations_result_complete\"));",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Basic YWRtaW46YWRtaW4="
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									},
-									{
-										"key": "Accept",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"input\": {\n        \"node-id\": \"R2\",\n        \"connection-type\": \"netconf\"\n    }\n}"
-								},
-								"url": {
-									"raw": "http://{{odl_ip}}:8181/restconf/operations/connection-manager:uninstall-node",
-									"protocol": "http",
-									"host": [
-										"{{odl_ip}}"
-									],
-									"port": "8181",
-									"path": [
-										"restconf",
-										"operations",
-										"connection-manager:uninstall-node"
+										"R1"
 									]
 								}
 							},
